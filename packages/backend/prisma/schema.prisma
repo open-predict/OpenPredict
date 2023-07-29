@@ -1,0 +1,153 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+        provider   = "prisma-client-js"
+        engineType = "binary"
+}
+
+datasource db {
+        provider = "postgresql"
+        url      = env("DATABASE_URL")
+}
+
+//model SolTransaction {
+//	Instructions SolInstruction[]
+//	Accounts     SolTransactionAccount[]
+
+//	id Bytes @id
+
+//	slot      Int
+//	blockTime Int
+//}
+
+//model SolTransactionAccount {
+//	transactionId Bytes
+//	index         Int
+
+//	pubkey   Bytes
+//	writable Boolean
+//	signed   Boolean
+
+//	Transaction     SolTransaction             @relation(fields: [transactionId], references: [id])
+//	InstructionRefs SolInstructionAccountRef[]
+
+//	@@id([transactionId, index])
+//	@@unique([transactionId, pubkey])
+//}
+
+//model SolInstruction {
+//	Transaction SolTransaction @relation(fields: [transactionId], references: [id])
+
+//	transactionId Bytes
+//	index         Int
+
+//	programId Bytes
+//	data      Bytes
+
+//	accountRefs SolInstructionAccountRef[]
+
+//	@@id([transactionId, index])
+//}
+
+//model SolInstructionAccountRef {
+//	Instruction SolInstruction        @relation(fields: [transactionId, transactionInstructionIndex], references: [transactionId, index])
+//	Account     SolTransactionAccount @relation(fields: [transactionId, transactionAccountIndex], references: [transactionId, index])
+
+//	transactionId               Bytes
+//	transactionInstructionIndex Int
+//	transactionAccountIndex     Int
+//	index                       Int
+
+//	@@id([transactionId, transactionInstructionIndex, index])
+//}
+
+model Cookies {
+        sessionId     String @id @default(uuid())
+        sessionSecret String
+        userKey       Bytes
+}
+
+model MarketTrade {
+        txId          Bytes
+        instructionNo Int
+
+        slot          Int
+        blockTime     Int
+        retrievalTime DateTime
+
+        ammAddress Bytes
+        market     MarketData @relation(fields: [ammAddress], references: [ammAddress])
+
+        userKey Bytes
+
+        microUSDC      BigInt
+        direction      Boolean
+        expectedShares BigInt
+        drift          BigInt
+
+        @@id([txId, instructionNo])
+        @@index(fields: [txId], type: Hash)
+        @@index(fields: [retrievalTime], type: BTree)
+        @@index(fields: [slot], type: BTree)
+        @@index(fields: [blockTime], type: BTree)
+        @@index(fields: [userKey], type: Hash)
+}
+
+model MarketLike {
+        ammAddress Bytes
+        userKey    Bytes
+        createdAt  DateTime @default(now())
+
+        @@id([ammAddress, userKey])
+}
+
+model MarketData {
+        ammAddress Bytes @id
+
+        version  Int
+        resolved Boolean?
+
+        subsidy BigInt
+        yes     BigInt
+        no      BigInt
+
+        ipfsCid     Bytes
+        operatorKey Bytes
+
+        trades MarketTrade[]
+
+        @@index(fields: [operatorKey], type: Hash)
+}
+
+model MarketDataSnapshot {
+        ammAddress    Bytes
+        retrievalTime DateTime
+
+        version  Int
+        resolved Boolean?
+
+        subsidy BigInt
+        yes     BigInt
+        no      BigInt
+
+        ipfsCid     Bytes
+        operatorKey Bytes
+
+        @@id([ammAddress, retrievalTime])
+        @@index(fields: [operatorKey], type: Hash)
+        @@index(fields: [ammAddress], type: Hash)
+        @@index(fields: [retrievalTime], type: BTree)
+}
+
+model MarketComment {
+        id         String   @id @default(uuid())
+        ammAddress Bytes
+        createdAt  DateTime @default(now())
+        userKey    Bytes
+        content    String
+
+        @@index(fields: [createdAt], type: BTree)
+        @@index(fields: [ammAddress], type: Hash)
+        @@index(fields: [userKey], type: Hash)
+}

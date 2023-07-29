@@ -1,0 +1,71 @@
+<script lang="ts">
+	import IconSearch from "@tabler/icons-svelte/dist/svelte/icons/IconSearch.svelte";
+	import { Modal, modalStore } from "$lib/modals/modalStore";
+	import ColumnLayout from "$lib/components/column_layout.svelte";
+	import MarketCardMedium from "$lib/components/market_card_medium.svelte";
+	import { PublicKey } from "@solana/web3.js";
+	import AccountSummary from "$lib/components/account_summary.svelte";
+	import { web3Workspace } from "$lib/web3Workspace";
+	import { web3Store } from "$lib/web3Store";
+	import type { TPageData } from "./+page";
+	import SuperJSON from "superjson";
+    import type { marketFulldata } from "@am/backend/types/market";
+	export let data;
+	const { searchResponse } = SuperJSON.deserialize<TPageData>(data);
+	let markets = searchResponse.markets;
+	let users = searchResponse.users;
+
+	function updateMarket(
+		i: number,
+		m: marketFulldata
+	) {
+		markets[i] = m;
+		markets = markets;
+	}
+</script>
+
+<svelte:head>
+	<title>Home</title>
+	<meta name="description" content="Prediction market" />
+</svelte:head>
+
+<ColumnLayout>
+	<button
+		slot="main-header"
+		on:click={() => modalStore.openModal(Modal.search_markets)}
+		class="w-full h-full flex items-center justify-start gap-2 rounded-full ring-1 ring-gray-200 bg-gray-50 p-4 text-gray-500"
+	>
+		<IconSearch stroke={1.7} size={18} />
+		<h2 class="text-stone-500 text-sm">Search...</h2>
+	</button>
+	<div slot="main" class="divide-y divide-gray-200">
+		<div class="divide-y divide-gray-200">
+			{#each markets as market, i}
+				<div class="bg-gray-50 hover:bg-white">
+					<a
+						href={`/${new PublicKey(
+							market.data.data.AmmAddress
+						).toBase58()}`}
+					>
+						<MarketCardMedium
+							{market}
+							creator={users.get(
+								new PublicKey(
+									market.data.data.OperatorKey
+								).toBase58()
+							) ?? undefined}
+							updateMarket={(m) => updateMarket(i, m)}
+						/>
+					</a>
+				</div>
+			{/each}
+		</div>
+	</div>
+	<div slot="right">
+		{#if $web3Store?.publicKey}
+			<div class="bg-white ring-1 rounded-3xl ring-gray-200">
+				<AccountSummary />
+			</div>
+		{/if}
+	</div>
+</ColumnLayout>

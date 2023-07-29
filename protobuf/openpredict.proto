@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package openpredict;
+
+message Instruction {
+	message InitMarket {
+		bytes cid = 1;
+		bytes amm_address = 2;
+		uint64 subsidy = 3;
+	}
+	message InitMarketAccount {
+		bytes amm_address = 1;
+	}
+	message BuyShares {
+		bytes amm_address = 1;
+		uint64 micro_usdc = 2;
+		bool direction = 3;
+		uint64 expected_amount = 4;
+		uint64 drift = 5;
+	}
+	message ResolveMarket {
+		bytes amm_address = 1;
+		bool direction = 2;
+	}
+	message RedeemShares {
+		bytes amm_address = 1;
+	}
+	message CreateAccount {
+		string username = 1;
+		bytes cid = 2;
+	}
+
+	oneof Contents {
+		InitMarket initMarket = 1;
+		InitMarketAccount initMarketAccount = 2;
+		BuyShares buyShares = 3;
+		ResolveMarket resolveMarket = 4;
+		RedeemShares redeemShares = 5;
+		CreateAccount createAccount = 6;
+	}
+}
+
+message MarketData {
+	message V1 {
+		uint64 yes = 1;
+		uint64 no = 2;
+		uint64 subsidy = 3;
+
+		bytes cid = 4;
+		bytes amm_address = 5;
+		bytes user_key = 6;
+	}
+	
+	oneof Contents {
+		V1 v1 = 1;
+	}
+}
+
+message MarketUserData {
+	message V1 {
+		bytes user_key = 1;
+		sint64 shares = 2;
+	}
+	
+	oneof Contents {
+		V1 v1 = 1;
+	}
+}
+
+message UserProfileData {
+	message V1 {
+		bytes cid = 1;
+		string username = 2;
+	}
+	
+	oneof Contents {
+		V1 v1 = 1;
+	}
+}
