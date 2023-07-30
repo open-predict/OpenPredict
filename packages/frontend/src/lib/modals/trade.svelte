@@ -322,7 +322,7 @@
             {/if}
             <div class="p-4 text-sm flex justify-between items-center">
                 {#if buying}
-                    <span class="text-gray-500">Expected shares</span>
+                    <span class="text-gray-500">New Shares</span>
                     <span class="text-black">
                         {(Number(expectedShares) / USDC_PER_DOLLAR).toFixed(2)}
                     </span>
@@ -355,8 +355,8 @@
                         >{`+ ${usdFormatter.format(
                             Number(
                                 (BigInt(expectedShares) - BigInt(microUsd)) /
-                                    1000n
-                            ) / 100
+                                    1000000n
+                            )
                         )}`}</span
                     >
                 </div>
