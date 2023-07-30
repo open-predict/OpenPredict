@@ -24,7 +24,7 @@
     import { page } from "$app/stores";
     import CopyButton from "$lib/elements/copy_button.svelte";
     import LoadingOverlay from "$lib/components/loading_overlay.svelte";
-    import { debounce } from "lodash";
+    import debounce from "lodash/debounce.js";
 
     export let data;
     let { profile, markets, id, positions } =
