@@ -355,8 +355,8 @@
                         >{`+ ${usdFormatter.format(
                             Number(
                                 (BigInt(expectedShares) - BigInt(microUsd)) /
-                                    1000000n
-                            )
+                                    10000n
+                            ) / 100
                         )}`}</span
                     >
                 </div>
