@@ -5,7 +5,8 @@
     import IconBack from "@tabler/icons-svelte/dist/svelte/icons/IconArrowLeft.svelte";
     import IconWallet from "@tabler/icons-svelte/dist/svelte/icons/IconWallet.svelte";
     import IconSearch from "@tabler/icons-svelte/dist/svelte/icons/IconSearch.svelte";
-    import IconSettings from "@tabler/icons-svelte/dist/svelte/icons/IconSettings.svelte";
+    import IconGithub from "@tabler/icons-svelte/dist/svelte/icons/IconBrandGithub.svelte";
+    import IconDiscord from "@tabler/icons-svelte/dist/svelte/icons/IconBrandDiscord.svelte";
     import IconPencil from "@tabler/icons-svelte/dist/svelte/icons/IconEditCircle.svelte";
     import UserButton from "./user_button.svelte";
     import Login from "./login.svelte";
@@ -37,12 +38,11 @@
     id="column_layout_root"
     class="absolute top-0 bottom-0 right-0 left-0 grid md:grid-cols-11 lg:grid-cols-12 xl:grid-cols-10 items-stretch"
 >
-
     <!-- left column -->
     <header
         class="sticky top-0 hidden md:block md:col-span-1 lg:col-span-3 xl:col-span-3"
     >
-        <div class="sticky top-0 ml-auto max-w-sm pb-40">
+        <div class="sticky top-0 ml-auto max-w-sm max-h-[calc(100%-48px)] h-full">
             <!-- desktop navigation -->
             <a
                 href="/"
@@ -60,42 +60,52 @@
                     BETA
                 </span>
             </a>
-            <div>
-                <div class="px-2 lg:px-4 xl:pr-8">
-                    <div
-                        class="flex rounded-3xl p-4 flex-col justify-center items-center gap-8 lg:gap-4 bg-white ring-1 ring-gray-200"
-                    >
-                        {#each links as link}
-                            <NavItem LinkDef={link} />
-                        {/each}
-                        {#if !creatingMarket}
-                            <button
-                                on:click={() =>
-                                    goto(
-                                        "/drafts/" + draftsStore.createDraft()
-                                    )}
-                                class={`btn_primary h-12 hidden lg:flex w-full`}
-                            >
-                                Create market
-                            </button>
-                            <button
-                                on:click={() =>
-                                    goto(
-                                        "/drafts/" + draftsStore.createDraft()
-                                    )}
-                                class="lg:hidden rounded-full flex flex-col justify-center items-center text-gray-500"
-                            >
-                                <div
-                                    class="p-1 bg-black rounded-full text-white"
-                                >
-                                    <IconPlus size={30} />
-                                </div>
-                            </button>
-                        {/if}
-                    </div>
+            <div class="flex flex-col px-2 lg:px-4 xl:pr-8 h-full max-h-[calc(100%-48px)]">
+                <div
+                    class="flex rounded-3xl p-4 flex-col justify-center items-center gap-8 lg:gap-4 bg-white ring-1 ring-gray-200"
+                >
+                    {#each links as link}
+                        <NavItem LinkDef={link} />
+                    {/each}
+                    {#if !creatingMarket}
+                        <button
+                            on:click={() =>
+                                goto("/drafts/" + draftsStore.createDraft())}
+                            class={`btn_primary h-12 hidden lg:flex w-full`}
+                        >
+                            Create market
+                        </button>
+                        <button
+                            on:click={() =>
+                                goto("/drafts/" + draftsStore.createDraft())}
+                            class="lg:hidden rounded-full flex flex-col justify-center items-center text-gray-500"
+                        >
+                            <div class="p-1 bg-black rounded-full text-white">
+                                <IconPlus size={30} />
+                            </div>
+                        </button>
+                    {/if}
                 </div>
-                <div class="pr-8 py-4 pl-4 text-xs overflow-clip" />
+                <div
+                    class="flex rounded-3xl p-4 flex-col justify-center items-center gap-8 lg:gap-4  mt-auto"
+                >
+                    <NavItem
+                        LinkDef={{
+                            name: "Discord",
+                            href: `https://discord.gg/k7NymNAS7h`,
+                            Icon: IconDiscord,
+                        }}
+                    />
+                    <NavItem
+                        LinkDef={{
+                            name: "Github",
+                            href: `https://github.com/open-predict/OpenPredict`,
+                            Icon: IconGithub,
+                        }}
+                    />
+                </div>
             </div>
+            <div class="pr-8 py-4 pl-4 text-xs overflow-clip" />
         </div>
         <slot name="left" />
     </header>
@@ -122,7 +132,9 @@
 
         <!-- main header -->
         <div
-            class={`sticky flex whitespace-nowrap justify-center items-center top-0 z-10 h-16 py-3.5 px-4 gap-4 w-full overflow-hidden border-b border-r border-l border-gray-200 ${transparentHeader ? "bg-white/10" : "bg-white/90"}`}
+            class={`sticky flex whitespace-nowrap justify-center items-center top-0 z-10 h-16 py-3.5 px-4 gap-4 w-full overflow-hidden border-b border-r border-l border-gray-200 ${
+                transparentHeader ? "bg-white/10" : "bg-white/90"
+            }`}
         >
             {#if locationSplit.length > 1 && locationSplit[1] !== ""}
                 <button
