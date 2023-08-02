@@ -14,6 +14,7 @@
 		"@prisma/client": "4.14.0",
 		"@project-serum/borsh": "^0.2.5",
 		"@solana/buffer-layout": "^4.0.1",
+		"@solana/octane-core": "https://gitpkg.now.sh/solana-labs/octane/packages/core?630a8d6afc90d2fe5aad88db2dc56c880cdbb5ad&scripts.postinstall=yarn%20install%20--ignore-scripts%20%26%26%20yarn%20run%20build",
 		"@solana/spl-token": "0.3.8",
 		"@solana/web3.js": "^1.78.0",
 		"@trpc/server": "^10.35.0",

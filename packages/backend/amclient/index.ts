@@ -153,12 +153,12 @@ export async function searchMarkets(options: {
 					ret.sort((a, b) => {
 						//TODO: Init date at market creation
 						var a_date = 0;
-						if (a.data.Trades.length > 0) {
-							a_date = a.data.Trades[a.data.Trades.length - 1].blockTime;
+						if (a.data.PriceHistory.length > 0) {
+							a_date = a.data.PriceHistory[a.data.PriceHistory.length - 1].At.getTime();
 						}
 						var b_date = 0;
-						if (b.data.Trades.length > 0) {
-							b_date = b.data.Trades[b.data.Trades.length - 1].blockTime;
+						if (b.data.PriceHistory.length > 0) {
+							b_date = b.data.PriceHistory[b.data.PriceHistory.length - 1].At.getTime();
 						}
 						return b_date - a_date;
 					});

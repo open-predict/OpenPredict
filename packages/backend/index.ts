@@ -19,6 +19,11 @@ const port = 3000;
 declare global {
 	var mainProgramId: web3.PublicKey
 	var usdcMintAddr: web3.PublicKey
+	var feePayer: web3.Keypair
+	var feeMeta: {
+		paidTxs: Set<string>
+		ipLatest: Map<string, Date>
+	}
 };
 
 // when using middleware `hostname` and `port` must be provided below
@@ -26,6 +31,11 @@ declare global {
 const start = async () => {
 	const rpcUrl = process.env.RPC_URL ?? "http://127.0.0.1:8899";
 	const dev = process.env.NODE_ENV !== 'production' || rpcUrl.includes("127.0.0.1");
+	globalThis.feePayer = web3.Keypair.fromSecretKey(Buffer.from(JSON.parse(process.env.FEE_PAYER_KEY!)))
+	globalThis.feeMeta = {
+		paidTxs: new Set(),
+		ipLatest: new Map()
+	}
 	let mainProgramId = process.env.MAIN_PROGRAM_ID;
 	let mint = process.env.USDC_MINT_ADDR;
 

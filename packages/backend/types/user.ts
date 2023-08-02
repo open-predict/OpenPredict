@@ -3,6 +3,11 @@ import {z} from "zod";
 export const usernameAvailableCheckSchemaV0 = z.object({
 	name: z.string().min(0).max(64),
 })
+
+export const payUserTransactionSchemaV0 = z.object({
+	transaction: z.string(),
+})
+
 export const userMetadataSchemaV0 = z.object({
 	version: z.number().min(0).max(0),
 	name: z.string().min(0).max(64).optional(),

@@ -1,13 +1,14 @@
 import {z} from 'zod';
 import {procedure, router} from '../trpc.js';
 import {commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata} from '../../types/market.js';
-import {TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0} from '../../types/user.js';
+import {payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0} from '../../types/user.js';
 import {getHelia, marketByAddress, searchMarkets} from '../../amclient/index.js'; import * as nodeCache from "node-cache"
 import {createHash, randomBytes} from "crypto"
 import * as web3 from "@solana/web3.js"
 import * as cookie from "cookie"
 import * as ed25519 from "@noble/ed25519"
 import * as multiformats from "multiformats"
+import * as octane from "@solana/octane-core"
 import base58 from 'bs58';
 
 declare global {
@@ -63,6 +64,60 @@ async function getUserId(opts: any) {
 }
 
 export const appRouter = router({
+	payTransactionFee: procedure.input(
+		payUserTransactionSchemaV0,
+	).query(async (opts) => {
+		//Decode transaction
+		let transaction: web3.Transaction;
+		try {
+			transaction = web3.Transaction.from(base58.decode(opts.input.transaction));
+		} catch (e) {
+			throw "Can't decode transaction: " + e
+		}
+
+		//Make sure all instructions are using our program id
+		if (transaction.instructions.some(v => !v.programId.equals(globalThis.mainProgramId))) {
+			throw "Included instruction not using our program id!"
+		}
+
+		//Make sure instructions don't access feePayer balance (& validate other metadata)
+		let signature: string
+		try {
+			await octane.core.validateInstructions(transaction, globalThis.feePayer)
+			signature = (await octane.core.validateTransaction(globalThis.chainCache.w3conn, transaction, globalThis.feePayer, 2, 10000)).signature
+		} catch (e) {
+			throw "Bad transaction: " + e
+		}
+
+		//FIXME: Better anti-ddos
+		if (globalThis.feeMeta.paidTxs.has(signature)) {
+			throw "Previously requested tx"
+		}
+		globalThis.feeMeta.paidTxs.add(signature);
+
+		//Simulate transaction to make sure it works
+		try {
+			const sim = await globalThis.chainCache.w3conn.simulateTransaction(transaction)
+			if (sim.value.err != null) {
+				throw "Transaction simulation failed: " + sim.value.err!
+			}
+		} catch (e) {
+			throw "Couldn't simulate transaction: " + e
+		}
+
+		transaction.addSignature(globalThis.feePayer.publicKey, Buffer.from(base58.decode(signature)))
+
+		const txid = await web3.sendAndConfirmRawTransaction(
+			globalThis.chainCache.w3conn,
+			transaction.serialize(),
+			{commitment: 'confirmed'}
+		);
+
+		return {
+			tx_id: txid,
+		}
+	}),
+
 	like: procedure.input(
 		likeMarketSchemaV0,
 	).query(async (opts) => {
