@@ -4,6 +4,10 @@ export const usernameAvailableCheckSchemaV0 = z.object({
 	name: z.string().min(0).max(64),
 })
 
+export const makeUsdcWalletSchemaV0 = z.object({
+	user: z.string(),
+})
+
 export const payUserTransactionSchemaV0 = z.object({
 	transaction: z.string(),
 })

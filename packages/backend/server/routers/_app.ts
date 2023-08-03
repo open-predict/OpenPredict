@@ -1,7 +1,7 @@
 import {z} from 'zod';
 import {procedure, router} from '../trpc.js';
 import {commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata} from '../../types/market.js';
-import {payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0} from '../../types/user.js';
+import {makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0} from '../../types/user.js';
 import {getHelia, marketByAddress, searchMarkets} from '../../amclient/index.js'; import * as nodeCache from "node-cache"
 import {createHash, randomBytes} from "crypto"
 import * as web3 from "@solana/web3.js"
@@ -9,6 +9,7 @@ import * as cookie from "cookie"
 import * as ed25519 from "@noble/ed25519"
 import * as multiformats from "multiformats"
 import * as octane from "@solana/octane-core"
+import * as spl from "@solana/spl-token"
 import base58 from 'bs58';
 
 declare global {
@@ -64,7 +65,18 @@ async function getUserId(opts: any) {
 }
 
 export const appRouter = router({
-	payTransactionFee: procedure.input(
+	makeUsdcWallet: procedure.input(
+		makeUsdcWalletSchemaV0,
+	).query(async (opts) => {
+		const user = new web3.PublicKey(opts.input.userKey)
+		const res = await octane.PayerUtils.createAccounts(globalThis.chainCache.w3conn, globalThis.feePayer, [{
+			address: await spl.Token.getAssociatedTokenAddress(spl.ASSOCIATED_TOKEN_PROGRAM_ID, spl.TOKEN_PROGRAM_ID, globalThis.usdcMintAddr, user),
+			mint: globalThis.usdcMintAddr,
+		}])
+		return res[0]
+	}),
+
+	sendOpenPredictTransaction: procedure.input(
 		payUserTransactionSchemaV0,
 	).query(async (opts) => {
 		//Decode transaction
@@ -89,11 +101,24 @@ export const appRouter = router({
 			throw "Bad transaction: " + e
 		}
 
-		//FIXME: Better anti-ddos
+		//FIXME (when broken): Better anti-ddos
 		if (globalThis.feeMeta.paidTxs.has(signature)) {
-			throw "Previously requested tx"
+			return {
+				error: "Transaction already requested"
+			}
 		}
 		globalThis.feeMeta.paidTxs.add(signature);
+
+		var address = opts.ctx.req.socket.remoteAddress;
+		if (address != null) {
+			var latest = globalThis.feeMeta.ipLatest.get(address)
+			if (latest != null && (new Date()).getTime() - latest.getTime() < 2) {
+				return {
+					error: "Too many requests"
+				}
+			}
+			globalThis.feeMeta.ipLatest.set(address, new Date())
+		}
 
 		//Simulate transaction to make sure it works
 		try {

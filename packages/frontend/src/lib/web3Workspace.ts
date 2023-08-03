@@ -8,25 +8,24 @@ export type TsignAndSendTxResponse = {txId: string, slot: number, error: null} |
 
 export type TWeb3Workspace = {
 
-	magic?: TMagic,
-	loginToMagic?: (email: string) => Promise<boolean>,
-	logout: () => Promise<void>,
+  magic?: TMagic,
+  loginToMagic?: (email: string) => Promise<boolean>,
+  logout: () => Promise<void>,
 
-	refreshBalances: () => Promise<void>,
-	refreshKeys: () => Promise<void>,
-	requestSol?: () => void,
+  refreshBalances: () => Promise<void>,
+  refreshKeys: () => Promise<void>,
+  requestSol?: () => void,
 
-	signTransaction: (transaction: TransactionInstruction[]) => Promise<{id?: string; error?: Errors | Error, signedTx?: VersionedTransaction | Transaction}>,
-	sendTransaction: (txId: string, signedTx: VersionedTransaction | Transaction) => Promise<{id?: string; error?: Errors | Error}>,
-	confirmTransaction: (id: string) => Promise<{slot?: number, txError?: TransactionError, error?: Errors | Error}>,
-	handleTransaction: (
-		instructions: TransactionInstruction[],
-		onStatus?: (status: TxStatus) => void,
-		onComplete?: (slot: number, hash: string) => void,
-		onError?: (e: Error | Errors) => void,
-		microUsdcToSwap?: number,
-	) => void,
-	makeAuthenticatedRequest: (request: () => Promise<boolean>) => Promise<boolean>
+  signTransaction: (transaction: TransactionInstruction[]) => Promise<{id?: string; error?: Errors | Error, signedTx?: VersionedTransaction | Transaction}>,
+  sendTransaction: (txId: string, signedTx: VersionedTransaction | Transaction) => Promise<{id?: string; error?: Errors | Error}>,
+  confirmTransaction: (id: string) => Promise<{slot?: number, txError?: TransactionError, error?: Errors | Error}>,
+  handleTransaction: (
+    instructions: TransactionInstruction[],
+    onStatus?: (status: TxStatus) => void,
+    onComplete?: (slot: number, hash: string) => void,
+    onError?: (e: Error | Errors) => void,
+  ) => void,
+  makeAuthenticatedRequest: (request: () => Promise<boolean>) => Promise<boolean>
 
 };
 

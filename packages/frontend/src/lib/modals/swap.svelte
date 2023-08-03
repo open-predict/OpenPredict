@@ -8,22 +8,11 @@
   } from "@rgossiaux/svelte-headlessui";
   import { web3Workspace } from "$lib/web3Workspace";
   import { web3Store } from "$lib/web3Store";
-  import {
-    TxStatus,
-    USDC_PER_DOLLAR,
-    swapCoinsInstructions,
-    usdFormatter,
-  } from "$lib/utils";
+  import { TxStatus, USDC_PER_DOLLAR, usdFormatter } from "$lib/utils";
   import createConnection from "$lib/createConnection";
-  import { PublicKey } from "@solana/web3.js";
-  import * as web3spl from "@solana/spl-token";
-  import {
-    PUBLIC_SOLANA_RPC_URL,
-    PUBLIC_USDC_MINT_ADDR,
-  } from "$env/static/public";
-  import IconLoader from "@tabler/icons-svelte/dist/svelte/icons/IconLoader.svelte";
   import IconX from "@tabler/icons-svelte/dist/svelte/icons/IconX.svelte";
   import LoadingOverlay from "$lib/components/loading_overlay.svelte";
+  import { trpcc } from "$lib/trpc";
 
   let microUsdc = 0;
 
@@ -32,96 +21,52 @@
   let completedMessage = "";
 
   async function createUsdcTokenAccount() {
-    const connection = createConnection();
     const publicKey = $web3Store?.publicKey;
-    const usdcMintAddr = new PublicKey(PUBLIC_USDC_MINT_ADDR);
-    if (publicKey && connection) {
-      loadingMessage = "Preparing instructions...";
-      const associatedTokenAddress = await web3spl.getAssociatedTokenAddress(
-        usdcMintAddr,
-        publicKey,
-        false
-      );
-      const instruction = web3spl.createAssociatedTokenAccountInstruction(
-        publicKey,
-        associatedTokenAddress,
-        publicKey,
-        usdcMintAddr
-      );
-      $web3Workspace.handleTransaction(
-        [instruction],
-        (s) => {
-          switch (s) {
-            case TxStatus.SWAPPING:
-              loadingMessage = "Preparing SOL-USDC swap...";
-              break;
-            case TxStatus.SIGNING:
-              loadingMessage = "Waiting for signature...";
-              break;
-            case TxStatus.SENDING:
-              loadingMessage = "Sending transaction...";
-              break;
-            case TxStatus.CONFIRMING:
-              loadingMessage = "Confirming transaction...";
-              break;
-          }
-        },
-        async () => {
-          await $web3Workspace.refreshKeys();
-          await $web3Workspace.refreshBalances();
-          loadingMessage = "";
-          completedMessage = "Created account!";
-        },
-        (e) => {
-          if (e instanceof Error) {
-            errorMessage = e.message;
-          } else {
-            errorMessage = "Couldn't create the token account: " + e;
-          }
-        },
-        undefined
-      );
-    }
+    await trpcc.makeUsdcWallet.query({
+      user: publicKey!.toString(),
+    });
   }
 
   async function executeSwap() {
-    const connection = createConnection();
-    const publicKey = $web3Store?.publicKey;
-    if (publicKey && connection) {
-      $web3Workspace.handleTransaction(
-        [],
-        (s) => {
-          switch (s) {
-            case TxStatus.SWAPPING:
-              loadingMessage = "Preparing SOL-USDC swap...";
-              break;
-            case TxStatus.SIGNING:
-              loadingMessage = "Waiting for signature...";
-              break;
-            case TxStatus.SENDING:
-              loadingMessage = "Sending transaction...";
-              break;
-            case TxStatus.CONFIRMING:
-              loadingMessage = "Confirming transaction...";
-              break;
-          }
-        },
-        async () => {
-          await $web3Workspace.refreshKeys();
-          await $web3Workspace.refreshBalances();
-          loadingMessage = "";
-          completedMessage = "Completed swap!";
-        },
-        (e) => {
-          if (e instanceof Error) {
-            errorMessage = e.message;
-          } else {
-            errorMessage = "Couldn't execute swap account: " + e;
-          }
-        },
-        microUsdc
-      );
-    }
+    alert("no longer available");
+    return;
+    //const connection = createConnection();
+    //const publicKey = $web3Store?.publicKey;
+    //if (publicKey && connection) {
+    //  $web3Workspace.handleTransaction(
+    //    [],
+    //    (s) => {
+    //      switch (s) {
+    //        case TxStatus.SWAPPING:
+    //          loadingMessage = "Preparing SOL-USDC swap...";
+    //          break;
+    //        case TxStatus.SIGNING:
+    //          loadingMessage = "Waiting for signature...";
+    //          break;
+    //        case TxStatus.SENDING:
+    //          loadingMessage = "Sending transaction...";
+    //          break;
+    //        case TxStatus.CONFIRMING:
+    //          loadingMessage = "Confirming transaction...";
+    //          break;
+    //      }
+    //    },
+    //    async () => {
+    //      await $web3Workspace.refreshKeys();
+    //      await $web3Workspace.refreshBalances();
+    //      loadingMessage = "";
+    //      completedMessage = "Completed swap!";
+    //    },
+    //    (e) => {
+    //      if (e instanceof Error) {
+    //        errorMessage = e.message;
+    //      } else {
+    //        errorMessage = "Couldn't execute swap account: " + e;
+    //      }
+    //    },
+    //    microUsdc
+    //  );
+    //}
   }
 </script>
 
