@@ -11,7 +11,6 @@ import * as ed25519 from "@noble/ed25519"
 import * as multiformats from "multiformats"
 import * as spl from "@solana/spl-token"
 import base58 from 'bs58';
-import * as octane from "../../octane/index.js";
 
 declare global {
   var loginChallengeCache: nodeCache
@@ -65,6 +64,101 @@ async function getUserId(opts: any) {
   }
 }
 
+type CreateAccountResult = {
+  error: Error;
+} | {
+  address: web3.PublicKey;
+  mint: web3.PublicKey;
+}
+
+export async function createAccounts(
+  connection: web3.Connection,
+  feePayer: web3.Keypair,
+  accounts: {
+    address: web3.PublicKey;
+    mint: web3.PublicKey;
+  }[]
+): Promise<CreateAccountResult[]> {
+  let results: CreateAccountResult[] = [];
+
+  for (const account of accounts) {
+    let error: Error | null = null;
+    try {
+      await spl.createAssociatedTokenAccount(
+        connection,
+        feePayer,
+        account.mint,
+        feePayer.publicKey,
+      );
+    } catch (e) {
+      error = e as Error;
+    }
+
+    if (error) {
+      results.push({error})
+    } else {
+      results.push({...account})
+    }
+  }
+
+  return results;
+}
+
+// Check that a transaction is basically valid, sign it, and serialize it, verifying the signatures
+// This function doesn't check if payer fee was transferred (instead, use validateTransfer) or
+// instruction signatures do not include fee payer as a writable account (instead, use validateInstructions).
+export async function validateTransaction(
+  connection: web3.Connection,
+  transaction: web3.Transaction,
+  feePayer: web3.Keypair,
+  maxSignatures: number,
+  lamportsPerSignature: number
+): Promise<{signature: web3.TransactionSignature; rawTransaction: Buffer}> {
+  // Check the fee payer and blockhash for basic validity
+  if (!transaction.feePayer?.equals(feePayer.publicKey)) throw new Error('invalid fee payer');
+  if (!transaction.recentBlockhash) throw new Error('missing recent blockhash');
+
+  // TODO: handle nonce accounts?
+
+  // Check Octane's RPC node for the blockhash to make sure it's synced and the fee is reasonable
+  const feeCalculator = await connection.getFeeCalculatorForBlockhash(transaction.recentBlockhash);
+  if (!feeCalculator.value) throw new Error('blockhash not found');
+  if (feeCalculator.value.lamportsPerSignature > lamportsPerSignature) throw new Error('fee too high');
+
+  // Check the signatures for length, the primary signature, and secondary signature(s)
+  if (!transaction.signatures.length) throw new Error('no signatures');
+  if (transaction.signatures.length > maxSignatures) throw new Error('too many signatures');
+
+  const [primary, ...secondary] = transaction.signatures;
+  if (!primary.publicKey.equals(feePayer.publicKey)) throw new Error('invalid fee payer pubkey');
+  if (primary.signature) throw new Error('invalid fee payer signature');
+
+  for (const signature of secondary) {
+    if (!signature.publicKey) throw new Error('missing public key');
+    if (!signature.signature) throw new Error('missing signature');
+  }
+
+  // Add the fee payer signature
+  transaction.partialSign(feePayer);
+
+  // Serialize the transaction, verifying the signatures
+  const rawTransaction = transaction.serialize();
+
+  // Return the primary signature (aka txid) and serialized transaction
+  return {signature: base58.encode(transaction.signature!), rawTransaction};
+}
+
+// Prevent draining by making sure that the fee payer isn't provided as writable or a signer to any instruction.
+// Throws an error if transaction contain instructions that could potentially drain fee payer.
+async function validateInstructions(transaction: web3.Transaction, feePayer: web3.Keypair): Promise<void> {
+  for (const instruction of transaction.instructions) {
+    for (const key of instruction.keys) {
+      if ((key.isWritable || key.isSigner) && key.pubkey.equals(feePayer.publicKey))
+        throw new Error('invalid account');
+    }
+  }
+}
+
 export const appRouter = router({
   makeUsdcWallet: procedure.input(
     makeUsdcWalletSchemaV0,
@@ -96,8 +190,8 @@ export const appRouter = router({
     //Make sure instructions don't access feePayer balance (& validate other metadata)
     let signature: string
     try {
-      await octane.core.validateInstructions(transaction, globalThis.feePayer)
-      signature = (await octane.core.validateTransaction(globalThis.chainCache.w3conn, transaction, globalThis.feePayer, 2, 10000)).signature
+      await validateInstructions(transaction, globalThis.feePayer)
+      signature = (await validateTransaction(globalThis.chainCache.w3conn, transaction, globalThis.feePayer, 2, 10000)).signature
     } catch (e) {
       throw "Bad transaction: " + e
     }
