@@ -8,9 +8,9 @@ import * as web3 from "@solana/web3.js"
 import * as cookie from "cookie"
 import * as ed25519 from "@noble/ed25519"
 import * as multiformats from "multiformats"
-import * as octane from "@solana/octane-core"
 import * as spl from "@solana/spl-token"
 import base58 from 'bs58';
+import * as octane from "../../octane/index.js";
 
 declare global {
   var loginChallengeCache: nodeCache
@@ -70,7 +70,7 @@ export const appRouter = router({
   ).query(async (opts) => {
     const user = new web3.PublicKey(opts.input.user)
     const res = await octane.PayerUtils.createAccounts(globalThis.chainCache.w3conn, globalThis.feePayer, [{
-      address: await spl.Token.getAssociatedTokenAddress(spl.ASSOCIATED_TOKEN_PROGRAM_ID, spl.TOKEN_PROGRAM_ID, globalThis.usdcMintAddr, user),
+      address: await spl.getAssociatedTokenAddress(globalThis.usdcMintAddr, user),
       mint: globalThis.usdcMintAddr,
     }])
     return res[0]
