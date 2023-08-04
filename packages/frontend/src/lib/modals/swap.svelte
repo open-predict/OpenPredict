@@ -22,9 +22,15 @@
 
   async function createUsdcTokenAccount() {
     const publicKey = $web3Store?.publicKey;
-    await trpcc.makeUsdcWallet.query({
+    const res = await trpcc.makeUsdcWallet.query({
       user: publicKey!.toString(),
     });
+    console.log(res);
+    if(res.error){
+      alert(res.error)
+    } else {
+      await $web3Workspace.refreshKeys()
+    }
   }
 
   async function executeSwap() {

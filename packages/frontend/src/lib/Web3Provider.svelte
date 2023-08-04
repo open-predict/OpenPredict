@@ -285,6 +285,7 @@
     onComplete?: (slot: number, hash: string) => void,
     onError?: (e: Error | Errors) => void
   ) {
+
     if (!onStatus) onStatus = (s) => console.log("tx status", s);
     if (!onComplete) onComplete = () => console.log("tx complete");
     if (!onError) onError = (e) => alert(e);
@@ -309,6 +310,7 @@
         signedTx,
         error: signTxError,
       } = await signTransaction(instructions);
+
       if (signTxError || !signTxId || !signedTx) {
         onError(signTxError ?? new Error("Unable to sign transaction."));
         return;
@@ -316,16 +318,18 @@
 
       onStatus(TxStatus.SENDING);
 
-      const { error } = await trpcc.sendOpenPredictTransaction.query({
+      const {error, tx_id} = await trpcc.sendOpenPredictTransaction.query({
         transaction: signedTx.toString(),
       });
-      if (error) {
+
+      if (error || !tx_id) {
         onError(new Error("Unable to send transaction: " + error!));
         return;
       }
 
       onStatus(TxStatus.COMPLETE);
-      onComplete(slot, sendTxId);
+      onComplete(1, tx_id);
+
     } catch (e: any) {
       console.error(e);
       if (e instanceof Error) {
