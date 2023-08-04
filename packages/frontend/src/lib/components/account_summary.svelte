@@ -70,7 +70,6 @@
     <div class="flex flex-col gap-2">
         <div class="flex justify-between items-center">
             <p class="text-xs font-semibold">Balances</p>
-            {#if $web3Store.sol}
                 <button
                     on:click={() => {
                         modalStore.closeModal(Modal.account_summary)
@@ -80,7 +79,6 @@
                 >
                     Swap
                 </button>
-            {/if}
         </div>
         <div class="divide-y divide-gray-200 text-sm">
             <div />

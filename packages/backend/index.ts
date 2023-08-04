@@ -1,15 +1,16 @@
 // server.js
-import {createHTTPServer} from '@trpc/server/adapters/standalone';
+import { createHTTPServer } from '@trpc/server/adapters/standalone';
 import * as spl from "@solana/spl-token"
 import * as web3 from "@solana/web3.js"
-import {promisify} from "util";
+import { promisify } from "util";
 import cors from "cors"
-import {exec} from "child_process"
-import {startMaintainingAccountState} from "./amclient/globals.js";
-import {appRouter} from './server/routers/_app.js';
-import {createContext} from './server/trpc.js';
-import {getHelia} from './amclient/index.js';
-import {webcrypto} from 'node:crypto';
+import { exec } from "child_process"
+import { startMaintainingAccountState } from "./amclient/globals.js";
+import { appRouter } from './server/routers/_app.js';
+import { createContext } from './server/trpc.js';
+import { getHelia } from './amclient/index.js';
+import { webcrypto } from 'node:crypto';
+import { readFile } from 'fs/promises';
 
 // @ts-ignore
 if (!globalThis.crypto) globalThis.crypto = webcrypto
@@ -31,7 +32,7 @@ declare global {
 const start = async () => {
 	const rpcUrl = process.env.RPC_URL ?? "http://127.0.0.1:8899";
 	const dev = process.env.NODE_ENV !== 'production' || rpcUrl.includes("127.0.0.1");
-	globalThis.feePayer = web3.Keypair.fromSecretKey(Buffer.from(JSON.parse(process.env.FEE_PAYER_KEY!)))
+	if(process.env.FEE_PAYER_KEY) globalThis.feePayer = web3.Keypair.fromSecretKey(Buffer.from(JSON.parse(process.env.FEE_PAYER_KEY)));
 	globalThis.feeMeta = {
 		paidTxs: new Set(),
 		ipLatest: new Map()
@@ -41,10 +42,11 @@ const start = async () => {
 
 	const isLocalRPC = rpcUrl.includes("127.0.0.1") || rpcUrl.includes("localhost");
 	if (dev && isLocalRPC) {
-		const {mint: _mint, mainProgramId: _mainProgramId} = await setupLocalEnvironment(rpcUrl);
+		const { mint: _mint, mainProgramId: _mainProgramId, feePayerKey: _feePayerKey } = await setupLocalEnvironment(rpcUrl);
 		if (_mint && _mainProgramId) {
 			mint = _mint;
 			mainProgramId = _mainProgramId
+			if (_feePayerKey) globalThis.feePayer = _feePayerKey;
 			console.log("[prebuild] > inserted newly generated env vars")
 		} else {
 			throw new Error("local deployment broken, check logs");
@@ -86,6 +88,7 @@ async function setupLocalEnvironment(rpcUrl: string) {
 	let tokenAccount = "";
 	let mint = "";
 	let mainProgramId = "";
+	let feePayerKey: web3.Keypair | undefined;
 	let redeploy = true;
 
 	// find existing spl-token accounts
@@ -113,8 +116,8 @@ async function setupLocalEnvironment(rpcUrl: string) {
 	console.log(`[prebuild] > Token Account: ${tokenAccount}\n[prebuild] > Mint: ${mint}\n[prebuild] > Redeploying: ${redeploy}`)
 
 	if (redeploy) {
-		await promisify(exec)('cargo build-sbf', {cwd: "./contracts", env: {...process.env, "USDC_MINT_AUTH_ADDR": mint, "USDC_PROGRAM_ADDR": spl.TOKEN_PROGRAM_ID.toString()}},);
-		const deployOutput = JSON.parse((await promisify(exec)(`solana program deploy ./target/deploy/openpredict.so -u ${rpcUrl} --output json`, {cwd: "./contracts"})).stdout)
+		await promisify(exec)('cargo build-sbf', { cwd: "./contracts", env: { ...process.env, "USDC_MINT_AUTH_ADDR": mint, "USDC_PROGRAM_ADDR": spl.TOKEN_PROGRAM_ID.toString() } },);
+		const deployOutput = JSON.parse((await promisify(exec)(`solana program deploy ./target/deploy/openpredict.so -u ${rpcUrl} --output json`, { cwd: "./contracts" })).stdout)
 		mainProgramId = deployOutput['programId']
 	} else {
 		const programShowOutput = JSON.parse((await promisify(exec)(`solana program show --programs --output json`)).stdout);
@@ -124,10 +127,39 @@ async function setupLocalEnvironment(rpcUrl: string) {
 
 	console.log(`[prebuild] > Main Program Id: ${mainProgramId}`)
 
+	async function setFeePayerFromFile() {
+		try {
+			const _feePayerKey = await readFile("fee_payer.json", 'utf-8').catch((e) => {
+				return undefined;
+			})
+			if (_feePayerKey) {
+				feePayerKey = web3.Keypair.fromSecretKey(new Uint8Array(JSON.parse(_feePayerKey)))
+				return true;
+			}
+			return false;
+		} catch (e) {
+			console.error(e)
+			return false;
+		}
+	}
+
+	if (!await setFeePayerFromFile()) {
+		await promisify(exec)(`solana-keygen new --no-bip39-passphrase -o ./fee_payer.json`)
+		const created = await setFeePayerFromFile();
+		if (!created) {
+			console.error("Unable to create and save local fee payer keypair")
+		} else {
+			await promisify(exec)(`solana airdrop --keypair ./fee_payer.json 1`)
+		}
+	}
+
+	console.log(`[prebuild] > Set/Created Fee Payer: ${feePayerKey?.publicKey}`)
+
 	return {
 		mainProgramId,
 		tokenAccount,
 		mint,
+		feePayerKey
 	}
 }
 
