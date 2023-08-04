@@ -17,6 +17,7 @@
     PUBLIC_SOLANA_RPC_URL as rpcUrl,
     PUBLIC_USDC_MINT_ADDR,
     PUBLIC_MAIN_PROGRAM_ID,
+    PUBLIC_FEE_PAYER_KEY,
   } from "$env/static/public";
   import { walletStore } from "@svelte-on-solana/wallet-adapter-core";
   import * as web3spl from "@solana/spl-token";
@@ -285,7 +286,6 @@
     onComplete?: (slot: number, hash: string) => void,
     onError?: (e: Error | Errors) => void
   ) {
-
     if (!onStatus) onStatus = (s) => console.log("tx status", s);
     if (!onComplete) onComplete = () => console.log("tx complete");
     if (!onError) onError = (e) => alert(e);
@@ -318,8 +318,8 @@
 
       onStatus(TxStatus.SENDING);
 
-      const {error, tx_id} = await trpcc.sendOpenPredictTransaction.query({
-        transaction: signedTx.toString(),
+      const { error, tx_id } = await trpcc.sendOpenPredictTransaction.query({
+        transaction: base58.encode(signedTx.serialize()),
       });
 
       if (error || !tx_id) {
@@ -329,7 +329,6 @@
 
       onStatus(TxStatus.COMPLETE);
       onComplete(1, tx_id);
-
     } catch (e: any) {
       console.error(e);
       if (e instanceof Error) {
@@ -349,6 +348,7 @@
     signedTx?: VersionedTransaction | Transaction;
   }> => {
     try {
+      const payerKey = new PublicKey(PUBLIC_FEE_PAYER_KEY);
       const publicKey = $web3Store?.publicKey;
 
       if (!publicKey) return { error: Errors.LOGGED_OUT };
@@ -363,7 +363,7 @@
         const supportedVersions =
           $walletStore.wallet.supportedTransactionVersions;
         const transactionMessage = new TransactionMessage({
-          payerKey: publicKey,
+          payerKey: payerKey,
           recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
           instructions,
         });
@@ -379,6 +379,8 @@
           );
 
           const signedTx = await $walletStore.signTransaction(transaction);
+
+          log("web3", "signed tx");
 
           const txId = signedTx.signatures[0];
 
@@ -423,7 +425,7 @@
         const magicSignedTx = await magic.solana.signTransaction(
           {
             instructions,
-            feePayer: publicKey,
+            feePayer: payerKey,
             recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
           },
           serializeConfig
