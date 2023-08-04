@@ -26,7 +26,7 @@
           as="h3"
           class="text-xl font-semibold leading-6 text-gray-900"
         >
-          Fill your Solana wallet
+          Increase your balance
         </DialogTitle>
         <div class="mt-2">
           <DialogDescription
