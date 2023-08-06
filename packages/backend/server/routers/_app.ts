@@ -164,7 +164,7 @@ export const appRouter = router({
     makeUsdcWalletSchemaV0,
   ).query(async (opts) => {
     const user = new web3.PublicKey(opts.input.user)
-    const res = await octane.PayerUtils.createAccounts(globalThis.chainCache.w3conn, globalThis.feePayer, [{
+    const res = await createAccounts(globalThis.chainCache.w3conn, globalThis.feePayer, [{
       address: await spl.getAssociatedTokenAddress(globalThis.usdcMintAddr, user),
       mint: globalThis.usdcMintAddr,
     }])
