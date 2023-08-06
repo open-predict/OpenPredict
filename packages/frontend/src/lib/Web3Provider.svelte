@@ -311,7 +311,7 @@
         error: signTxError,
       } = await signTransaction(instructions);
 
-      if (signTxError || !signTxId || !signedTx) {
+      if (signTxError || !signedTx) {
         onError(signTxError ?? new Error("Unable to sign transaction."));
         return;
       }
@@ -319,7 +319,11 @@
       onStatus(TxStatus.SENDING);
 
       const { error, tx_id } = await trpcc.sendOpenPredictTransaction.query({
-        transaction: base58.encode(signedTx.serialize()),
+        transaction: base58.encode(
+          signedTx.serialize({
+            requireAllSignatures: false,
+          })
+        ),
       });
 
       if (error || !tx_id) {
@@ -345,7 +349,7 @@
   ): Promise<{
     id?: string;
     error?: Errors | Error;
-    signedTx?: VersionedTransaction | Transaction;
+    signedTx?: Transaction;
   }> => {
     try {
       const payerKey = new PublicKey(PUBLIC_FEE_PAYER_KEY);
@@ -359,55 +363,17 @@
         $walletStore.wallet &&
         $walletStore.signTransaction
       ) {
-        let transaction: VersionedTransaction | Transaction;
-        const supportedVersions =
-          $walletStore.wallet.supportedTransactionVersions;
-        const transactionMessage = new TransactionMessage({
-          payerKey: payerKey,
+        let transaction = new Transaction({
+          feePayer: payerKey,
           recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
-          instructions,
         });
-
+        transaction.add(...instructions);
         log("web3", "prompting wallet to sign a transaction");
-
-        if (supportedVersions == null || supportedVersions!.has(0)) {
-          // brave: !supportedVersions, TODO: check others
-          log("web3", "compiling to v0 message");
-
-          transaction = new VersionedTransaction(
-            transactionMessage.compileToV0Message(addressLookupTables)
-          );
-
-          const signedTx = await $walletStore.signTransaction(transaction);
-
-          log("web3", "signed tx");
-
-          const txId = signedTx.signatures[0];
-
-          return {
-            signedTx,
-            id: base58.encode(txId),
-          };
-        } else if (supportedVersions!.has("legacy")) {
-          log("web3", "compiling to legacy message");
-
-          transaction = new VersionedTransaction(
-            transactionMessage.compileToLegacyMessage()
-          );
-
-          const signedTx = await $walletStore.signTransaction(transaction);
-
-          const txId = signedTx.signatures[0];
-
-          return {
-            signedTx,
-            id: base58.encode(txId),
-          };
-        } else {
-          return {
-            error: Errors.NO_WALLET,
-          };
-        }
+        const signedTx = await $walletStore.signTransaction(transaction);
+        return {
+          signedTx,
+          id: "",
+        };
       } else {
         const magic = createMagic(rpcUrl);
         if (!magic) {
@@ -419,9 +385,7 @@
           requireAllSignatures: false,
           verifySignatures: true,
         };
-
         log("web3", "prompting magic wallet to sign a transaction");
-
         const magicSignedTx = await magic.solana.signTransaction(
           {
             instructions,
@@ -430,18 +394,10 @@
           },
           serializeConfig
         );
-
         const signedTx = Transaction.from(magicSignedTx.rawTransaction);
-        const signature =
-          signedTx.signatures && signedTx.signatures[0].signature
-            ? base58.encode(signedTx.signatures[0].signature)
-            : "";
-
-        log("web3", "signed transaction with signature", signature);
-
         return {
           signedTx,
-          id: signature,
+          id: "",
         };
       }
     } catch (e: any) {

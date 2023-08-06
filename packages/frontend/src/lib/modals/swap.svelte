@@ -26,11 +26,7 @@
       user: publicKey!.toString(),
     });
     console.log(res);
-    if(res.error){
-      alert(res.error)
-    } else {
-      await $web3Workspace.refreshKeys()
-    }
+    await $web3Workspace.refreshKeys();
   }
 
   async function executeSwap() {
