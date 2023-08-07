@@ -134,6 +134,27 @@ fn process_instruction(
         Option::None => Pubkey::from_str("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v").unwrap(),
         Option::Some(v) => Pubkey::from_str(v).unwrap(),
     };
+    let fee_payer = next_account_info(account_info_iter)?;
+    if !fee_payer.is_signer {
+        panic!("Did not supply fee payer account");
+    }
+    match option_env!("FEE_PAYER_KEY") {
+        Option::None => {
+            if fee_payer.key != user.key {
+                panic!(
+                    "Fee payer is neither the user's account nor the one the contract was compiled with"
+                );
+            }
+        }
+        Option::Some(fee_payer_key_str) => {
+            let fee_payer_key = Pubkey::from_str(fee_payer_key_str).unwrap();
+            if fee_payer.key != user.key && &fee_payer_key != user.key {
+                panic!(
+                    "Fee payer is neither the user's account nor the one the contract was compiled with"
+                );
+            }
+        }
+    };
 
     let mut reader = BytesReader::from_bytes(instruction_data);
     let instruction =
@@ -183,7 +204,7 @@ fn process_instruction(
             msg!("making amm account");
             invoke_signed(
                 &system_instruction::create_account(
-                    user.key,
+                    fee_payer.key,
                     amm_account.key,
                     rent_lamports,
                     amm_account_len.try_into().unwrap(),
@@ -219,7 +240,7 @@ fn process_instruction(
             msg!("making associated usdc token address");
             invoke(
                 &spl_associated_token_account::instruction::create_associated_token_account(
-                    &user.key,
+                    &fee_payer.key,
                     &amm_account.key,
                     &usdc_mint_authority_addr,
                     &spl_token::ID,
