@@ -145,7 +145,7 @@ async function setupLocalEnvironment(rpcUrl: string) {
   console.log(`[prebuild] > Token Account: ${tokenAccount}\n[prebuild] > Mint: ${mint}\n[prebuild] > Redeploying: ${redeploy}`)
 
   if (redeploy) {
-    await promisify(exec)('cargo build-sbf', {cwd: "./contracts", env: {...process.env, "USDC_MINT_AUTH_ADDR": mint, "USDC_PROGRAM_ADDR": spl.TOKEN_PROGRAM_ID.toString(), "FEE_PAYER_KEY": feePayerKey?.publicKey}},);
+    await promisify(exec)('cargo build-sbf', {cwd: "./contracts", env: {...process.env, "USDC_MINT_AUTH_ADDR": mint, "USDC_PROGRAM_ADDR": spl.TOKEN_PROGRAM_ID.toString(), "FEE_PAYER_KEY": feePayerKey?.publicKey.toString()}},);
     const deployOutput = JSON.parse((await promisify(exec)(`solana program deploy ./target/deploy/openpredict.so -u ${rpcUrl} --output json`, {cwd: "./contracts"})).stdout)
     mainProgramId = deployOutput['programId']
   } else {
