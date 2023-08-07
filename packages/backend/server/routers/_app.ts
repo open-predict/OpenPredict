@@ -1,10 +1,10 @@
-import {z} from 'zod';
-import {procedure, router} from '../trpc.js';
-import {commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata} from '../../types/market.js';
-import {makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0} from '../../types/user.js';
-import {getHelia, marketByAddress, searchMarkets} from '../../amclient/index.js';
+import { z } from 'zod';
+import { procedure, router } from '../trpc.js';
+import { commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata } from '../../types/market.js';
+import { makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0 } from '../../types/user.js';
+import { getHelia, marketByAddress, searchMarkets } from '../../amclient/index.js';
 import * as nodeCache from "node-cache"
-import {createHash, randomBytes} from "crypto"
+import { createHash, randomBytes } from "crypto"
 import * as web3 from "@solana/web3.js"
 import * as cookie from "cookie"
 import * as ed25519 from "@noble/ed25519"
@@ -85,7 +85,7 @@ export async function createAccounts(
   for (const account of accounts) {
     let error: Error | null = null;
     try {
-      await spl.createAssociatedTokenAccount(
+      await spl.createAssociatedTokenAccountIdempotent(
         connection,
         feePayer,
         account.mint,
@@ -97,9 +97,9 @@ export async function createAccounts(
     }
 
     if (error) {
-      results.push({error})
+      results.push({ error })
     } else {
-      results.push({...account})
+      results.push({ ...account })
     }
   }
 
@@ -115,7 +115,7 @@ export async function validateTransaction(
   feePayer: web3.Keypair,
   maxSignatures: number,
   lamportsPerSignature: number
-): Promise<{signature: web3.TransactionSignature; rawTransaction: Buffer}> {
+): Promise<{ signature: web3.TransactionSignature; rawTransaction: Buffer }> {
   // Check the fee payer and blockhash for basic validity
   if (!transaction.feePayer?.equals(feePayer.publicKey)) throw new Error('invalid fee payer');
   if (!transaction.recentBlockhash) throw new Error('missing recent blockhash');
@@ -147,7 +147,7 @@ export async function validateTransaction(
   const rawTransaction = transaction.serialize();
 
   // Return the primary signature (aka txid) and serialized transaction
-  return {signature: base58.encode(transaction.signature!), rawTransaction};
+  return { signature: base58.encode(transaction.signature!), rawTransaction };
 }
 
 //TODO: This function may be insecure, idk. If it is it will only allow someone
@@ -230,6 +230,7 @@ export const appRouter = router({
     try {
       const sim = await globalThis.chainCache.w3conn.simulateTransaction(transaction)
       if (sim.value.err != null) {
+        console.error(sim.value)
         throw sim.value.err;
       }
     } catch (e) {
@@ -241,7 +242,7 @@ export const appRouter = router({
     const txid = await web3.sendAndConfirmRawTransaction(
       globalThis.chainCache.w3conn,
       transaction.serialize(),
-      {commitment: 'confirmed'}
+      { commitment: 'confirmed' }
     );
 
     return {
@@ -530,7 +531,7 @@ export const appRouter = router({
           userKey: key.toBuffer(),
         }
       })
-      opts.ctx.res.setHeader("Set-Cookie", cookie.serialize("session", JSON.stringify({"id": sessionId, "secret": cookieSecret}), {
+      opts.ctx.res.setHeader("Set-Cookie", cookie.serialize("session", JSON.stringify({ "id": sessionId, "secret": cookieSecret }), {
         secure: false,
         sameSite: "none",
         maxAge: new Date().getTime() + (10 * 365 * 24 * 60 * 60)

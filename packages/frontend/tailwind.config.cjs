@@ -1,4 +1,4 @@
-// const defaultTheme = require('tailwindcss/defaultTheme')
+const defaultTheme = require('tailwindcss/defaultTheme')
 
 /** @type {import('tailwindcss').Config}*/
 const config = {
@@ -15,10 +15,9 @@ const config = {
 
   theme: {
     extend: {
-      // fontFamily: {
-      //   'sans': ['"Open Sans"', ...defaultTheme.fontFamily.sans],
-      //   'sans-serif': ['Inter', ...defaultTheme.fontFamily.sans],
-      // },
+      fontFamily: {
+        'sans': ['Inter Variable',...defaultTheme.fontFamily.sans],
+      },
       colors: {
         // flowbite-svelte
          primary: {50:'#ebf5ff',100: '#fff1ee',200:'#ffe',300:'#ffd5cc',400:'#ffbcad',500:'#fe795d',600:'#ef562f',700:'#eb4f27',800:'#d3330a',900:'#d3330a'}
