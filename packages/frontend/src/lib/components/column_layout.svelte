@@ -36,33 +36,35 @@
 
 <div
     id="column_layout_root"
-    class="absolute top-0 bottom-0 right-0 left-0 grid md:grid-cols-11 lg:grid-cols-12 xl:grid-cols-10 items-stretch"
+    class="absolute top-0 bottom-0 right-0 left-0 grid md:grid-cols-11 lg:grid-cols-12 xl:grid-cols-10 items-stretch overflow-y-auto"
 >
     <!-- left column -->
     <header
-        class="sticky top-0 hidden md:block md:col-span-1 lg:col-span-3 xl:col-span-3"
+        class="sticky top-0 hidden md:block md:col-span-1 lg:col-span-3 xl:col-span-3 max-h-screen"
     >
-        <div class="sticky top-0 ml-auto max-w-sm max-h-[calc(100%-48px)] h-full">
+        <div class="ml-auto max-w-xs h-full">
             <!-- desktop navigation -->
             <a
                 href="/"
-                class="flex justify-center px-4 gap-2 lg:px-12 lg:pl-9 lg:justify-start items-center h-16"
+                class="flex justify-center px-2 lg:px-4 gap-2 lg:justify-start items-center h-16 border-b border-gray-200"
             >
                 <Logo />
                 <h1
-                    class="hidden lg:block text-md font-extrabold xl:text-lg text-black"
+                    class="hidden lg:block text-md font-semibold xl:text-lg text-black"
                 >
                     OpenPredict
                 </h1>
                 <span
-                    class="hidden xl:block text-xs text-gray-700 bg-white ring-1 ring-gray-400 rounded-full p-0.5 px-2 ml-auto"
+                    class="hidden xl:block text-[0.65rem] text-black bg-white ring-1 ring-neutral-300 rounded-full p-0.5 px-2 ml-auto"
                 >
                     BETA
                 </span>
             </a>
-            <div class="flex flex-col px-2 lg:px-4 xl:pr-8 h-full max-h-[calc(100%-48px)]">
+            <div
+                class="h-full max-h-[calc(100%-4rem)] flex flex-col p-2 lg:p-4 xl:pl-0"
+            >
                 <div
-                    class="flex rounded-3xl p-4 flex-col justify-center items-center gap-8 lg:gap-4 bg-white ring-1 ring-gray-200"
+                    class="flex p-4 rounded-3xl flex-col justify-center items-center gap-8 lg:gap-4 bg-white ring-1 ring-gray-200"
                 >
                     {#each links as link}
                         <NavItem LinkDef={link} />
@@ -71,7 +73,7 @@
                         <button
                             on:click={() =>
                                 goto("/drafts/" + draftsStore.createDraft())}
-                            class={`btn_primary h-12 hidden lg:flex w-full`}
+                            class={`btn_primary hidden lg:flex w-full`}
                         >
                             Create market
                         </button>
@@ -87,22 +89,26 @@
                     {/if}
                 </div>
                 <div
-                    class="flex rounded-3xl p-4 flex-col justify-center items-center gap-8 lg:gap-4  mt-auto"
+                    class="flex rounded-3xl pb-0 justify-center items-center gap-2 mt-auto"
                 >
-                    <NavItem
-                        LinkDef={{
-                            name: "Discord",
-                            href: `https://discord.gg/k7NymNAS7h`,
-                            Icon: IconDiscord,
-                        }}
-                    />
-                    <NavItem
-                        LinkDef={{
-                            name: "Github",
-                            href: `https://github.com/open-predict/OpenPredict`,
-                            Icon: IconGithub,
-                        }}
-                    />
+                    <a
+                        class="btn_secondary px-4 w-full"
+                        target="_blank"
+                        referrerpolicy="no-referrer"
+                        href="https://discord.gg/k7NymNAS7h"
+                    >
+                        <IconDiscord size={18} />
+                        Discord
+                    </a>
+                    <a
+                        class="btn_secondary px-4 w-full"
+                        href="https://github.com/open-predict/OpenPredict"
+                        target="_blank"
+                        referrerpolicy="no-referrer"
+                    >
+                        <IconGithub size={18} />
+                        Github
+                    </a>
                 </div>
             </div>
             <div class="pr-8 py-4 pl-4 text-xs overflow-clip" />
@@ -112,7 +118,7 @@
 
     <!-- center column -->
     <main
-        class={`relative col-span-12 md:col-span-6 lg:col-span-6 xl:col-span-4 bg-gray-50`}
+        class={`relative col-span-12 md:col-span-6 lg:col-span-6 xl:col-span-4`}
     >
         <!-- mobile banner -->
         {#if !$web3Store?.publicKey}
@@ -132,9 +138,7 @@
 
         <!-- main header -->
         <div
-            class={`sticky flex whitespace-nowrap justify-center items-center top-0 z-10 h-16 py-3.5 px-4 gap-4 w-full overflow-hidden border-b border-r border-l border-gray-200 ${
-                transparentHeader ? "bg-white/10" : "bg-white/90"
-            }`}
+            class={`sticky flex whitespace-nowrap justify-center items-center top-0 z-10 h-16 py-3.5 px-4 gap-4 w-full overflow-hidden border-b border-r border-l border-gray-200`}
         >
             {#if locationSplit.length > 1 && locationSplit[1] !== ""}
                 <button
@@ -215,11 +219,13 @@
     <div
         class="sticky top-0 hidden md:block md:col-span-4 lg:col-span-3 xl:col-span-3"
     >
-        <div class="sticky top-0 max-w-sm">
-            <div class="h-16 flex justify-end items-center pr-4 gap-4">
+        <div class="sticky top-0 max-w-xs">
+            <div
+                class="h-16 flex justify-end items-center pr-2 gap-4 border-b border-gray-200"
+            >
                 <UserButton />
             </div>
-            <div class="pr-4 pl-2 lg:pl-4 xl:pl-8">
+            <div class="p-2 lg:p-4 xl:pr-0">
                 {#if $web3Store?.publicKey === null}
                     <div
                         class="bg-white ring-1 rounded-2xl ring-gray-200 p-8 -mt-8 mb-4"

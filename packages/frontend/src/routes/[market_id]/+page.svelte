@@ -129,8 +129,8 @@
             </div>
         {/if}
     </div>
-    <div slot="main" class="bg-white min-h-full flex flex-col">
-        <div class="p-4 md:p-8 bg-white">
+    <div slot="main" class="min-h-full flex flex-col">
+        <div class="p-8 bg-white">
             {#if market}
                 <MarketCardLarge {market} {users} {updateMarket} />
             {/if}

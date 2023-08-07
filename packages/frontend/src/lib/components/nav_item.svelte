@@ -9,9 +9,9 @@
 
 <a
         href={LinkDef.href}
-        class={`flex justify-center lg:justify-start items-center gap-4 rounded-full w-full lg:px-4 lg:py-3 hover:bg-gray-100 ${selected ? "text-black font-semibold" : "text-gray-600"}`}
+        class={`flex justify-center lg:justify-start items-center gap-4 text-base rounded-full w-full lg:px-4 lg:py-3 hover:bg-neutral-100 text-black ${selected ? "font-bold" : ""}`}
     >
-        <LinkDef.Icon size={20} stroke={selected ? 2.5 : 2} />
+        <LinkDef.Icon size={20} stroke={selected ? 2.5 : 1.5} />
         <span class="hidden lg:block">
             {LinkDef.name}
         </span>
