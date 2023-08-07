@@ -277,64 +277,6 @@ fn process_instruction(
         }
         OneOfContents::initMarketAccount(_) => {
             //TODO: Remove this
-            /*
-            let (amm_account, _bump_seed) =
-                next_amm_account(account_info_iter, &data.amm_address, program_id, false)?;
-            let (share_account, bump_seed) = next_from_address(
-                account_info_iter,
-                &[&data.amm_address, "users".as_bytes(), user.key.as_ref()],
-                program_id,
-                Some(&system_program::ID),
-            )?;
-            if !share_account.is_writable {
-                return Err(ProgramError::InvalidAccountData);
-            }
-            let system_account =
-                next_from_pubkey(account_info_iter, &system_program::ID, &system_program::ID)?;
-
-            //Make sure this market is unresolved
-            let amm_account_data = amm_account.data.take();
-            if amm_account_data[2] != 0 {
-                msg!("amm resolved already");
-                return Err(ProgramError::InvalidAccountData);
-            }
-
-            //Creates account for shares
-            let account_len = 1 + 1 + 32 + 8 + 32 + 64; //Account ID (2 == market account) + Version + User Key + 8 bytes for int64 + AMM_Address + 64 bytes padding
-            let rent = Rent::default();
-            let rent_lamports = rent.minimum_balance(account_len);
-
-            msg!("initting market account");
-            invoke_signed(
-                &system_instruction::create_account(
-                    user.key,
-                    share_account.key,
-                    rent_lamports,
-                    account_len as u64,
-                    program_id,
-                ),
-                &[user.clone(), share_account.clone(), system_account.clone()],
-                &[&[
-                    &data.amm_address,
-                    "users".as_bytes(),
-                    user.key.as_ref(),
-                    &[bump_seed],
-                ]],
-            )?;
-            msg!("initted market account");
-            let share_account_data = share_account.data.take();
-            if share_account_data[0] != 0 {
-                return Err(ProgramError::AccountAlreadyInitialized);
-            } else {
-                //Set account id to 2, version to 1, and user pubkey
-                share_account_data[0] = 2;
-                share_account_data[1] = 1;
-                for n in 0..32 {
-                    share_account_data[2 + n] = user.key.to_bytes()[n];
-                    share_account_data[2 + 32 + 8 + n] = data.amm_address[n];
-                }
-            }
-            */
             Ok(())
         }
         OneOfContents::buyShares(data) => {
@@ -377,7 +319,7 @@ fn process_instruction(
                 msg!("initting nonexistent share account");
                 invoke_signed(
                     &system_instruction::create_account(
-                        user.key,
+                        fee_payer.key,
                         share_account.key,
                         rent_lamports,
                         account_len.try_into().unwrap(),
@@ -706,7 +648,7 @@ fn process_instruction(
 
                 invoke_signed(
                     &system_instruction::create_account(
-                        user.key,
+                        fee_payer.key,
                         username_account.key,
                         rent_lamports,
                         username_entry_len.try_into().unwrap(),
@@ -747,7 +689,7 @@ fn process_instruction(
                 let profile_rent_lamports = rent.minimum_balance(profile_entry_len);
                 invoke_signed(
                     &system_instruction::create_account(
-                        user.key,
+                        fee_payer.key,
                         profile_account.key,
                         profile_rent_lamports,
                         profile_entry_len.try_into().unwrap(),
