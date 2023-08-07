@@ -17,8 +17,8 @@
   import NProgress from "nprogress";
   import { navigating } from "$app/stores";
   import "nprogress/nprogress.css";
-  // import '@fontsource-variable/open-sans';
-  // import '@fontsource-variable/inter';
+  import '@fontsource-variable/open-sans';
+  import '@fontsource-variable/inter';
 
   NProgress.configure({
     minimum: 0.16,

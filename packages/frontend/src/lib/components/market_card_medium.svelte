@@ -42,7 +42,7 @@
             {/if}
         </div>
         <div>
-            <h5 class="text-xl text-black leading-8">
+            <h5 class="text-xl text-black leading-8 font-semibold">
                 {market.metadata?.title ?? "No title found"}
             </h5>
             <p

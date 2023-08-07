@@ -22,8 +22,12 @@
 
   async function createUsdcTokenAccount() {
     const publicKey = $web3Store?.publicKey;
+    if(!publicKey) {
+      modalStore.openModal(Modal.login);
+      return;
+    }
     const res = await trpcc.makeUsdcWallet.query({
-      user: publicKey!.toString(),
+      user: publicKey.toBase58(),
     });
     console.log(res);
     await $web3Workspace.refreshKeys();

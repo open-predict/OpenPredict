@@ -84,7 +84,6 @@ const start = async () => {
 }
 
 async function setupLocalEnvironment(rpcUrl: string) {
-
   let tokenAccount = "";
   let mint = "";
   let mainProgramId = "";
@@ -102,37 +101,8 @@ async function setupLocalEnvironment(rpcUrl: string) {
     console.warn("[prebuild] > found existing custom tokens (usdc), will not redeploy contract")
   }
 
-  async function setFeePayerFromFile() {
-    try {
-      const _feePayerKey = await readFile("fee_payer.json", 'utf-8').catch((e) => {
-        return undefined;
-      })
-      if (_feePayerKey) {
-        feePayerKey = web3.Keypair.fromSecretKey(new Uint8Array(JSON.parse(_feePayerKey)))
-        return true;
-      }
-      return false;
-    } catch (e) {
-      console.error(e)
-      return false;
-    }
-  }
-
-  if (!await setFeePayerFromFile()) {
-    await promisify(exec)(`solana-keygen new --no-bip39-passphrase -o ./fee_payer.json`)
-    const created = await setFeePayerFromFile();
-    if (!created) {
-      console.error("Unable to create and save local fee payer keypair")
-    } else {
-      await promisify(exec)(`solana airdrop --keypair ./fee_payer.json 1`)
-    }
-  }
-
-  console.log(`[prebuild] > Set/Created Fee Payer: ${feePayerKey?.publicKey}`)
-
-
   if (redeploy) {
-    const createTokenOutput = JSON.parse((await promisify(exec)(`spl-token create-token --output json`)).stdout)
+    const createTokenOutput = JSON.parse((await promisify(exec)(`spl-token create-token --decimals 6 --output json`)).stdout)
     mint = createTokenOutput['commandOutput']['address'];
 
     // json format doesn't provide token account 
@@ -145,7 +115,7 @@ async function setupLocalEnvironment(rpcUrl: string) {
   console.log(`[prebuild] > Token Account: ${tokenAccount}\n[prebuild] > Mint: ${mint}\n[prebuild] > Redeploying: ${redeploy}`)
 
   if (redeploy) {
-    await promisify(exec)('cargo build-sbf', {cwd: "./contracts", env: {...process.env, "USDC_MINT_AUTH_ADDR": mint, "USDC_PROGRAM_ADDR": spl.TOKEN_PROGRAM_ID.toString(), "FEE_PAYER_KEY": feePayerKey?.publicKey.toString()}},);
+    await promisify(exec)('cargo build-sbf', {cwd: "./contracts", env: {...process.env, "USDC_MINT_AUTH_ADDR": mint, "USDC_PROGRAM_ADDR": spl.TOKEN_PROGRAM_ID.toString()}},);
     const deployOutput = JSON.parse((await promisify(exec)(`solana program deploy ./target/deploy/openpredict.so -u ${rpcUrl} --output json`, {cwd: "./contracts"})).stdout)
     mainProgramId = deployOutput['programId']
   } else {
@@ -155,6 +125,39 @@ async function setupLocalEnvironment(rpcUrl: string) {
   }
 
   console.log(`[prebuild] > Main Program Id: ${mainProgramId}`)
+
+  async function setFeePayerFromFile() {
+    try {
+      const _feePayerKey = await readFile("fee_payer.json", 'utf-8').catch((e) => {
+        return undefined;
+      })
+      if (_feePayerKey) {
+        feePayerKey = web3.Keypair.fromSecretKey(new Uint8Array(JSON.parse(_feePayerKey)));
+        const lamports = JSON.parse((await promisify(exec)(`solana balance --keypair ./fee_payer.json --output json`)).stdout);
+        if (!lamports?.lamports) {
+          await promisify(exec)(`solana airdrop --keypair ./fee_payer.json 1`)
+        }
+        const balance = (await promisify(exec)(`solana balance --keypair ./fee_payer.json`)).stdout;
+        return {key: feePayerKey, balance};
+      }
+      return undefined;
+    } catch (e) {
+      console.error(e)
+      return undefined;
+    }
+  }
+
+  const _feePayer = await setFeePayerFromFile();
+
+  if (_feePayer === undefined) {
+    await promisify(exec)(`solana-keygen new --no-bip39-passphrase -o ./fee_payer.json`)
+    const _feePayer = await setFeePayerFromFile();
+    if (!_feePayer) {
+      console.error("Unable to create and save local fee payer keypair")
+    }
+  } else {
+    console.log(`[prebuild] > Set/Created Fee Payer ${_feePayer?.key?.publicKey}, balance: ${_feePayer?.balance}`)
+  }
 
 
   return {

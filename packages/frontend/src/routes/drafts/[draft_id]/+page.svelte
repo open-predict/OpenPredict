@@ -164,13 +164,12 @@
                 setTimeout(() => {
                     draftsStore.deleteDraft(data.draft_id);
                     goto(`/${data.draft_id}`);
-                }, 8000);
+                }, 10000);
             },
             (e) => {
                 errorMessage = `Could not publish market. Error: ${e}`;
                 loadingMessage = "";
             },
-            neededUsdc
         );
     }
 

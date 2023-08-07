@@ -30,8 +30,8 @@
 </script>
 
 {#if !!market}
-    <div class="w-full text-left">
-        <div class="flex items-center bg-transparent text-gray-400 text-xs">
+    <div class="w-full text-left bg-white">
+        <div class="flex items-center text-gray-400 text-xs">
             <ProfileButton
                 publicKey={new PublicKey(market.data.data.OperatorKey)}
                 profile={operatorProfile}
@@ -40,8 +40,8 @@
             <SubsidyButton subsidy={market.data.data.Subsidy} />
             <LikeButton {market} {updateMarket} />
         </div>
-        <div class="bg-transparent">
-            <h5 class="text-xl py-4 text-black leading-relaxed">
+        <div class="flex flex-col gap-4">
+            <h5 class="text-2xl font-semibold py-4 text-black">
                 {market.metadata?.title ?? "No title found"}
             </h5>
             <div class="w-full flex flex-col my-4">
@@ -60,7 +60,7 @@
             </div>
             <!-- <div class="flex flex-col mt-8 bg-neutral-800 rounded-3xl"> -->
                 <!-- <div class="flex flex-col gap-2 divide-gray-200 p-8">
-                    <h4 class="text-lg text-white">Place a trade</h4>
+                    <h4 class="text-xl text-white">Place a trade</h4>
                     <p class="text-neutral-400">
                         Make a prediction by trading 'yes' or 'no.'
                     </p>
@@ -69,9 +69,7 @@
                     <MarketActions {market} {updateMarket} />
                 </div>
             <!-- </div> -->
-            <p
-                class="text-md text-black whitespace-pre-wrap mt-8 leading-relaxed"
-            >
+            <p class="text-md text-black whitespace-pre-wrap mt-8">
                 {market.metadata?.description ?? "No description found"}
             </p>
         </div>
