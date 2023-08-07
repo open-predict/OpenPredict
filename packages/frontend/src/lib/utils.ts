@@ -386,6 +386,11 @@ export async function initMarketAccountInstruction(
         isWritable: true,
       },
       {
+        pubkey: fee_payer,
+        isSigner: true,
+        isWritable: false,
+      },
+      {
         pubkey: marketDataAddress,
         isWritable: false,
         isSigner: false,
@@ -441,6 +446,11 @@ export async function buySharesInstruction(
         pubkey: publicKey,
         isSigner: true,
         isWritable: true,
+      },
+      {
+        pubkey: fee_payer,
+        isSigner: true,
+        isWritable: false,
       },
       {
         pubkey: web3spl.getAssociatedTokenAddressSync(usdcMintAuthorityId, publicKey, true),
@@ -504,6 +514,11 @@ export async function resolveMarketInstruction(
         isWritable: true,
       },
       {
+        pubkey: fee_payer,
+        isSigner: true,
+        isWritable: false,
+      },
+      {
         pubkey: marketDataAddress,
         isSigner: false,
         isWritable: true,
@@ -540,6 +555,11 @@ export async function createProfileInstruction(
         pubkey: publicKey,
         isSigner: true,
         isWritable: true,
+      },
+      {
+        pubkey: fee_payer,
+        isSigner: true,
+        isWritable: false,
       },
       {
         pubkey: usernameAccountAddress,
@@ -586,6 +606,11 @@ export async function redeemSharesInstruction(
         pubkey: publicKey,
         isSigner: true,
         isWritable: true,
+      },
+      {
+        pubkey: fee_payer,
+        isSigner: true,
+        isWritable: false,
       },
       {
         pubkey: web3spl.getAssociatedTokenAddressSync(usdcMintAuthorityId, publicKey, true),
