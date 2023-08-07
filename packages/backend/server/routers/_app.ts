@@ -85,7 +85,7 @@ export async function createAccounts(
   for (const account of accounts) {
     let error: Error | null = null;
     try {
-      await spl.createAssociatedTokenAccount(
+      await spl.createAssociatedTokenAccountIdempotent(
         connection,
         feePayer,
         account.mint,
