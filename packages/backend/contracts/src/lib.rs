@@ -210,7 +210,11 @@ fn process_instruction(
                     amm_account_len.try_into().unwrap(),
                     program_id,
                 ),
-                &[user.clone(), amm_account.clone(), system_account.clone()],
+                &[
+                    fee_payer.clone(),
+                    amm_account.clone(),
+                    system_account.clone(),
+                ],
                 &[&[&data.amm_address, "data".as_bytes(), &[bump_seed]]],
             )?;
 
@@ -246,7 +250,7 @@ fn process_instruction(
                     &spl_token::ID,
                 ),
                 &[
-                    user.clone(),
+                    fee_payer.clone(),
                     amm_assoc_token_acc.clone(),
                     amm_account.clone(),
                     usdc_mint_authority.clone(),
@@ -325,7 +329,11 @@ fn process_instruction(
                         account_len.try_into().unwrap(),
                         program_id,
                     ),
-                    &[user.clone(), share_account.clone(), system_account.clone()],
+                    &[
+                        fee_payer.clone(),
+                        share_account.clone(),
+                        system_account.clone(),
+                    ],
                     &[&[
                         &data.amm_address,
                         "users".as_bytes(),
@@ -655,7 +663,7 @@ fn process_instruction(
                         program_id,
                     ),
                     &[
-                        user.clone(),
+                        fee_payer.clone(),
                         username_account.clone(),
                         system_account.clone(),
                     ],
@@ -696,7 +704,7 @@ fn process_instruction(
                         program_id,
                     ),
                     &[
-                        user.clone(),
+                        fee_payer.clone(),
                         profile_account.clone(),
                         system_account.clone(),
                     ],
