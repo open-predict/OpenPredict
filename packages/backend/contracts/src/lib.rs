@@ -148,7 +148,7 @@ fn process_instruction(
         }
         Option::Some(fee_payer_key_str) => {
             let fee_payer_key = Pubkey::from_str(fee_payer_key_str).unwrap();
-            if fee_payer.key != user.key && &fee_payer_key != user.key {
+            if fee_payer.key != user.key && fee_payer.key != &fee_payer_key {
                 panic!(
                     "Fee payer is neither the user's account nor the one the contract was compiled with"
                 );
