@@ -1,10 +1,10 @@
-import { z } from 'zod';
-import { procedure, router } from '../trpc.js';
-import { commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata } from '../../types/market.js';
-import { makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0 } from '../../types/user.js';
-import { getHelia, marketByAddress, searchMarkets } from '../../amclient/index.js';
+import {z} from 'zod';
+import {procedure, router} from '../trpc.js';
+import {commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata} from '../../types/market.js';
+import {makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0} from '../../types/user.js';
+import {getHelia, marketByAddress, searchMarkets} from '../../amclient/index.js';
 import * as nodeCache from "node-cache"
-import { createHash, randomBytes } from "crypto"
+import {createHash, randomBytes} from "crypto"
 import * as web3 from "@solana/web3.js"
 import * as cookie from "cookie"
 import * as ed25519 from "@noble/ed25519"
@@ -97,9 +97,9 @@ export async function createAccounts(
     }
 
     if (error) {
-      results.push({ error })
+      results.push({error})
     } else {
-      results.push({ ...account })
+      results.push({...account})
     }
   }
 
@@ -115,7 +115,7 @@ export async function validateTransaction(
   feePayer: web3.Keypair,
   maxSignatures: number,
   lamportsPerSignature: number
-): Promise<{ signature: web3.TransactionSignature; rawTransaction: Buffer }> {
+): Promise<{signature: web3.TransactionSignature; rawTransaction: Buffer}> {
   // Check the fee payer and blockhash for basic validity
   if (!transaction.feePayer?.equals(feePayer.publicKey)) throw new Error('invalid fee payer');
   if (!transaction.recentBlockhash) throw new Error('missing recent blockhash');
@@ -147,16 +147,26 @@ export async function validateTransaction(
   const rawTransaction = transaction.serialize();
 
   // Return the primary signature (aka txid) and serialized transaction
-  return { signature: base58.encode(transaction.signature!), rawTransaction };
+  return {signature: base58.encode(transaction.signature!), rawTransaction};
 }
 
-// Prevent draining by making sure that the fee payer isn't provided as writable or a signer to any instruction.
-// Throws an error if transaction contain instructions that could potentially drain fee payer.
+//TODO: This function may be insecure, idk. If it is it will only allow someone
+//to drain 20$ out of the feepayer account, but we may look like dumbasses
+//anyways which wouldn't be good.
+
+//Ostensibly: prevents draining by making sure that the fee payer isn't provided
+//as writable or a signer to any instruction, except at the fee payer index.
+//Throws an error if transaction contain instructions that could potentially
+//drain fee payer.
 async function validateInstructions(transaction: web3.Transaction, feePayer: web3.Keypair): Promise<void> {
   for (const instruction of transaction.instructions) {
-    for (const key of instruction.keys) {
-      if ((key.isWritable || key.isSigner) && key.pubkey.equals(feePayer.publicKey))
-        throw new Error('invalid account');
+    if (!globalThis.mainProgramId.equals(instruction.programId)) {
+      throw new Error("Unknown program id: " + instruction.programId + "; need " + globalThis.mainProgramId)
+    }
+    for (var i = 0; i < instruction.keys.length; i++) {
+      const key = instruction.keys[i];
+      if (key.pubkey.equals(feePayer.publicKey) && i != 1)
+        throw new Error('uses fee payer account in instruction in an unsafe way: ' + key.pubkey.toString() + ";" + i.toString() + ";" + key.isWritable);
     }
   }
 }
@@ -184,15 +194,14 @@ export const appRouter = router({
       throw "Can't decode transaction: " + e
     }
 
-    //Make sure all instructions are using our program id
-    if (transaction.instructions.some(v => !v.programId.equals(globalThis.mainProgramId))) {
-      throw "Included instruction not using our program id!"
-    }
-
-    //Make sure instructions don't access feePayer balance (& validate other metadata)
-    let signature: string
+    //Make sure instructions don't access feePayer balance and are using our contract
     try {
       await validateInstructions(transaction, globalThis.feePayer)
+    } catch (e) {
+      throw "Bad transaction: " + e
+    }
+    let signature: string
+    try {
       signature = (await validateTransaction(globalThis.chainCache.w3conn, transaction, globalThis.feePayer, 2, 10000)).signature
     } catch (e) {
       throw "Bad transaction: " + e
@@ -232,7 +241,7 @@ export const appRouter = router({
     const txid = await web3.sendAndConfirmRawTransaction(
       globalThis.chainCache.w3conn,
       transaction.serialize(),
-      { commitment: 'confirmed' }
+      {commitment: 'confirmed'}
     );
 
     return {
@@ -521,7 +530,7 @@ export const appRouter = router({
           userKey: key.toBuffer(),
         }
       })
-      opts.ctx.res.setHeader("Set-Cookie", cookie.serialize("session", JSON.stringify({ "id": sessionId, "secret": cookieSecret }), {
+      opts.ctx.res.setHeader("Set-Cookie", cookie.serialize("session", JSON.stringify({"id": sessionId, "secret": cookieSecret}), {
         secure: false,
         sameSite: "none",
         maxAge: new Date().getTime() + (10 * 365 * 24 * 60 * 60)
