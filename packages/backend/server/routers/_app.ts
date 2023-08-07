@@ -230,6 +230,7 @@ export const appRouter = router({
     try {
       const sim = await globalThis.chainCache.w3conn.simulateTransaction(transaction)
       if (sim.value.err != null) {
+        console.error(sim.value)
         throw sim.value.err;
       }
     } catch (e) {
