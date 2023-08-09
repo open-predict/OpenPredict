@@ -256,7 +256,7 @@
         {#if market}
             {#if $web3Store?.publicKey}
                 <div class="bg-white ring-1 rounded-3xl ring-gray-200">
-                    <AccountSummary shrink={true} />
+                    <AccountSummary />
                 </div>
             {/if}
             {#if creator}

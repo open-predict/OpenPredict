@@ -11,7 +11,6 @@
   import { web3Workspace } from "$lib/web3Workspace";
   import { trpcc } from "$lib/trpc";
   import { onMount } from "svelte";
-  export let shrink = false;
 
   let loading = false;
 
@@ -65,14 +64,6 @@
         <IconRefresh size={18} />
       {/if}
     </button>
-  </div>
-  <div class="flex -mt-4">
-    {#if $web3Store.publicKey}
-      <p class={`text-xs text-gray-500 rounded-md flex items-center gap-1.5`}>
-        {`${readablePublicKey($web3Store.publicKey)}`}
-        <CopyButton value={$web3Store.publicKey.toBase58()} />
-      </p>
-    {/if}
   </div>
   <div class="flex flex-col gap-2">
     <p class="text-xs font-semibold text-left">Positions & Balances</p>
