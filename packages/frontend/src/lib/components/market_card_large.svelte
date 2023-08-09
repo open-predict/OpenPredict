@@ -58,10 +58,10 @@
                     onScrub={(c) => (chance = c / 100)}
                 />
             </div>
-            <!-- <div class="flex flex-col mt-8 bg-neutral-800 rounded-3xl"> -->
+            <!-- <div class="flex flex-col mt-8 bg-gray-800 rounded-3xl"> -->
                 <!-- <div class="flex flex-col gap-2 divide-gray-200 p-8">
                     <h4 class="text-xl text-white">Place a trade</h4>
-                    <p class="text-neutral-400">
+                    <p class="text-gray-400">
                         Make a prediction by trading 'yes' or 'no.'
                     </p>
                 </div> -->

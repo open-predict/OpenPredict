@@ -22,11 +22,11 @@
         on:click={() => {
             mobileModal = true;
         }}
-        class="flex flex-nowrap items-center rounded-full bg-white ring-1 ring-gray-200 md:p-1.5 hover:shadow-md"
+        class="flex h-8 p-0.5 lg:h-11 lg:max-h-11 lg:p-1.5 flex-nowrap items-center rounded-full bg-gray-50 ring-1 ring-gray-200 hover:bg-gray-200 hover:ring-gray-300"
     >
-        <div class="relative inline-block">
+        <div class="relative inline-block ring-1 ring-gray-300 rounded-full p-0.5">
             <div
-                class="flex overflow-hidden rounded-full bg-black text-white w-6 h-6 md:h-8 md:w-8"
+                class="flex overflow-hidden rounded-full w-6 h-6 lg:w-7 lg:h-7"
             >
                 <img
                     src={generateProfileImage($web3Store.publicKey)}
@@ -34,37 +34,36 @@
                 />
             </div>
             <div
-                class="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"
+                class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-white"
             />
         </div>
         <div
-            class="flex-col gap-0 text-right pl-2 text-gray-600 text-[10px] leading-3 pr-2 hidden md:flex"
+            class="flex-col gap-0 text-right pl-2 text-gray-600 text-[10px] leading-3 pr-1.5 hidden md:flex"
         >
-            <IconMenu size={20} />
-
-            <!-- <span>
-                {`${
-                    usdc.value?.uiAmount
-                        ? usdFormatter.format(usdc.value.uiAmount)
-                        : 0.0
-                    }`}
-                </span> -->
-            <!-- <span>{`${sol.amount ? sol.amount.toFixed(2) : 0.0} SOL`}</span> -->
+            <IconMenu size={16} />
         </div>
     </button>
 {:else if $web3Store?.publicKey === null}
-    <!-- <button
+    <button
         on:click={() => {
             modalStore.openModal(Modal.login);
         }}
-        class="px-3.5 py-2.5 font-semibold w-1/2 transition bg-zinc-900 text-white rounded-full shadow-md hover:bg-zinc-700 hover:shadow-xl"
+        class="btn_secondary px-8"
+    >
+        FAQs
+    </button>
+    <button
+        on:click={() => {
+            modalStore.openModal(Modal.login);
+        }}
+        class="btn_primary px-8"
     >
         Signup
-    </button> -->
+    </button>
 {:else}
     <button
         disabled
-        class="flex flex-nowrap items-center rounded-full bg-white ring-1 ring-zinc-200 p-1.5 hover:shadow-md gap-2 divide-x divide-zinc-300"
+        class="flex flex-nowrap items-center rounded-full bg-white ring-1 ring-gray-200 p-1.5 hover:shadow-md gap-2 divide-x divide-gray-300"
     >
         <IconLoader class="animate-spin" />
     </button>

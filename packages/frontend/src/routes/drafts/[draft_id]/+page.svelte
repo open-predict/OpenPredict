@@ -32,6 +32,7 @@
     import { trpcc } from "../../../lib/trpc.js";
     import { web3Workspace } from "$lib/web3Workspace.js";
     import LoadingOverlay from "$lib/components/loading_overlay.svelte";
+    import MainHeader from "$lib/components/main_header.svelte";
 
     export let data;
 
@@ -116,7 +117,8 @@
         }
 
         if (subsidy > USDC_PER_DOLLAR * 50) {
-            errorMessage = "Please make the market subsidy less than $50. Subsidies are capped while OpenPredict is in beta.";
+            errorMessage =
+                "Please make the market subsidy less than $50. Subsidies are capped while OpenPredict is in beta.";
             return;
         }
 
@@ -159,17 +161,16 @@
                 }
             },
             (s, hash) => {
-                loadingMessage = "";
-                completedMessage = loadingMessages.redirecting;
+                loadingMessage = loadingMessages.redirecting;
                 setTimeout(() => {
                     draftsStore.deleteDraft(data.draft_id);
                     goto(`/${data.draft_id}`);
-                }, 10000);
+                }, 15000);
             },
             (e) => {
                 errorMessage = `Could not publish market. Error: ${e}`;
                 loadingMessage = "";
-            },
+            }
         );
     }
 
@@ -185,26 +186,23 @@
 </script>
 
 <ColumnLayout>
-    <div
-        slot="main-header"
-        class="w-full h-full flex items-center gap-3 text-gray-500 text-sm"
-    >
+    <MainHeader slot="main-header">
         <button
             class="rounded-full p-1.5 text-gray-600 hover:text-gray-950 hover:bg-gray-200 ml-auto"
             on:click={() => (deleteModal = true)}
         >
             <IconTrash stroke={1.5} size={20} />
         </button>
-    </div>
+    </MainHeader>
     <div slot="main" class="min-h-full">
         <LoadingOverlay
             {loadingMessage}
             {errorMessage}
             {completedMessage}
             onClose={() => {
-                if(loadingMessage){
+                if (loadingMessage) {
                     return;
-                } 
+                }
                 loadingMessage = "";
                 errorMessage = "";
                 completedMessage = "";
@@ -304,7 +302,7 @@
                         </button>
                     </div>
                     <button
-                        class={`w-full p-2.5 rounded-full text-white font-semibold cursor-pointer bg-black hover:bg-zinc-800`}
+                        class={`w-full p-2.5 rounded-full text-white font-semibold cursor-pointer bg-black hover:bg-gray-800`}
                         on:click={handlePublishMarket}
                     >
                         {`Create market`}
@@ -353,7 +351,7 @@
                 Delete
             </button>
             <button
-                class="bg-gray-200 w-full p-2 text-zinc-800 font-semibold text-sm rounded-xl"
+                class="bg-gray-200 w-full p-2 text-gray-800 font-semibold text-sm rounded-xl"
                 on:click={() => (deleteModal = false)}
             >
                 Cancel

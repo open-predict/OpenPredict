@@ -95,7 +95,7 @@
     }
 
     const reactiveBtn = `btn_secondary w-full ${
-        invertColor ? "bg-neutral-700 text-white hover:bg-neutral-600" : ""
+        invertColor ? "bg-gray-700 text-white hover:bg-gray-600" : ""
     }`;
 </script>
 
@@ -249,7 +249,7 @@
             <div class="flex w-full gap-4 mt-10">
                 <button
                     on:click={redeemShares}
-                    class="inline-flex w-full justify-center rounded-full bg-black px-3 py-2 font-semibold text-white shadow-sm hover:bg-zinc-800 hover:shadow-md"
+                    class="inline-flex w-full justify-center rounded-full bg-black px-3 py-2 font-semibold text-white shadow-sm hover:bg-gray-800 hover:shadow-md"
                 >
                     {`Redeem $${Math.abs(
                         Number(userShares.shares / 1000000n)

@@ -1,8 +1,8 @@
-import type {PublicKey} from "@solana/web3.js";
-import type {extMarketChaindata, marketChaindata} from "@am/backend/types/market";
-import {createAvatar} from '@dicebear/core';
+import type { PublicKey } from "@solana/web3.js";
+import type { extMarketChaindata, marketChaindata } from "@am/backend/types/market";
+import { createAvatar } from '@dicebear/core';
 import * as shapes from '@dicebear/shapes';
-import {PUBLIC_FEE_PAYER_KEY} from "$env/static/public"
+import { PUBLIC_FEE_PAYER_KEY } from "$env/static/public"
 
 export const USDC_PER_DOLLAR = 1000000;
 const fee_payer = new web3.PublicKey(PUBLIC_FEE_PAYER_KEY);
@@ -30,7 +30,7 @@ export function log(type?: "web3" | "debug" | "info", ...args: any) {
   console.log(`[${type ?? "info"}]`, ...args)
 }
 
-export type TLinkDef = {href: string, name: string, Icon: any}
+export type TLinkDef = { href: string, name: string, Icon: any }
 
 export const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -68,8 +68,8 @@ export function autoresizeTextarea(node: any) {
   };
 }
 
-export function getUserShares(marketData: extMarketChaindata, publicKey?: PublicKey | null): {shares: bigint, sharesUI: number, valueCents: number} {
-  let ret = {shares: 0n, sharesUI: 0, valueCents: 0};
+export function getUserShares(marketData: extMarketChaindata, publicKey?: PublicKey | null): { shares: bigint, sharesUI: number, valueCents: number } {
+  let ret = { shares: 0n, sharesUI: 0, valueCents: 0 };
   if (!publicKey) return ret;
   const current = marketData.UserAccounts.get(publicKey.toBase58());
   const centsPerYes = 100 * getChance(marketData.data.Yes, marketData.data.No);
@@ -89,8 +89,18 @@ export function getChance(yes: bigint, no: bigint) {
 }
 
 export function generateProfileImage(publicKey: PublicKey) {
+  const full = ["ellipse", "ellipseFilled", "line", "polygon", "polygonFilled", "rectangle", "rectangleFilled"];
+  const shapeColors = ["0284c7", "4f46e5", "4338ca"]
   return createAvatar(shapes, {
     seed: publicKey.toString(),
+    backgroundType: ["gradientLinear"],
+    backgroundColor: ["c4b5fd", "7dd3fc", "67e8f9"],
+    shape1Color: shapeColors,
+    shape2Color: shapeColors,
+    shape3Color: shapeColors,
+    shape1: ["ellipse", "line"],
+    shape2: ["ellipse", "line"],
+    shape3: ["ellipse", "line"]
   }).toDataUriSync();
 }
 
@@ -217,7 +227,7 @@ export function getSellUsdcLimit(data: marketChaindata, userShares: bigint) {
 
 import * as web3 from "@solana/web3.js"
 import * as web3spl from "@solana/spl-token"
-import {openpredict} from './pb/oppb.js'
+import { openpredict } from './pb/oppb.js'
 
 export async function swapCoinsInstructions(
   connection: web3.Connection,
@@ -227,7 +237,7 @@ export async function swapCoinsInstructions(
   amount: number,
   legacyTransaction?: boolean,
 ): Promise<[web3.TransactionInstruction[], web3.AddressLookupTableAccount[]?]> {
-  const {data} = await (
+  const { data } = await (
     await fetch(`https://quote-api.jup.ag/v4/quote?inputMint=${inputMint.toString()}&outputMint=${outputMint.toString()}&amount=${amount}&swapMode=ExactOut&slippageBps=${1}&asLegacyTransaction=${legacyTransaction === true}&onlyDirectRoutes=${true}`)
   ).json();
   const routes = data;
@@ -258,7 +268,7 @@ export async function swapCoinsInstructions(
     })
   ).json();
 
-  const {swapTransaction} = transactions;
+  const { swapTransaction } = transactions;
 
   const swapTransactionBuf = Buffer.from(swapTransaction, 'base64');
   if (legacyTransaction !== true) {

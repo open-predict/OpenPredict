@@ -52,7 +52,7 @@
 
 <div class="items-center text-center">
     {#if $web3Store?.publicKey === null}
-        <h3 class="font-semibold text-zinc-800 text-xl">Join OpenPredict</h3>
+        <h3 class="font-semibold text-gray-800 text-xl">Join OpenPredict</h3>
         <div class="mt-2">
             <p class="text-gray-500">
                 {PUBLIC_MAGIC_PUBLISHABLE_API_KEY

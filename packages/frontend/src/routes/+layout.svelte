@@ -5,8 +5,6 @@
   import type { Adapter } from "@solana/wallet-adapter-base";
   import Web3Provider from "$lib/Web3Provider.svelte";
   import LoginModal from "$lib/modals/login.svelte";
-  import SwapModal from "$lib/modals/swap.svelte";
-  import LowSolModal from "$lib/modals/low_sol.svelte";
   import SearchMarkets from "$lib/modals/search_markets.svelte";
   import BackendAuth from "$lib/modals/backend_auth.svelte";
   import SendFunds from "$lib/modals/send_funds.svelte";
@@ -19,6 +17,7 @@
   import "nprogress/nprogress.css";
   import '@fontsource-variable/open-sans';
   import '@fontsource-variable/inter';
+  import Topup from "$lib/modals/topup.svelte";
 
   NProgress.configure({
     minimum: 0.16,
@@ -80,7 +79,6 @@
 <LoginModal />
 <BackendAuth />
 <SendFunds />
-<SwapModal />
-<LowSolModal />
+<Topup />
 <SearchMarkets />
 <AccountSummary />

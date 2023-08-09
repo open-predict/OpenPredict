@@ -17,6 +17,7 @@
     import { browser } from "$app/environment";
     import AccountSummary from "$lib/components/account_summary.svelte";
     import type { marketFulldata } from "@am/backend/types/market.js";
+    import MainHeader from "$lib/components/main_header.svelte";
 
     export let data;
     let { id, marketData, users, commentsRes } =
@@ -54,8 +55,8 @@
             if (!posted) {
                 alert("comment not posted");
             } else {
-                if(market){
-                    market.data.CommentCount = market.data.CommentCount + 1 
+                if (market) {
+                    market.data.CommentCount = market.data.CommentCount + 1;
                 }
                 commentsRes.comments.unshift({
                     createdAt: new Date(Date.now() - 1000),
@@ -86,10 +87,7 @@
 </script>
 
 <ColumnLayout>
-    <div
-        slot="main-header"
-        class="w-full h-full flex justify-center items-center"
-    >
+    <MainHeader slot="main-header">
         <div
             class="text-sm w-full flex flex-col justify-center items-center line-clamp-1 overflow-ellipsis"
         >
@@ -112,7 +110,13 @@
         >
             <IconLink stroke={1.5} size={20} />
         </button>
-    </div>
+    </MainHeader>
+    <!-- <div
+        slot="main-header"
+        class="w-full h-full flex justify-center items-center"
+    >
+        
+    </div> -->
     <div
         slot="main-footer"
         class="flex h-full md:hidden flex-nowrap px-4 justify-between items-center bg-white border-t border-gray-200 rounded-tl-3xl rounded-tr-3xl"
@@ -159,8 +163,8 @@
                         <span
                             class={`ml-3 hidden rounded-full py-0.5  px-2.5 text-xs font-medium md:inline-block ${
                                 tab === currentTab
-                                    ? "bg-zinc-700 text-white"
-                                    : "bg-gray-200 text-zinc-800"
+                                    ? "bg-gray-700 text-white"
+                                    : "bg-gray-200 text-gray-800"
                             }`}
                         >
                             {#if market}
@@ -248,49 +252,46 @@
             </div>
         {/if}
     </div>
-    <div slot="right">
-        <div class="flex flex-col gap-4">
-            {#if market}
-                {#if $web3Store?.publicKey}
-                    <div class="bg-white ring-1 rounded-3xl ring-gray-200">
-                        <AccountSummary shrink={true} />
-                    </div>
-                {/if}
-                {#if creator}
-                    <div
-                        class="ring-1 rounded-3xl bg-white ring-gray-200 flex flex-col"
-                    >
-                        <CreatorControls {market} {updateMarket} />
-                    </div>
-                {/if}
-                {#if $web3Store?.publicKey}
-                    <div
-                        class="ring-1 rounded-3xl bg-white ring-gray-200 flex flex-col"
-                    >
-                        <div class="flex flex-col gap-2 divide-gray-200 p-8">
-                            {#if market.data.data.Resolved !== null}
-                                <h4 class="text-lg">
-                                    {`Market resolved as ${
-                                        market.data.data.Resolved ? "Yes" : "No"
-                                    }`}
-                                </h4>
-                                <p class="text-neutral-500">
-                                    If you participated, you can redeem your
-                                    shares.
-                                </p>
-                            {:else}
-                                <h4 class="text-lg">Place a trade</h4>
-                                <p class="text-neutral-500">
-                                    Make a prediction by trading 'yes' or 'no.'
-                                </p>
-                            {/if}
-                        </div>
-                        <div class="px-5 pb-5 flex gap-2.5">
-                            <MarketActions {market} small {updateMarket} />
-                        </div>
-                    </div>
-                {/if}
+    <div slot="right" class="flex flex-col gap-2.5">
+        {#if market}
+            {#if $web3Store?.publicKey}
+                <div class="bg-white ring-1 rounded-3xl ring-gray-200">
+                    <AccountSummary shrink={true} />
+                </div>
             {/if}
-        </div>
+            {#if creator}
+                <div
+                    class="ring-1 rounded-3xl bg-white ring-gray-200 flex flex-col"
+                >
+                    <CreatorControls {market} {updateMarket} />
+                </div>
+            {/if}
+            {#if $web3Store?.publicKey}
+                <div
+                    class="ring-1 rounded-3xl bg-white ring-gray-200 flex flex-col"
+                >
+                    <div class="flex flex-col gap-2 divide-gray-200 p-8">
+                        {#if market.data.data.Resolved !== null}
+                            <h4 class="text-lg">
+                                {`Market resolved as ${
+                                    market.data.data.Resolved ? "Yes" : "No"
+                                }`}
+                            </h4>
+                            <p class="text-gray-500">
+                                If you participated, you can redeem your shares.
+                            </p>
+                        {:else}
+                            <h4 class="text-lg">Place a trade</h4>
+                            <p class="text-gray-500">
+                                Make a prediction by trading 'yes' or 'no.'
+                            </p>
+                        {/if}
+                    </div>
+                    <div class="px-5 pb-5 flex gap-2.5">
+                        <MarketActions {market} small {updateMarket} />
+                    </div>
+                </div>
+            {/if}
+        {/if}
     </div>
 </ColumnLayout>

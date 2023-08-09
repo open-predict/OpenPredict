@@ -371,9 +371,7 @@
   </button>
   <p class="text-sm text-gray-500 whitespace-pre-wrap">
     {#if buying}
-      {`You have ${usdFormatter.format($web3Store?.usdc?.uiAmount ?? 0)} & ${
-        $web3Store.sol ? $web3Store.sol?.toFixed(2) : 0
-      } SOL`}
+      {`You have ${usdFormatter.format($web3Store?.usdc?.uiAmount ?? 0)} available for trading`}
     {:else}
       {`You must sell your existing ${Math.abs(userShares.sharesUI)} ${
         userShares.shares > 0 ? "'Yes'" : "'No'"

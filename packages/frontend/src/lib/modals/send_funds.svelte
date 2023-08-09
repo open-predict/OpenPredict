@@ -67,12 +67,10 @@
         });
       } else {
         loadingMessage = "Preparing USDC transfer...";
-        instructions = splToken.Token.createTransferInstruction(
-          splToken.TOKEN_PROGRAM_ID,
+        instructions = splToken.createTransferInstruction(
           $web3Store?.usdcAddress as PublicKey,
           new PublicKey(address),
           $web3Store?.publicKey,
-          [],
           microUsdc
         );
       }

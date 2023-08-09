@@ -7,7 +7,7 @@
 </script>
 
 <button
-    class="flex gap-1.5 items-center rounded-full bg-zinc-100 ring-1 ring-zinc-200 p-1 pr-3 hover:bg-white hover:ring-zinc-300 hover:shadow-sm"
+    class="flex gap-1.5 items-center rounded-full bg-gray-100 ring-1 ring-gray-200 p-1 pr-3 hover:bg-white hover:ring-gray-300 hover:shadow-sm"
     {disabled}
     on:click
     on:mouseenter={!!status ? () => showTooltip = true : undefined}
