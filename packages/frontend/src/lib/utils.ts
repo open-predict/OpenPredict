@@ -142,7 +142,6 @@ export function timeAgo(date: Date) {
   }
 }
 
-
 export function getBuyShareAmount(data: marketChaindata, microUSDC: number, direction: boolean): {
   shares: BigInt,
   newRatio: number,
@@ -293,6 +292,67 @@ export async function swapCoinsInstructions(
   }
 }
 
+export async function subsidizeMarketInstruction(
+  usdcMintAuthorityId: web3.PublicKey,
+  mainProgramId: web3.PublicKey,
+  publicKey: web3.PublicKey,
+  amm_address: Uint8Array,
+  subsidy: number,
+) {
+  if (amm_address.length != 32) {
+    throw "Wrong amm address length";
+  }
+  const buf = openpredict.Instruction.encode({
+    subsidizeMarket: {
+      ammAddress: amm_address,
+      subsidy: subsidy,
+    },
+  }).finish()
+
+  const marketAddress = web3.PublicKey.findProgramAddressSync([amm_address, Buffer.from("data")], mainProgramId)[0];
+
+  return new web3.TransactionInstruction({
+    keys: [
+      {
+        pubkey: publicKey,
+        isSigner: true,
+        isWritable: true,
+      },
+      {
+        pubkey: fee_payer,
+        isSigner: true,
+        isWritable: false,
+      },
+      {
+        pubkey: web3spl.getAssociatedTokenAddressSync(usdcMintAuthorityId, publicKey),
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: marketAddress,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: web3spl.getAssociatedTokenAddressSync(usdcMintAuthorityId, marketAddress, true),
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: web3spl.TOKEN_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: web3spl.ASSOCIATED_TOKEN_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false,
+      },
+    ],
+    programId: mainProgramId,
+    data: Buffer.from(buf),
+  })
+}
 export async function initMarketInstruction(
   usdcMintAuthorityId: web3.PublicKey,
   mainProgramId: web3.PublicKey,
