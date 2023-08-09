@@ -14,7 +14,7 @@ use solana_program::{
 
 use spl_associated_token_account::get_associated_token_address;
 use spl_token::instruction as spl_instruction;
-use std::{cmp::min, simd::f64x2, str::FromStr};
+use std::{cmp::min, str::FromStr};
 use std::{convert::TryInto, slice::Iter};
 
 mod openpredict;
@@ -773,7 +773,7 @@ fn process_instruction(
                 &get_associated_token_address(user.key, &usdc_mint_authority_addr),
                 &spl_token::ID,
             )?;
-            let (amm_account, amm_account_data, bump_seed) =
+            let (amm_account, amm_account_data, _) =
                 next_amm_account(account_info_iter, &data.amm_address, program_id, true)?;
             let amm_assoc_token_acc = next_from_pubkey(
                 account_info_iter,
@@ -836,6 +836,12 @@ fn process_instruction(
                 )
                 .unwrap()
                 .checked_add(num_amm_no_shares.checked_mul(num_amm_no_shares).unwrap())
+                .unwrap()
+                .checked_add(
+                    (4 as i128)
+                        .checked_mul(subsidy.checked_mul(subsidy).unwrap())
+                        .unwrap(),
+                )
                 .unwrap();
 
             //We need to keep numerical stability
