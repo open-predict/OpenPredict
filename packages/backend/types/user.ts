@@ -1,7 +1,12 @@
-import {z} from "zod";
+import { z } from "zod";
 
 export const usernameAvailableCheckSchemaV0 = z.object({
 	name: z.string().min(0).max(64),
+})
+
+export const checkoutWithChangenowSchemaV0 = z.object({
+	publicKey: z.string(),
+	amount: z.number()
 })
 
 export const makeUsdcWalletSchemaV0 = z.object({

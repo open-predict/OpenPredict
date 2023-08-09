@@ -9,16 +9,14 @@
 	import { web3Store } from "$lib/web3Store";
 	import type { TPageData } from "./+page";
 	import SuperJSON from "superjson";
-    import type { marketFulldata } from "@am/backend/types/market";
+	import type { marketFulldata } from "@am/backend/types/market";
+	import MainHeader from "$lib/components/main_header.svelte";
 	export let data;
 	const { searchResponse } = SuperJSON.deserialize<TPageData>(data);
 	let markets = searchResponse.markets;
 	let users = searchResponse.users;
 
-	function updateMarket(
-		i: number,
-		m: marketFulldata
-	) {
+	function updateMarket(i: number, m: marketFulldata) {
 		markets[i] = m;
 		markets = markets;
 	}
@@ -30,18 +28,19 @@
 </svelte:head>
 
 <ColumnLayout>
-	<button
-		slot="main-header"
-		on:click={() => modalStore.openModal(Modal.search_markets)}
-		class="w-full h-full flex items-center justify-start gap-2 rounded-full ring-1 ring-gray-200 bg-gray-50 p-4 text-gray-500"
-	>
-		<IconSearch stroke={1.7} size={18} />
-		<h2 class="text-stone-500 text-sm">Search...</h2>
-	</button>
+	<MainHeader slot="main-header">
+		<button
+			on:click={() => modalStore.openModal(Modal.search_markets)}
+			class="w-full h-full flex items-center justify-start gap-2 rounded-full ring-1 ring-gray-200 bg-gray-50 p-4 text-gray-500"
+		>
+			<IconSearch stroke={1.7} size={18} />
+			<h2 class="text-stone-500 text-sm">Search...</h2>
+		</button>
+	</MainHeader>
 	<div slot="main" class="divide-y divide-gray-200">
 		<div class="divide-y divide-gray-200">
 			{#each markets as market, i}
-				<div class="bg-gray-50 hover:bg-white">
+				<div class="bg-white">
 					<a
 						href={`/${new PublicKey(
 							market.data.data.AmmAddress

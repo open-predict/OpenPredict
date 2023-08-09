@@ -13,7 +13,7 @@
 {#if !!market}
     <div class="flex flex-col p-8 gap-2 pb-4">
         <div>
-            <p class="text-zinc-800 text-md">
+            <p class="text-gray-800 text-md">
                 {market.metadata?.title ?? "No title found"}
             </p>
         </div>

@@ -25,6 +25,7 @@
     import CopyButton from "$lib/elements/copy_button.svelte";
     import LoadingOverlay from "$lib/components/loading_overlay.svelte";
     import debounce from "lodash/debounce.js";
+    import MainHeader from "$lib/components/main_header.svelte";
 
     export let data;
     let { profile, markets, id, positions } =
@@ -79,6 +80,7 @@
             profile = null;
             positions = undefined;
             markets = undefined;
+            goto("/")
             return;
         }
         const profileRes = await trpcc.getUser.query({
@@ -163,14 +165,9 @@
 </script>
 
 <ColumnLayout>
-    <div
-        slot="main-header"
-        class={`bg-gray-50/90 transition-opacity w-full h-full flex items-center justify-start px-5 gap-3 text-sm ${
-            showHeader ? "opacity-100" : "opacity-0"
-        }`}
-    />
-    <div slot="main" class="flex flex-col">
-        <div class="h-40 w-full object-cover -mt-16 bg-gray-300" />
+    <MainHeader slot="main-header" fadeHeader />
+    <div slot="main" class="flex flex-col bg-white">
+        <div class="h-40 w-full object-cover -mt-16 bg-gradient-to-br from-sky-100 to-indigo-200" />
         <div
             class="rounded-full -mt-16 ring-4 ring-white bg-gray-500 h-32 w-32 ml-8 overflow-hidden"
         >
@@ -255,8 +252,8 @@
                     <span
                         class={`ml-3 hidden rounded-full py-0.5  px-2.5 text-xs font-medium md:inline-block ${
                             tab === currentTab
-                                ? "bg-zinc-700 text-white"
-                                : "bg-gray-200 text-zinc-800"
+                                ? "bg-gray-700 text-white"
+                                : "bg-gray-200 text-gray-800"
                         }`}
                     >
                         {#if tab === Tabs.Positions}
@@ -278,7 +275,7 @@
                             class="flex flex-col p-8 gap-2 pb-4"
                         >
                             <div>
-                                <p class="text-zinc-800 text-md">
+                                <p class="text-gray-800 text-md">
                                     {marketUserChaindata?.market?.metadata
                                         ?.title ?? "No title found"}
                                 </p>

@@ -5,13 +5,11 @@
     import { usdFormatter } from "$lib/utils";
     import { PublicKey } from "@solana/web3.js";
     import { goto } from "$app/navigation";
+    import MainHeader from "$lib/components/main_header.svelte";
 </script>
 
 <ColumnLayout>
-    <div
-        slot="main-header"
-        class="w-full h-full flex justify-center items-center"
-    >
+    <MainHeader slot="main-header">
         <div
             class="text-sm w-full flex flex-col justify-center items-center line-clamp-1 overflow-ellipsis"
         >
@@ -22,12 +20,12 @@
             </p>
         </div>
         <button
-            class={`p-2 ml-auto rounded-full text-white font-semibold cursor-pointer bg-black hover:bg-zinc-800`}
+            class={`p-2 ml-auto rounded-full text-white font-semibold cursor-pointer bg-black hover:bg-gray-800`}
             on:click={() => goto("/drafts/" + draftsStore.createDraft())}
         >
             <IconPlus size={20} />
         </button>
-    </div>
+    </MainHeader>
     <div slot="main" class="flex flex-col divide-y divide-gray-200">
         {#each Object.entries($draftsStore) as draft}
             <a

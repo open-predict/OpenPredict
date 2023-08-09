@@ -2,7 +2,6 @@ import { writable } from 'svelte/store';
 
 export enum Modal {
     login = "login",
-    low_sol = "low_sol",
     swap = "swap",
     no_usdc_account = "no_usdc_account",
     search_markets = "search_markets",
@@ -10,6 +9,7 @@ export enum Modal {
     send_funds = "send_funds", 
     redeem_shares = "redeem_shares",
     account_summary = "account_summary",
+    topup = "topup",
 } 
 
 type TModalStore = Record<Modal, boolean>;
@@ -17,7 +17,6 @@ type TModalStore = Record<Modal, boolean>;
 function createModalStore() {
     const {subscribe, update, set} = writable<TModalStore>({
         login: false,
-        low_sol: false, 
         swap: false,
         no_usdc_account: false,
         search_markets: false,
@@ -25,6 +24,7 @@ function createModalStore() {
         send_funds: false,
         redeem_shares: false,
         account_summary: false,
+        topup: false
     });
 
     function openModal(modal: Modal) {

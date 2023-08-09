@@ -96,7 +96,7 @@
         <div class="p-2">
             <button
                 on:click={() => goto("/drafts/" + draftsStore.createDraft())}
-                class="flex gap-2 justify-center items-center px-2 py-3 bg-zinc-800 text-white text-sm font-semibold rounded-full w-full hover:bg-black"
+                class="flex gap-2 justify-center items-center px-2 py-3 bg-gray-800 text-white text-sm font-semibold rounded-full w-full hover:bg-black"
             >
                 <span>New market</span>
                 <IconArrowRight stroke={1.5} size={20} />

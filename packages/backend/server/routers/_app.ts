@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { procedure, router } from '../trpc.js';
 import { commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata } from '../../types/market.js';
-import { makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0 } from '../../types/user.js';
+import { checkoutWithChangenowSchemaV0, makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0 } from '../../types/user.js';
 import { getHelia, marketByAddress, searchMarkets } from '../../amclient/index.js';
 import * as nodeCache from "node-cache"
 import { createHash, randomBytes } from "crypto"
@@ -12,6 +12,7 @@ import * as multiformats from "multiformats"
 import * as spl from "@solana/spl-token"
 import base58 from 'bs58';
 import SuperJSON from 'superjson';
+import fetch from "node-fetch"
 
 declare global {
   var loginChallengeCache: nodeCache
@@ -66,10 +67,9 @@ async function getUserId(opts: any) {
 }
 
 type CreateAccountResult = {
-  error: Error;
-} | {
-  address: web3.PublicKey;
-  mint: web3.PublicKey;
+  error?: Error;
+  address?: web3.PublicKey;
+  mint?: web3.PublicKey;
 }
 
 export async function createAccounts(
@@ -83,9 +83,10 @@ export async function createAccounts(
   let results: CreateAccountResult[] = [];
 
   for (const account of accounts) {
-    let error: Error | null = null;
+    let error: Error | undefined;
+    let res: web3.PublicKey | undefined;
     try {
-      await spl.createAssociatedTokenAccountIdempotent(
+      res = await spl.createAssociatedTokenAccountIdempotent(
         connection,
         feePayer,
         account.mint,
@@ -99,7 +100,7 @@ export async function createAccounts(
     if (error) {
       results.push({ error })
     } else {
-      results.push({ ...account })
+      results.push({ ...account, address: res })
     }
   }
 
@@ -172,6 +173,45 @@ async function validateInstructions(transaction: web3.Transaction, feePayer: web
 }
 
 export const appRouter = router({
+
+  checkoutWithChangenow: procedure.input(
+    checkoutWithChangenowSchemaV0
+  ).query(async (opts) => {
+    try {
+      const response: any = await fetch('https://api.changenow.io/v2/fiat-transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.CHANGE_NOW_API_KEY!
+        },
+        body: JSON.stringify({
+          'from_amount': opts.input.amount,
+          'from_currency': 'usd',
+          'to_currency': 'usdc',
+          'from_network': 'usd',
+          'to_network': 'sol',
+          'payout_address': opts.input.publicKey,
+          'payout_extra_id': '1',
+          'deposit_type': 'SEPA_1',
+          'payout_type': 'SEPA_1',
+          'external_partner_link_id': '',
+        })
+      })
+      if (response.status !== 200) {
+        return { error: "Error checking out with changenow" }
+      }
+      const json = await response.json();
+      if (json['redirect_url']) {
+        return {
+          url: json['redirect_url']
+        }
+      }
+    } catch (e) {
+      console.error(e);
+      return { error: "Error checking out with changenow" }
+    }
+  }),
+
   makeUsdcWallet: procedure.input(
     makeUsdcWalletSchemaV0,
   ).query(async (opts) => {

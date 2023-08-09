@@ -11,15 +11,15 @@
 
 <a
     href={`/profile/${publicKey}`}
-    class="flex items-center justify-center gap-2.5"
+    class="flex items-center justify-center gap-2.5 group transition-all"
 >
     <div
-        class={`rounded-full bg-gray-200 overflow-hidden ring-2 ring-gray-200 hover:ring-orange-300 transition-all h-7 w-7`}
+        class={`rounded-full bg-white overflow-hidden ring-2 ring-gray-300 h-6 w-6 p-0.5 group-hover:ring-indigo-400`}
     >
-        <img src={generateProfileImage(publicKey)} alt="profile" />
+        <img src={generateProfileImage(publicKey)} alt="profile" class="rounded-full" />
     </div>
     {#if !small}
-        <span class="text-sm text-gray-600 transition-all hover:underline hover:text-black">
+        <span class="text-sm text-gray-600 font-medium group-hover:text-black">
             {profile?.username ?? readablePublicKey(publicKey)}
         </span>
     {/if}

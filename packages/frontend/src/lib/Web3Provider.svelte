@@ -63,7 +63,7 @@
   function setPublicKey(key: PublicKey) {
     if (key) {
       web3Store.upsertPublicKey(key);
-      refreshSolBalance();
+      // refreshSolBalance();
       refreshUsdcAddress();
     }
   }
@@ -96,20 +96,20 @@
     }
   });
 
-  const requestSol = async () => {
-    const publicKey = $web3Store?.publicKey;
-    const connection = createConnection();
-    if (publicKey && connection) {
-      const sig = await connection.requestAirdrop(
-        publicKey,
-        1 * LAMPORTS_PER_SOL
-      );
-      await connection.confirmTransaction(sig);
-      refreshSolBalance();
-    } else {
-      alert("No pub key or connection");
-    }
-  };
+  // const requestSol = async () => {
+  //   const publicKey = $web3Store?.publicKey;
+  //   const connection = createConnection();
+  //   if (publicKey && connection) {
+  //     const sig = await connection.requestAirdrop(
+  //       publicKey,
+  //       1 * LAMPORTS_PER_SOL
+  //     );
+  //     await connection.confirmTransaction(sig);
+  //     refreshSolBalance();
+  //   } else {
+  //     alert("No pub key or connection");
+  //   }
+  // };
 
   async function refreshUsdcAddress() {
     const publicKey = $web3Store?.publicKey;
@@ -125,9 +125,16 @@
         refreshUsdcBalance();
       } catch (err: unknown) {
         if (err instanceof web3spl.TokenAccountNotFoundError) {
-          web3Store.updateUsdcAddress(null);
-          web3Store.updateUsdcBalance(undefined);
-          console.error("No USDC account found");
+          const res = await trpcc.makeUsdcWallet.query({
+            user: publicKey.toBase58(),
+          });
+          if (res.error || !res.address) {
+            console.error("Unable to create USDC wallet");
+            web3Store.updateUsdcAddress(null);
+            web3Store.updateUsdcBalance(undefined);
+          } else {
+            web3Store.updateUsdcAddress(new PublicKey(res.address));
+          }
         } else {
           console.error(err);
         }
@@ -190,34 +197,6 @@
       return false;
     }
   }
-
-  const refreshSolBalance = async () => {
-    const publicKey = $web3Store?.publicKey;
-    if (publicKey === null) {
-      web3Store.updateSolBalance(0);
-      web3Store.updateUsdcBalance({
-        amount: "0",
-        uiAmount: 0,
-        uiAmountString: "0",
-        decimals: 9,
-      });
-      return;
-    }
-    if (publicKey && connection) {
-      try {
-        const balance = await connection.getBalance(publicKey);
-        web3Store.updateSolBalance(balance / LAMPORTS_PER_SOL);
-        if (balance === 0) {
-          modalStore.openModal(Modal.low_sol);
-        } else {
-          modalStore.closeModal(Modal.low_sol);
-        }
-      } catch (err) {
-        console.error("error getting sol balance: ", err);
-        //TODO: Show error message on UI/retry
-      }
-    }
-  };
 
   const refreshUsdcBalance = async () => {
     const publicKey = $web3Store?.usdcAddress;
@@ -453,7 +432,7 @@
         lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
         blockhash: latestBlockhash.blockhash,
       });
-      refreshSolBalance();
+      // refreshSolBalance();
       refreshUsdcAddress();
       if (confirmation.value.err) console.error(confirmation.value.err);
       return {
@@ -491,12 +470,11 @@
 
   web3Workspace.update((v) => ({
     ...v,
-    requestSol,
+    requestSol: () => {},
     loginToMagic,
     logout: logout,
     makeAuthenticatedRequest,
     refreshBalances: async () => {
-      await refreshSolBalance();
       await refreshUsdcBalance();
     },
     refreshKeys: refreshUsdcAddress,
