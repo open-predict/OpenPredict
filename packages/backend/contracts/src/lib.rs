@@ -14,7 +14,7 @@ use solana_program::{
 
 use spl_associated_token_account::get_associated_token_address;
 use spl_token::instruction as spl_instruction;
-use std::{cmp::min, str::FromStr};
+use std::{cmp::min, simd::f64x2, str::FromStr};
 use std::{convert::TryInto, slice::Iter};
 
 mod openpredict;
@@ -764,6 +764,105 @@ fn process_instruction(
             for n in 0..data.cid.len() {
                 username_account_data[2 + 32 + 1 + n] = data.cid[n];
             }
+            Ok(())
+        }
+        OneOfContents::subsidizeMarket(data) => {
+            //Accounts
+            let user_assoc_token_acc = next_from_pubkey(
+                account_info_iter,
+                &get_associated_token_address(user.key, &usdc_mint_authority_addr),
+                &spl_token::ID,
+            )?;
+            let (amm_account, amm_account_data, bump_seed) =
+                next_amm_account(account_info_iter, &data.amm_address, program_id, true)?;
+            let amm_assoc_token_acc = next_from_pubkey(
+                account_info_iter,
+                &get_associated_token_address(amm_account.key, &usdc_mint_authority_addr),
+                &spl_token::ID,
+            )?;
+            let spl_token_account =
+                next_from_pubkey(account_info_iter, &spl_token::ID, &bpf_loader::ID)?;
+
+            msg!("making transfer");
+            invoke(
+                &spl_instruction::transfer(
+                    &spl_token::ID,
+                    &user_assoc_token_acc.key,
+                    &amm_assoc_token_acc.key,
+                    &user.key,
+                    &[&user.key],
+                    data.subsidy,
+                )?,
+                &[
+                    user_assoc_token_acc.clone(),
+                    amm_assoc_token_acc.clone(),
+                    user.clone(),
+                    spl_token_account.clone(),
+                ],
+            )?;
+
+            msg!("getting amm subsidy");
+            let init_subsidy = u64::from_le_bytes(
+                (&amm_account_data[3..11])
+                    .try_into()
+                    .expect("should never happen"),
+            ) as i128;
+
+            msg!("getting amm yes shares");
+            let num_amm_yes_shares = u64::from_le_bytes(
+                amm_account_data[11..19]
+                    .try_into()
+                    .expect("should never happen"),
+            ) as i128;
+            let num_amm_no_shares = u64::from_le_bytes(
+                amm_account_data[19..27]
+                    .try_into()
+                    .expect("should never happen"),
+            ) as i128;
+
+            let subsidy = init_subsidy.checked_add(data.subsidy as i128).unwrap();
+
+            //https://www.wolframalpha.com/input?i=%28a%2By%29%28b%2By%29%3Dc%5E2+solve+for+y
+
+            let sqrd = num_amm_yes_shares
+                .checked_mul(num_amm_yes_shares)
+                .unwrap()
+                .checked_sub(
+                    num_amm_yes_shares
+                        .checked_mul(num_amm_no_shares)
+                        .unwrap()
+                        .checked_mul(2)
+                        .unwrap(),
+                )
+                .unwrap()
+                .checked_add(num_amm_no_shares.checked_mul(num_amm_no_shares).unwrap())
+                .unwrap();
+
+            //We need to keep numerical stability
+            if sqrd > (2 as i128).pow(52) {
+                return Err(ProgramError::InvalidInstructionData);
+            }
+
+            let sqrt = (sqrd as f64).sqrt() as i128;
+
+            let y = sqrt
+                .checked_sub(num_amm_yes_shares)
+                .unwrap()
+                .checked_sub(num_amm_no_shares)
+                .unwrap()
+                .checked_div(2)
+                .unwrap();
+
+            let num_amm_yes_shares_b =
+                (num_amm_yes_shares.checked_add(y).unwrap() as u64).to_le_bytes();
+            let num_amm_no_shares_b =
+                (num_amm_no_shares.checked_add(y).unwrap() as u64).to_le_bytes();
+
+            for i in 0..8 {
+                amm_account_data[11 + i] = num_amm_yes_shares_b[i];
+                amm_account_data[19 + i] = num_amm_no_shares_b[i];
+            }
+
             Ok(())
         }
         OneOfContents::None => Err(ProgramError::InvalidArgument),

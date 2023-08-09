@@ -29,6 +29,10 @@ message Instruction {
 		string username = 1;
 		bytes cid = 2;
 	}
+  message SubsidizeMarket {
+		bytes amm_address = 1;
+		uint64 subsidy = 3;
+  }
 
 	oneof Contents {
 		InitMarket initMarket = 1;
@@ -37,5 +41,6 @@ message Instruction {
 		ResolveMarket resolveMarket = 4;
 		RedeemShares redeemShares = 5;
 		CreateAccount createAccount = 6;
+    SubsidizeMarket subsidizeMarket = 7;
 	}
 }
