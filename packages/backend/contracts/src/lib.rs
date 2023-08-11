@@ -773,13 +773,16 @@ fn process_instruction(
                 &get_associated_token_address(user.key, &usdc_mint_authority_addr),
                 &spl_token::ID,
             )?;
+            msg!("assoc token acc");
             let (amm_account, amm_account_data, _) =
-                next_amm_account(account_info_iter, &data.amm_address, program_id, true)?;
+                next_amm_account(account_info_iter, &data.amm_address, program_id, false)?;
+            msg!("amm account");
             let amm_assoc_token_acc = next_from_pubkey(
                 account_info_iter,
                 &get_associated_token_address(amm_account.key, &usdc_mint_authority_addr),
                 &spl_token::ID,
             )?;
+            msg!("token account");
             let spl_token_account =
                 next_from_pubkey(account_info_iter, &spl_token::ID, &bpf_loader::ID)?;
 
@@ -863,8 +866,10 @@ fn process_instruction(
                 (num_amm_yes_shares.checked_add(y).unwrap() as u64).to_le_bytes();
             let num_amm_no_shares_b =
                 (num_amm_no_shares.checked_add(y).unwrap() as u64).to_le_bytes();
+            let subsidy_b = (subsidy as u64).to_le_bytes();
 
             for i in 0..8 {
+                amm_account_data[3 + i] = subsidy_b[i];
                 amm_account_data[11 + i] = num_amm_yes_shares_b[i];
                 amm_account_data[19 + i] = num_amm_no_shares_b[i];
             }
