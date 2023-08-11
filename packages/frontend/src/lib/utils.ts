@@ -1,8 +1,8 @@
-import type { PublicKey } from "@solana/web3.js";
-import type { extMarketChaindata, marketChaindata } from "@am/backend/types/market";
-import { createAvatar } from '@dicebear/core';
+import type {PublicKey} from "@solana/web3.js";
+import type {extMarketChaindata, marketChaindata} from "@am/backend/types/market";
+import {createAvatar} from '@dicebear/core';
 import * as shapes from '@dicebear/shapes';
-import { PUBLIC_FEE_PAYER_KEY } from "$env/static/public"
+import {PUBLIC_FEE_PAYER_KEY} from "$env/static/public"
 
 export const USDC_PER_DOLLAR = 1000000;
 const fee_payer = new web3.PublicKey(PUBLIC_FEE_PAYER_KEY);
@@ -30,7 +30,7 @@ export function log(type?: "web3" | "debug" | "info", ...args: any) {
   console.log(`[${type ?? "info"}]`, ...args)
 }
 
-export type TLinkDef = { href: string, name: string, Icon: any }
+export type TLinkDef = {href: string, name: string, Icon: any}
 
 export const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -68,8 +68,8 @@ export function autoresizeTextarea(node: any) {
   };
 }
 
-export function getUserShares(marketData: extMarketChaindata, publicKey?: PublicKey | null): { shares: bigint, sharesUI: number, valueCents: number } {
-  let ret = { shares: 0n, sharesUI: 0, valueCents: 0 };
+export function getUserShares(marketData: extMarketChaindata, publicKey?: PublicKey | null): {shares: bigint, sharesUI: number, valueCents: number} {
+  let ret = {shares: 0n, sharesUI: 0, valueCents: 0};
   if (!publicKey) return ret;
   const current = marketData.UserAccounts.get(publicKey.toBase58());
   const centsPerYes = 100 * getChance(marketData.data.Yes, marketData.data.No);
@@ -226,7 +226,7 @@ export function getSellUsdcLimit(data: marketChaindata, userShares: bigint) {
 
 import * as web3 from "@solana/web3.js"
 import * as web3spl from "@solana/spl-token"
-import { openpredict } from './pb/oppb.js'
+import {openpredict} from './pb/oppb.js'
 
 export async function swapCoinsInstructions(
   connection: web3.Connection,
@@ -236,7 +236,7 @@ export async function swapCoinsInstructions(
   amount: number,
   legacyTransaction?: boolean,
 ): Promise<[web3.TransactionInstruction[], web3.AddressLookupTableAccount[]?]> {
-  const { data } = await (
+  const {data} = await (
     await fetch(`https://quote-api.jup.ag/v4/quote?inputMint=${inputMint.toString()}&outputMint=${outputMint.toString()}&amount=${amount}&swapMode=ExactOut&slippageBps=${1}&asLegacyTransaction=${legacyTransaction === true}&onlyDirectRoutes=${true}`)
   ).json();
   const routes = data;
@@ -267,7 +267,7 @@ export async function swapCoinsInstructions(
     })
   ).json();
 
-  const { swapTransaction } = transactions;
+  const {swapTransaction} = transactions;
 
   const swapTransactionBuf = Buffer.from(swapTransaction, 'base64');
   if (legacyTransaction !== true) {
@@ -310,6 +310,7 @@ export async function subsidizeMarketInstruction(
   }).finish()
 
   const marketAddress = web3.PublicKey.findProgramAddressSync([amm_address, Buffer.from("data")], mainProgramId)[0];
+  const accountAddress = web3.PublicKey.findProgramAddressSync([amm_address, Buffer.from("users"), publicKey.toBuffer()], mainProgramId)[0];
 
   return new web3.TransactionInstruction({
     keys: [
@@ -339,12 +340,12 @@ export async function subsidizeMarketInstruction(
         isWritable: true,
       },
       {
-        pubkey: web3spl.TOKEN_PROGRAM_ID,
+        pubkey: accountAddress,
         isSigner: false,
-        isWritable: false,
+        isWritable: true,
       },
       {
-        pubkey: web3spl.ASSOCIATED_TOKEN_PROGRAM_ID,
+        pubkey: web3spl.TOKEN_PROGRAM_ID,
         isSigner: false,
         isWritable: false,
       },
