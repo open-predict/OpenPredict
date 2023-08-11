@@ -30,6 +30,7 @@
         publicKey: $web3Store.publicKey?.toBase58(),
         amount: Math.round((microUsdc * 100) / USDC_PER_DOLLAR) / 100,
       });
+      loadingMessage = "Redirecting you..."
       if (res) {
         if (res.error || !res.url) {
           errorMessage = res.error ?? "No url.";
@@ -153,16 +154,16 @@
           }} 
           class="btn_secondary"
         >
-          Copy public key
+          Copy SOL-USDC address
         </button>
-        <a
+        <!-- <a
           class="btn_secondary"
           target="_blank"
           rel="noreferrer"
           href="https://changenow.io/exchange?from=usd&to=sol&fiatMode=true"
         >
           Pay for USDC manually
-        </a>
+        </a> -->
       </div>
     </div>
   </Dialog>
