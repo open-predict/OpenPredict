@@ -310,7 +310,6 @@ export async function subsidizeMarketInstruction(
   }).finish()
 
   const marketAddress = web3.PublicKey.findProgramAddressSync([amm_address, Buffer.from("data")], mainProgramId)[0];
-  const accountAddress = web3.PublicKey.findProgramAddressSync([amm_address, Buffer.from("users"), publicKey.toBuffer()], mainProgramId)[0];
 
   return new web3.TransactionInstruction({
     keys: [
@@ -335,12 +334,7 @@ export async function subsidizeMarketInstruction(
         isWritable: true,
       },
       {
-        pubkey: web3spl.getAssociatedTokenAddressSync(usdcMintAuthorityId, marketAddress, true),
-        isSigner: false,
-        isWritable: true,
-      },
-      {
-        pubkey: accountAddress,
+        pubkey: web3spl.getAssociatedTokenAddressSync(usdcMintAuthorityId, marketAddress),
         isSigner: false,
         isWritable: true,
       },
