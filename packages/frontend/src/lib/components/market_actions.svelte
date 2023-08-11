@@ -4,7 +4,7 @@
     import { web3Workspace } from "$lib/web3Workspace";
     import { web3Store } from "$lib/web3Store";
     import {
-    TxStatus,
+        TxStatus,
         getUserShares,
         redeemSharesInstruction,
         usdFormatter,
@@ -81,12 +81,11 @@
                     }
                 },
                 (s, h) => {
-                    $web3Workspace.refreshBalances()
-                    $web3Workspace.refreshKeys()
+                    $web3Workspace.refreshBalances();
+                    $web3Workspace.refreshKeys();
                 },
                 (e) => alert(e)
             );
-
         } catch (e) {
             console.error(e);
             alert("Error redeeming your shares. Please try again.");
@@ -117,6 +116,22 @@
 </Dialog>
 
 {#if isResolved}
+    <div
+        class={`${
+            resolved
+                ? "bg-green-300/25 text-green-700"
+                : "bg-red-500/10 text-red-300"
+        } px-4 py-2.5 rounded-2xl flex items-center gap-4 w-full`}
+    >
+        {#if resolved}
+            <IconCheck class={"stroke-green-500"} />
+        {:else}
+            <IconX class={"stroke-red-600"} />
+        {/if}
+        <p class="text-sm">
+            {`Market resolved to ${resolved ? "'yes'" : "'no'"}`}
+        </p>
+    </div>
     {#if canRedeem}
         <button
             disabled={!!loadingMessage}
@@ -127,23 +142,6 @@
         >
             {`Redeem ${usdFormatter.format(userShares.valueCents / 100)}`}
         </button>
-    {:else}
-        <div
-            class={`${
-                resolved
-                    ? "bg-green-300/25 text-green-700"
-                    : "bg-red-500/10 text-red-300"
-            } px-4 py-2.5 rounded-2xl flex items-center gap-4 w-full`}
-        >
-            {#if resolved}
-                <IconCheck class={"stroke-green-500"} />
-            {:else}
-                <IconX class={"stroke-red-600"} />
-            {/if}
-            <p class="text-sm">
-                {`Market resolved to ${resolved ? "'yes'" : "'no'"}`}
-            </p>
-        </div>
     {/if}
 {:else}
     {#if userShares.sharesUI >= 0}
@@ -177,9 +175,7 @@
                 </span>
                 {#if !small}
                     <span class="font-normal text-xs">
-                        {`($${(userShares.valueCents / 100).toFixed(
-                            2
-                        )})`}
+                        {`($${(userShares.valueCents / 100).toFixed(2)})`}
                     </span>
                 {/if}
             </button>
@@ -202,9 +198,7 @@
                 </span>
                 {#if !small}
                     <span class="font-normal text-xs">
-                        {`($${(userShares.valueCents / 100).toFixed(
-                            2
-                        )})`}
+                        {`($${(userShares.valueCents / 100).toFixed(2)})`}
                     </span>
                 {/if}
             </button>
