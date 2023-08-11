@@ -27,6 +27,7 @@
     import debounce from "lodash/debounce.js";
     import MainHeader from "$lib/components/main_header.svelte";
     import { goto } from "$app/navigation";
+    import { browser } from "$app/environment";
 
     export let data;
     let { profile, markets, id, positions } =
@@ -81,7 +82,7 @@
             profile = null;
             positions = undefined;
             markets = undefined;
-            goto("/")
+            if(browser) goto("/")
             return;
         }
         const profileRes = await trpcc.getUser.query({
@@ -100,7 +101,7 @@
             userId: id,
         });
     }
-
+    
     async function saveProfile(initUsername: boolean = false) {
         if (!publicKey) return;
 
@@ -150,7 +151,7 @@
             async (h, s) => {
                 await refreshProfile();
                 loadingMessage = "";
-                completedMessage = "Trade executed!";
+                completedMessage = "Profile saved!";
             },
             (e) => {
                 loadingMessage = "";
@@ -158,7 +159,7 @@
                     errorMessage = e.message;
                 } else {
                     errorMessage =
-                        "Couldn't execute your trade, please try again.";
+                        "Couldn't save your profile. Please try again.";
                 }
             }
         );
