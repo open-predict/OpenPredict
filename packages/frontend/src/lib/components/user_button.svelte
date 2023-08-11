@@ -47,14 +47,14 @@
         </div>
     </button>
 {:else if $web3Store?.publicKey === null}
-    <button
+    <!-- <button
         on:click={() => {
             modalStore.openModal(Modal.login);
         }}
         class="btn_secondary px-8"
     >
         FAQs
-    </button>
+    </button> -->
     <button
         on:click={() => {
             modalStore.openModal(Modal.login);

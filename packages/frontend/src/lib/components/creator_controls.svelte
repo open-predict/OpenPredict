@@ -89,13 +89,13 @@
                     if (e instanceof Error) {
                         errorMessage = e.message;
                     } else {
-                        errorMessage = `Couldn't resolve the market: ${e}`;
+                        errorMessage = `Couldn't increase the subsidy: ${e}`;
                     }
                 }
             );
         } catch (e) {
             console.error(e);
-            alert("Error resolving your market. Please try again.");
+            errorMessage = `Couldn't increase the market's subsidy: ${e}. Please try again.`;
             return;
         }
     }
@@ -157,7 +157,7 @@
             );
         } catch (e) {
             console.error(e);
-            alert("Error resolving your market. Please try again.");
+            errorMessage = `Error resolving your market: ${e}. Please try again.`;
             return;
         }
     }

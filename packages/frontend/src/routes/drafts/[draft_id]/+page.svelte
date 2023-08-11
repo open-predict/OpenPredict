@@ -308,11 +308,7 @@
                         {`Create market`}
                     </button>
                     <p class="text-sm text-gray-500">
-                        {`You have ${usdFormatter.format(
-                            $web3Store?.usdc?.uiAmount ?? 0
-                        )} & ${
-                            $web3Store.sol ? $web3Store.sol?.toFixed(2) : 0
-                        } SOL`}
+                        {`You have ${usdFormatter.format($web3Store?.usdc?.uiAmount ?? 0)}`}
                     </p>
                 </div>
             </div>
