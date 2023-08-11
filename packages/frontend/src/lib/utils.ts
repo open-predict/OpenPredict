@@ -334,7 +334,7 @@ export async function subsidizeMarketInstruction(
         isWritable: true,
       },
       {
-        pubkey: web3spl.getAssociatedTokenAddressSync(usdcMintAuthorityId, marketAddress),
+        pubkey: web3spl.getAssociatedTokenAddressSync(usdcMintAuthorityId, marketAddress, true),
         isSigner: false,
         isWritable: true,
       },
