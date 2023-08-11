@@ -88,14 +88,14 @@ async function setupLocalEnvironment(rpcUrl: string) {
   let mint = "";
   let mainProgramId = "";
   let feePayerKey: web3.Keypair | undefined;
-  let redeploy = true;
+  let redeploy = process.env.NODE_ENV != "prod" && process.env.NODE_ENV != "production";
   let feePayerKeyBalance: any;
 
   // find existing spl-token accounts
   const splTokenAccountsOutput = JSON.parse((await (promisify(exec))((`spl-token accounts --output json`))).stdout);
   const accounts = splTokenAccountsOutput['accounts']
 
-  if (accounts.length > 0) {
+  if (redeploy && accounts.length > 0) {
     tokenAccount = accounts[0]['address'];
     mint = accounts[0]['mint'];
     redeploy = false;
