@@ -1,5 +1,6 @@
 "use strict";
 
+import $protobuf from "protobufjs/minimal.js";
 // Common aliases
 const $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
 
