@@ -104,7 +104,7 @@ async function setupLocalEnvironment(rpcUrl: string) {
 
   async function setFeePayerFromFile() {
     try {
-      const _feePayerKey = await readFile("fee_payer.json", 'utf-8').catch((e) => {
+      const _feePayerKey = await readFile("fee_payer.json", 'utf-8').catch((_) => {
         return undefined;
       })
       if (_feePayerKey) {
