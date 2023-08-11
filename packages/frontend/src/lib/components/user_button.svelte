@@ -3,7 +3,7 @@
     import { Modal, modalStore } from "$lib/modals/modalStore";
     import IconLoader from "@tabler/icons-svelte/dist/svelte/icons/IconLoader2.svelte";
     import IconMenu from "@tabler/icons-svelte/dist/svelte/icons/IconMenu2.svelte";
-    import { generateProfileImage, usdFormatter } from "$lib/utils";
+    import { generateProfileImage, readablePublicKey, usdFormatter } from "$lib/utils";
     import {
         Dialog,
         DialogOverlay,
@@ -13,6 +13,7 @@
         PopoverPanel,
     } from "@rgossiaux/svelte-headlessui";
     import { web3Store } from "$lib/web3Store";
+    import { toastsStore } from "$lib/toasts/toastsStore";
     $: ({ logout } = $web3Workspace);
     let mobileModal = false;
 </script>
@@ -24,7 +25,9 @@
         }}
         class="flex h-8 p-0.5 lg:h-11 lg:max-h-11 lg:p-1.5 flex-nowrap items-center rounded-full bg-gray-50 ring-1 ring-gray-200 hover:bg-gray-200 hover:ring-gray-300"
     >
-        <div class="relative inline-block ring-1 ring-gray-300 rounded-full p-0.5">
+        <div
+            class="relative inline-block ring-1 ring-gray-300 rounded-full p-0.5"
+        >
             <div
                 class="flex overflow-hidden rounded-full w-6 h-6 lg:w-7 lg:h-7"
             >
@@ -85,6 +88,46 @@
             </DialogTitle>
         </div>
         <div class="flex flex-col gap-2.5 p-6">
+            <button
+                on:click={async () => {
+                    if (!$web3Store.publicKey) {
+                        modalStore.openModal(Modal.login);
+                        return;
+                    }
+                    window.navigator.clipboard.writeText(
+                        $web3Store.publicKey?.toBase58()
+                    );
+                    toastsStore.create({
+                        title: "Copied!",
+                        message: readablePublicKey($web3Store.publicKey),
+                        variant: "success"
+                    })
+                }}
+                class="btn_secondary"
+            >
+                Copy public key
+            </button>
+            <button
+                on:click={async () => {
+                    if (!$web3Store.usdcAddress) {
+                        modalStore.openModal(Modal.login);
+                        return;
+                    }
+                    window.navigator.clipboard.writeText(
+                        $web3Store.usdcAddress?.toBase58()
+                    );
+                    toastsStore.create({
+                        title: "Copied!",
+                        duration: 0,
+                        message: readablePublicKey($web3Store.usdcAddress),
+                        variant: "success"
+                    })
+                }}
+                class="btn_secondary"
+            >
+                Copy USDC address
+            </button>
+
             <button
                 on:click={async () => {
                     await logout();

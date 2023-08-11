@@ -26,6 +26,7 @@
     import LoadingOverlay from "$lib/components/loading_overlay.svelte";
     import debounce from "lodash/debounce.js";
     import MainHeader from "$lib/components/main_header.svelte";
+    import { goto } from "$app/navigation";
 
     export let data;
     let { profile, markets, id, positions } =
