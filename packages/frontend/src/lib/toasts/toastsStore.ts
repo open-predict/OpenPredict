@@ -27,7 +27,7 @@ function createModalStore() {
     function create(opt: TToastProps) {
         const id = nanoid();
         if (opt.duration !== 0) {
-            setTimeout(() => remove(id), opt.duration ?? 3500);
+            setTimeout(() => remove(id), opt.duration ?? 2500);
         }
         update(ts => {
             return [...ts, { id, ...opt }];

@@ -131,7 +131,7 @@ async function setupLocalEnvironment(rpcUrl: string) {
     }
   }
 
-  console.log(`[prebuild] > Set/Created Fee Payer: ${feePayerKey?.publicKey},,balance: ${feePayerKeyBalance}`)
+  console.log(`[prebuild] > Set/Created Fee Payer: ${feePayerKey?.publicKey} balance: ${feePayerKeyBalance}`)
 
   if (redeploy) {
     const createTokenOutput = JSON.parse((await promisify(exec)(`spl-token create-token --decimals 6 --output json`)).stdout)
