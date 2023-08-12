@@ -55,14 +55,14 @@
     >
         FAQs
     </button> -->
-    <button
+    <!-- <button
         on:click={() => {
             modalStore.openModal(Modal.login);
         }}
         class="btn_primary px-8"
     >
         Signup
-    </button>
+    </button> -->
 {:else}
     <button
         disabled

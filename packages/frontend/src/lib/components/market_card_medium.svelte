@@ -29,7 +29,7 @@
 {#if !!market}
     <div class="flex flex-col p-4 md:p-8 gap-6 w-full">
         <div
-            class="w-full inline-flex items-center bg-transparent justify-between"
+            class="w-full flex items-center bg-transparent justify-between"
         >
             <ProfileButton
                 publicKey={new PublicKey(market.data.data.OperatorKey)}

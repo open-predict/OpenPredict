@@ -198,6 +198,7 @@ export const appRouter = router({
         })
       })
       if (response.status !== 200) {
+        console.log(response);
         return { error: "Error checking out with changenow" }
       }
       const json = await response.json();

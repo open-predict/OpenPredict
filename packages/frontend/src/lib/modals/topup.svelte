@@ -127,7 +127,7 @@
         <p class="mt-10 text-gray-600">
           {`ChangeNow generally imposes a minimum order amount of ~50$ when purchasing SOL/USDC with fiat.`}
         </p> -->
-        <button
+        <!-- <button
           class="btn_primary w-full mt-10"
           on:click={payWithChangenow}
           disabled={!!loadingMessage || !!errorMessage}
@@ -142,7 +142,7 @@
         <div class="relative flex justify-center">
           <span class="bg-white px-2 py-4 text-sm text-gray-500">or do things manually</span>
         </div>
-      </div>
+      </div> -->
       <div class="flex flex-col gap-2.5 p-6">
         <button 
           on:click={() => {

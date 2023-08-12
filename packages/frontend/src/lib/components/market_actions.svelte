@@ -132,18 +132,19 @@
             {`Market resolved to ${resolved ? "'yes'" : "'no'"}`}
         </p>
     </div>
-    {#if canRedeem}
-        <button
-            disabled={!!loadingMessage}
-            on:click|stopPropagation|preventDefault={(e) => {
-                redeemShares();
-            }}
-            class={reactiveBtn}
-        >
-            {`Redeem ${usdFormatter.format(userShares.valueCents / 100)}`}
-        </button>
-    {/if}
-{:else}
+{/if}
+{#if canRedeem}
+    <button
+        disabled={!!loadingMessage}
+        on:click|stopPropagation|preventDefault={(e) => {
+            redeemShares();
+        }}
+        class={reactiveBtn}
+    >
+        {`Redeem ${usdFormatter.format(userShares.valueCents / 100)}`}
+    </button>
+{/if}
+{#if !isResolved}
     {#if userShares.sharesUI >= 0}
         <button
             disabled={isResolved}
