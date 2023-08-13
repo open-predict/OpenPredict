@@ -156,14 +156,14 @@
         >
           Copy SOL-USDC address
         </button>
-        <!-- <a
+        <a
           class="btn_secondary"
           target="_blank"
           rel="noreferrer"
           href="https://changenow.io/exchange?from=usd&to=sol&fiatMode=true"
         >
           Pay for USDC manually
-        </a> -->
+        </a>
       </div>
     </div>
   </Dialog>
