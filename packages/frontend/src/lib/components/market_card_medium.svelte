@@ -29,14 +29,14 @@
 {#if !!market}
     <div class="flex flex-col p-4 md:p-8 gap-6 w-full">
         <div
-            class="w-full flex items-center bg-transparent justify-between"
+            class="w-full flex items-center bg-transparent"
         >
             <ProfileButton
                 publicKey={new PublicKey(market.data.data.OperatorKey)}
                 profile={creator}
             />
             {#if createdAt}
-                <span class="text-xs text-gray-600">
+                <span class="text-xs text-gray-600 ml-auto">
                     {`Created on ${dateFormatter.format(createdAt)}`}
                 </span>
             {/if}

@@ -118,7 +118,6 @@
                     );
                     toastsStore.create({
                         title: "Copied!",
-                        duration: 0,
                         message: readablePublicKey($web3Store.usdcAddress),
                         variant: "success"
                     })
