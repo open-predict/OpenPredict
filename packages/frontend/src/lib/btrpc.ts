@@ -2,7 +2,7 @@ import type {AppRouter} from "@am/backend/server/routers/_app"
 import {createTRPCProxyClient, httpBatchLink} from '@trpc/client';
 import superjson from "superjson"
 import {Buffer} from "buffer"
-import {PUBLIC_TRPC_URL} from "$env/static/public";
+import {PUBLIC_INTERNAL_TRPC_URL} from "$env/static/public";
 
 superjson.registerCustom<Buffer, number[]>(
   {
@@ -13,12 +13,12 @@ superjson.registerCustom<Buffer, number[]>(
   "buffer"
 );
 
-export const trpcc = createTRPCProxyClient<AppRouter>({
+export const btrpcc = createTRPCProxyClient<AppRouter>({
   // transformer,
   transformer: superjson,
   links: [
     httpBatchLink({
-      url: PUBLIC_TRPC_URL,
+      url: PUBLIC_INTERNAL_TRPC_URL,
       fetch(url, options) {
         return fetch(url, {
           ...options,
