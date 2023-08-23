@@ -18,7 +18,7 @@
   import '@fontsource-variable/open-sans';
   import '@fontsource-variable/inter';
   import Topup from "$lib/modals/topup.svelte";
-    import ToastsProvider from "$lib/toasts/toastsProvider.svelte";
+  import ToastsProvider from "$lib/toasts/toastsProvider.svelte";
 
   NProgress.configure({
     minimum: 0.16,

@@ -1,5 +1,5 @@
 import SuperJSON from 'superjson';
-import { trpcc } from '../../../lib/trpc.js';
+import { btrpcc } from '../../../lib/btrpc.js';
 import type { extMarketChaindata, marketFulldata, marketUserChaindata } from '@am/backend/types/market.js';
 import type { TUser } from '@am/backend/types/user.js';
 import { web3StoreLsKey } from '$lib/web3Store.js';
@@ -40,17 +40,17 @@ export async function load({ params, cookies }) {
 			redirect(300, "/profile")
 		}
 
-		const profileRes = !publicKey ? undefined : await trpcc.getUser.query({
+		const profileRes = !publicKey ? undefined : await btrpcc.getUser.query({
 			userId: [publicKey],
 		});
 
 		const profile = (publicKey && profileRes !== undefined) ? profileRes.get(publicKey) : undefined;
 
-		const positions = !!publicKey ? await trpcc.getMarketAccounts.query({
+		const positions = !!publicKey ? await btrpcc.getMarketAccounts.query({
 			userId: publicKey,
 		}) : undefined;
 
-		const markets = !!publicKey ? await trpcc.getUserMarkets.query({
+		const markets = !!publicKey ? await btrpcc.getUserMarkets.query({
 			userId: publicKey,
 		}) : undefined;
 
