@@ -1,3 +1,4 @@
+import log from '$lib/log';
 import { nanoid } from 'nanoid';
 import { writable } from 'svelte/store';
 
@@ -27,6 +28,7 @@ function createModalStore() {
     function create(opt: TToastProps) {
         const id = nanoid();
         if (opt.duration !== 0) {
+            log("debug", "toastsStore", "created with timeout...");
             setTimeout(() => remove(id), opt.duration ?? 2500);
         }
         update(ts => {
@@ -35,6 +37,7 @@ function createModalStore() {
     }
 
     function remove(id: string) {
+        log("debug", "toastsStore", "removing...");
         update(ts => {
             return ts.filter(t => t.id !== id)
         })

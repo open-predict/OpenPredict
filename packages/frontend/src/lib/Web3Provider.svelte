@@ -25,8 +25,11 @@
   import { onMount } from "svelte";
   import { trpcc } from "./trpc";
   import createConnection from "./createConnection";
-  import { swapCoinsInstructions, Errors, TxStatus, delay, log } from "./utils";
+  import { swapCoinsInstructions, Errors, TxStatus, delay } from "./utils";
+  import log from "$lib/log"
   import { web3Store } from "./web3Store";
+
+  const FILE = "Web3Provider";
 
   const usdcMintAddr = new PublicKey(PUBLIC_USDC_MINT_ADDR);
   const mainProgramId = new PublicKey(PUBLIC_MAIN_PROGRAM_ID);
@@ -44,7 +47,7 @@
     connection.onLogs(
       mainProgramId,
       (logs, _) => {
-        console.log("[connection-logs]", logs.logs);
+        log("info", "connection-logs", logs.logs);
       },
       "finalized"
     );
@@ -54,6 +57,7 @@
   $: connected, onWalletProviderChange();
 
   function onWalletProviderChange() {
+    log("debug", FILE, "onWalletProviderChange");
     if ($walletStore.wallet?.connected && $walletStore.wallet?.publicKey) {
       setPublicKey($walletStore.wallet.publicKey);
       web3Store.updateWalletKind(false);
@@ -61,6 +65,7 @@
   }
 
   function setPublicKey(key: PublicKey) {
+    log("debug", FILE, "setPublicKey");
     if (key) {
       web3Store.upsertPublicKey(key);
       // refreshSolBalance();
@@ -69,6 +74,7 @@
   }
 
   onMount(async () => {
+    log("debug", FILE, "onMount");
     let magic: TMagic | null = createMagic(rpcUrl);
     let _publicKey: PublicKey | null | undefined = $web3Store?.publicKey;
     // refresh magic if logged in OR try magic if cookies indicate we're not logged in
@@ -112,6 +118,7 @@
   // };
 
   async function refreshUsdcAddress() {
+    log("debug", FILE, "refreshUsdcAddress");
     const publicKey = $web3Store?.publicKey;
     if (publicKey && connection) {
       try {
@@ -129,14 +136,14 @@
             user: publicKey.toBase58(),
           });
           if (res.error || !res.address) {
-            console.error("Unable to create USDC wallet");
+            log("error", FILE, "Unable to create USDC wallet");
             web3Store.updateUsdcAddress(null);
             web3Store.updateUsdcBalance(undefined);
           } else {
             web3Store.updateUsdcAddress(new PublicKey(res.address));
           }
         } else {
-          console.error(err);
+          log("error", FILE, err);
         }
       }
     }
@@ -193,12 +200,13 @@
       }
     } catch (e) {
       modalStore.closeModal(Modal.backend_auth);
-      console.error(e);
+      log("error", FILE,e);
       return false;
     }
   }
 
   const refreshUsdcBalance = async () => {
+    log("debug", FILE, "refreshUsdcBalance");
     const publicKey = $web3Store?.usdcAddress;
     if (publicKey === null) {
       return;
@@ -213,7 +221,7 @@
     try {
       const magic = createMagic(rpcUrl);
       if (!magic) {
-        console.error("Magic.link not supported in this environment");
+        log("error", FILE, "Magic.link not supported in this environment");
         return false;
       }
       const res = await magic.auth.loginWithMagicLink({
@@ -232,7 +240,7 @@
       }
     } catch (err) {
       alert(err);
-      console.error(err);
+      log("error", FILE, err);
       return false;
     }
   }
@@ -240,7 +248,7 @@
   const magicLogout = async () => {
     const magic = createMagic(rpcUrl);
     if (!magic) {
-      console.error("Magic.link not supported in this environment");
+      log("error", FILE,"Magic.link not supported in this environment");
       return false;
     }
     await magic.user.logout();
@@ -265,8 +273,8 @@
     onComplete?: (slot: number, hash: string) => void,
     onError?: (e: Error | Errors) => void
   ) {
-    if (!onStatus) onStatus = (s) => console.log("tx status", s);
-    if (!onComplete) onComplete = () => console.log("tx complete");
+    if (!onStatus) onStatus = (s) => log("info", FILE, "tx status", s);
+    if (!onComplete) onComplete = () => log("info", FILE, "tx complete");
     if (!onError) onError = (e) => alert(e);
 
     try {
@@ -313,7 +321,7 @@
       onStatus(TxStatus.COMPLETE);
       onComplete(1, tx_id);
     } catch (e: any) {
-      console.error(e);
+      log("error", FILE, e);
       if (e instanceof Error) {
         onError(e);
       } else {
@@ -347,7 +355,7 @@
           recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
         });
         transaction.add(...instructions);
-        log("web3", "prompting wallet to sign a transaction");
+        log("info", FILE, "prompting wallet to sign a transaction");
         const signedTx = await $walletStore.signTransaction(transaction);
         return {
           signedTx,
@@ -364,7 +372,7 @@
           requireAllSignatures: false,
           verifySignatures: true,
         };
-        log("web3", "prompting magic wallet to sign a transaction");
+        log("info", FILE, "prompting magic wallet to sign a transaction");
         const magicSignedTx = await magic.solana.signTransaction(
           {
             instructions,
@@ -380,7 +388,7 @@
         };
       }
     } catch (e: any) {
-      console.error(e);
+      log("error", FILE,e);
       if (e instanceof Error) {
         return {
           error: e,
@@ -399,12 +407,12 @@
     try {
       if (!connection) return { error: Errors.NO_CONNECTION };
       let id = txId;
-      log("web3", "sending transaction to connection...", id);
+      log("info", FILE, "sending transaction to connection...", id);
       id = await connection.sendRawTransaction(signedTx.serialize());
-      log("web3", "sent transaction to connection", id);
+      log("info", FILE, "sent transaction to connection", id);
       return { id };
     } catch (e: any) {
-      console.error(e);
+      log("error", FILE,e);
       if (e instanceof Error) {
         return {
           error: e,
@@ -434,13 +442,13 @@
       });
       // refreshSolBalance();
       refreshUsdcAddress();
-      if (confirmation.value.err) console.error(confirmation.value.err);
+      if (confirmation.value.err) log("error", FILE, confirmation.value.err);
       return {
         txError: confirmation.value.err ?? undefined,
         slot: confirmation.context.slot,
       };
     } catch (e: any) {
-      console.error(e);
+      log("error", FILE, e);
       if (e instanceof Error) {
         return {
           error: e,

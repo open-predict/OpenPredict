@@ -1,3 +1,4 @@
+import log from "$lib/log";
 import {USDC_PER_DOLLAR, getChance} from "$lib/utils";
 import type {marketPricePoint} from "@am/backend/types/market";
 import moment from "moment";
@@ -34,6 +35,8 @@ export function getIdealPeriod(start: Date, end: Date): TPeriod {
 type TPeriod = "minute" | "hour" | "day" | "week";
 
 export function resample(rawData: marketPricePoint[], term: PriceHistoryTerm) {
+
+	log("debug", "utils-resample", "resampling...")
 
 	let data = [...rawData];
 

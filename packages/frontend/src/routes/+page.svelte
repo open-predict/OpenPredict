@@ -5,7 +5,6 @@
 	import MarketCardMedium from "$lib/components/market_card_medium.svelte";
 	import { PublicKey } from "@solana/web3.js";
 	import AccountSummary from "$lib/components/account_summary.svelte";
-	import { web3Workspace } from "$lib/web3Workspace";
 	import { web3Store } from "$lib/web3Store";
 	import type { TPageData } from "./+page";
 	import SuperJSON from "superjson";
