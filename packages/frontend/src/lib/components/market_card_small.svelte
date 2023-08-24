@@ -5,7 +5,7 @@
     import IconCurrency from "@tabler/icons-svelte/dist/svelte/icons/IconCurrency.svelte";
     import IconComment from "@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte";
     import { USDC_PER_DOLLAR, getChance, usdFormatter } from "$lib/utils";
-    import SmallChart from "../charts/small_chart.svelte";
+    // import SmallChart from "../charts/small_chart.svelte";
     export let market: marketFulldata;
     $: chance = 100 * getChance(market.data.data.Yes, market.data.data.No);
 </script>
@@ -23,7 +23,7 @@
             </p>
             {#if market}
                 <div class="w-1/4 h-8">
-                    <SmallChart priceData={market.data.PriceHistory} />
+                    <!-- <SmallChart priceData={market.data.PriceHistory} /> -->
                 </div>
             {/if}
             <div class="flex flex-col justify-center items-end">
