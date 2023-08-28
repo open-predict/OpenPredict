@@ -26,10 +26,6 @@ export enum TxStatus {
   COMPLETE = "COMPLETE"
 }
 
-export function log(type?: "web3" | "debug" | "info", ...args: any) {
-  console.log(`[${type ?? "info"}]`, ...args)
-}
-
 export type TLinkDef = {href: string, name: string, Icon: any}
 
 export const delay = (ms: number) => new Promise(res => setTimeout(res, ms));

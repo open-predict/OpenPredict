@@ -3,6 +3,7 @@ import { writable } from 'svelte/store';
 import { PublicKey, type TokenAmount } from '@solana/web3.js';
 import Cookies from 'js-cookie';
 import { web3Workspace } from './web3Workspace';
+import log from './log';
 
 export type TSol = { amount?: number };
 export type TUsdc = { publicKey?: PublicKey | null, value?: TokenAmount };
@@ -17,6 +18,7 @@ export type TWeb3Store = {
 }
 
 export const web3StoreLsKey = 'wallet_state';
+const FILE = "web3Store";
 
 function createWeb3Store() {
 
@@ -28,8 +30,8 @@ function createWeb3Store() {
         usdcAddress: initialValueParsed.usdcAddress ? new PublicKey(initialValueParsed.usdcAddress) : initialValueParsed.usdcAddress === null ? null : undefined,
     } : undefined;
 
-    console.log("web3Store initialValue", initialValue);
     const { subscribe, set, update } = writable<TWeb3Store>((() => {
+        log("debug", FILE, "initializing web3store & updating web3workspace...")
         web3Workspace.update(v => ({
             ...v,
             ...initialValue
@@ -38,12 +40,13 @@ function createWeb3Store() {
     })())
 
     subscribe((value) => {
+        log("debug", FILE, "subscribe")
         if (browser && JSON.stringify(value) !== Cookies.get(web3StoreLsKey)) {
-            console.log("web3Store subscription fired")
+            log("debug", FILE, "setting cookies...")
             Cookies.set(web3StoreLsKey, JSON.stringify(value))
             // set same properties in web3Workspace to avoid a refactor, remove it later
             if (value) {
-                console.log("Updating values in web3Workspace")
+                log("debug", FILE, "updating workspace in subscribe...")
                 web3Workspace.update(v => ({
                     ...v,
                     ...value,
@@ -53,7 +56,7 @@ function createWeb3Store() {
     })
 
     function upsertPublicKey(value: PublicKey | null) {
-        console.log("web3Store upsertPublicKey", value)
+        log("debug", FILE, "upsertPublicKey", value)
         update(wss => {
             if (!wss) {
                 wss = { publicKey: value, magicWallet: false }
@@ -65,10 +68,10 @@ function createWeb3Store() {
     }
 
     function updateWalletKind(magic: boolean) {
-        console.log("updateWalletKind", magic)
+        log("debug", FILE, "updateWalletKind", magic)
         update(wss => {
             if (!wss) {
-                console.error("No web3Store. Perhaps not logged in.");
+                log("error", FILE, "no store, not logged in?")
                 return wss;
             }
             wss.magicWallet = magic;
@@ -77,10 +80,10 @@ function createWeb3Store() {
     }
 
     function updateUsdcAddress(value: PublicKey | null) {
-        console.log("web3Store updateUsdcAddress", value)
+        log("debug", FILE, "updateUsdcAddress", value)
         update(wss => {
             if (!wss) {
-                console.error("No web3Store. Perhaps not logged in.");
+                log("error", FILE, "no store, not logged in?")
                 return wss;
             }
             wss.usdcAddress = value;
@@ -89,10 +92,10 @@ function createWeb3Store() {
     }
 
     function updateUsdcBalance(value?: TokenAmount) {
-        console.log("web3Store updateUsdcBalance", value)
+        log("debug", FILE, "updateUsdcBalance", value)
         update(wss => {
             if (!wss) {
-                console.error("No web3Store. Perhaps not logged in.");
+                log("error", FILE, "no store, not logged in?")
                 return wss;
             }
             wss.usdc = value;
@@ -101,10 +104,10 @@ function createWeb3Store() {
     }
 
     function updateSolBalance(value: number) {
-        console.log("web3Store updateSolBalance", value)
+        log("debug", FILE, "updateSolBalance", value)
         update(wss => {
             if (!wss) {
-                console.error("No web3Store. Perhaps not logged in.");
+                log("error", FILE, "no store, not logged in?")
                 return wss;
             }
             wss.sol = value;
@@ -113,10 +116,10 @@ function createWeb3Store() {
     }
 
     function updateOpAuth(value: boolean) {
-        console.log("web3Store updateOpAuth", value)
+        log("debug", FILE, "updateOpAuth", value)
         update(wss => {
             if (!wss) {
-                console.error("No web3Store. Perhaps not logged in.");
+                log("error", FILE, "no store, not logged in?")
                 return wss;
             }
             wss.oPauthed = value;

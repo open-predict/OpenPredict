@@ -6,7 +6,7 @@
     import IconComment from "@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte";
     import { USDC_PER_DOLLAR, getChance, shortDateFormatter, usdFormatter } from "$lib/utils";
     import IconMenu from "@tabler/icons-svelte/dist/svelte/icons/IconDotsVertical.svelte";
-    import SmallChart from "../charts/small_chart.svelte";
+    // import SmallChart from "../charts/small_chart.svelte";
     import ProfileButton from "./profile_button.svelte";
     import type { TUser } from "@am/backend/types/user";
     import MarketActions from "./market_actions.svelte";
@@ -60,7 +60,7 @@
             </div>
             {#if market}
                 <div class="w-3/4 lg:w-1/2 h-24 pl-10">
-                    <SmallChart priceData={market.data.PriceHistory} />
+                    <!-- <SmallChart priceData={market.data.PriceHistory} /> -->
                 </div>
             {/if}
         </div>

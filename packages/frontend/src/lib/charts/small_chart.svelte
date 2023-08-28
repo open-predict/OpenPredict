@@ -16,9 +16,12 @@
     } from "d3";
 
     import { resample, PriceHistoryTerm } from "./utils";
+    import log from "$lib/log";
 
     export let priceData: marketPricePoint[];
     export let term: PriceHistoryTerm = PriceHistoryTerm.ALL;
+
+    const FILE = "small_chart";
 
     $: data = resample(priceData, term);
     $: lastDp = data.length > 0 ? data[data.length - 1] : null;
@@ -56,6 +59,7 @@
     $: width, height, createGraph();
 
     function createGraph() {
+        log("debug", FILE, " Creating graph...")
         if (data.length > 0) {
             const yVals = data.map((el) => el.chance);
             const xVals = data.map((el) => el.date);
