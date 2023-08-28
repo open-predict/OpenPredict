@@ -20,8 +20,11 @@ export const btrpcc = createTRPCProxyClient<AppRouter>({
     httpBatchLink({
       url: PUBLIC_INTERNAL_TRPC_URL,
       fetch(url, options) {
+        //No headers
         return fetch(url, {
-          ...options,
+          body: options != null ? options.body : undefined,
+          method: options != null ? options.method : undefined,
+          signal: options != null ? options.signal : undefined,
           credentials: 'include',
         });
       },
