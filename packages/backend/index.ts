@@ -25,6 +25,7 @@ declare global {
     paidTxs: Set<string>
     ipLatest: Map<string, Date>
   }
+  var instanceId: Buffer | null //AMM address prefix that hints that this is the relevant instance.
 };
 
 // when using middleware `hostname` and `port` must be provided below
@@ -39,6 +40,12 @@ const start = async () => {
   }
   let mainProgramId = process.env.MAIN_PROGRAM_ID;
   let mint = process.env.USDC_MINT_ADDR;
+
+  if (process.env.INSTANCE_ID != null) {
+    globalThis.instanceId = Buffer.from(process.env.INSTANCE_ID!, 'hex');
+  } else {
+    globalThis.instanceId = null;
+  }
 
   const isLocalRPC = rpcUrl.includes("127.0.0.1") || rpcUrl.includes("localhost");
   if (dev && isLocalRPC) {
