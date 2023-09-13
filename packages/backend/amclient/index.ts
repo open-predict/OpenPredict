@@ -10,24 +10,27 @@ import {FsDatastore} from 'datastore-fs'
 import {Mutex} from 'async-mutex'
 
 declare global {
-	var helia: hJsonI | null
-	var heliaBlockstore: FsBlockstore | null
-	var heliaDatastore: FsDatastore | null
-	var heliaM: Mutex
+  var _helia: any
+  var helia: hJsonI | null
+  var heliaBlockstore: FsBlockstore | null
+  var heliaDatastore: FsDatastore | null
+  var heliaM: Mutex
 }
 
 export async function getHelia() {
-	await globalThis.heliaM.runExclusive(async () => {
-		if (globalThis.helia == null) {
-			globalThis.heliaBlockstore = new FsBlockstore('/opt/ipfs/blocks')
-			globalThis.heliaDatastore = new FsDatastore('/opt/ipfs/data')
-			globalThis.helia = hJson(await helia.createHelia({
-				blockstore: globalThis.heliaBlockstore!,
-				datastore: globalThis.heliaDatastore!,
-			}));
-		}
-	})
-	return globalThis.helia!;
+  await globalThis.heliaM.runExclusive(async () => {
+    if (globalThis.helia == null) {
+      globalThis.heliaBlockstore = new FsBlockstore('/opt/ipfs/blocks')
+      globalThis.heliaDatastore = new FsDatastore('/opt/ipfs/data')
+      globalThis._helia = await helia.createHelia({
+        blockstore: globalThis.heliaBlockstore!,
+        datastore: globalThis.heliaDatastore!,
+      })
+      globalThis.helia = hJson(globalThis._helia);
+    }
+  })
+  console.log("helia address", globalThis._helia.libp2p.getMultiaddrs(), globalThis._helia.libp2p.peerId.toString());
+  return globalThis.helia!;
 }
 
 export async function marketByAddress(amm_address: string): Promise<[marketFulldata, Map<string, {
