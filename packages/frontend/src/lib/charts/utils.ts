@@ -42,7 +42,7 @@ export function resample(rawData: marketPricePoint[], term: PriceHistoryTerm) {
 
 	let start = new Date();
 	let end = new Date();
-	let period: TPeriod = "minute";
+	let period: TPeriod = "day";
 
 	switch (term) {
 		case PriceHistoryTerm.DAY:
@@ -72,9 +72,11 @@ export function resample(rawData: marketPricePoint[], term: PriceHistoryTerm) {
 			break;
 		default:
 			start = new Date(Date.now() - (24 * 60 * 60 * 1000));
-			period = "minute";
+			period = "day";
 			break;
 	}
+
+	period = 'day';
 
 	// fill start & end date
 	const firstDp: marketPricePoint =
