@@ -99,7 +99,9 @@ export async function getMarketFulldata(data: extMarketChaindata): Promise<marke
     try {
       if (ipfs_ln > 0) {
         const mfcid = multiformats.CID.decode(data.data.IPFS_Cid)
-        const result = await helia.get(mfcid)
+        const result = await helia.get(mfcid, {
+          signal: AbortSignal.timeout(500)
+        })
         const metadata = await marketMetadataSchemaV0.safeParseAsync(result);
         if (metadata.success) {
           return {

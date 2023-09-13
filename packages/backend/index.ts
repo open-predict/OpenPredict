@@ -75,7 +75,7 @@ const start = async () => {
     })
     const server = createHTTPServer({
       middleware: cors({
-        origin: dev ? "http://localhost:5173" : ["https://openpredict.org", /\.openpredict\.org$/],
+        origin: dev ? ["http://localhost:5173", "http://frontend:5173"] : ["https://openpredict.org", /\.openpredict\.org$/],
         methods: ["GET", "POST"],
         credentials: true
       }),

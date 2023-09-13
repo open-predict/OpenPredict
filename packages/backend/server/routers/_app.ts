@@ -356,7 +356,9 @@ export const appRouter = router({
         if (maybe_profile != null) {
           var js;
           try {
-            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid))
+            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid), {
+              signal: AbortSignal.timeout(500),
+            })
           } catch (err) {
             console.log("Couldn't get ipfs data: ", err)
             return;
@@ -433,7 +435,9 @@ export const appRouter = router({
         if (maybe_profile != null) {
           var js;
           try {
-            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid))
+            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid), {
+              signal: AbortSignal.timeout(500),
+            })
           } catch (err) {
             console.log("Couldn't get ipfs data: ", err)
             return;
@@ -593,7 +597,7 @@ export const appRouter = router({
     await globalThis.chainCache.prisma.marketMeta.create({
       data: {
         ammAddress: Buffer.from(opts.input.ammAddress),
-        meta: JSON.stringify(opts.input.meta),
+        meta: Buffer.from(JSON.stringify(opts.input.meta)),
       },
     });
     return {}
@@ -621,6 +625,7 @@ export const appRouter = router({
     })
     const helia = await getHelia()
     var users = new Map<string, TUser | null>()
+    console.log("Searching markets...")
     await Promise.allSettled(markets.map(async (m) => {
       var v = m.data.data.OperatorKey.toBase58()
       var maybe_username = globalThis.chainCache.usernames.get(v);
@@ -629,7 +634,9 @@ export const appRouter = router({
         if (maybe_profile != null) {
           var js;
           try {
-            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid))
+            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid), {
+              signal: AbortSignal.timeout(500),
+            })
           } catch (err) {
             console.log("error getting ipfs data: ", err)
           }

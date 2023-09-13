@@ -1,11 +1,13 @@
 import SuperJSON from 'superjson';
-import { btrpcc } from '../../../lib/btrpc.js';
+import { trpcc } from '../../../lib/trpc.js';
 import type { extMarketChaindata, marketFulldata, marketUserChaindata } from '@am/backend/types/market.js';
 import type { TUser } from '@am/backend/types/user.js';
 import { web3StoreLsKey } from '$lib/web3Store.js';
 import { PublicKey } from '@solana/web3.js';
 import { goto } from '$app/navigation';
 import { redirect } from '@sveltejs/kit';
+
+export const ssr = false;
 
 export type TProfilePageData = {
 	id: string | null;
@@ -40,17 +42,17 @@ export async function load({ params, cookies }) {
 			redirect(300, "/profile")
 		}
 
-		const profileRes = !publicKey ? undefined : await btrpcc.getUser.query({
+		const profileRes = !publicKey ? undefined : await trpcc.getUser.query({
 			userId: [publicKey],
 		});
 
 		const profile = (publicKey && profileRes !== undefined) ? profileRes.get(publicKey) : undefined;
 
-		const positions = !!publicKey ? await btrpcc.getMarketAccounts.query({
+		const positions = !!publicKey ? await trpcc.getMarketAccounts.query({
 			userId: publicKey,
 		}) : undefined;
 
-		const markets = !!publicKey ? await btrpcc.getUserMarkets.query({
+		const markets = !!publicKey ? await trpcc.getUserMarkets.query({
 			userId: publicKey,
 		}) : undefined;
 
