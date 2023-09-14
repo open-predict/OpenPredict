@@ -8,10 +8,11 @@ import {json as hJson, JSON as hJsonI} from "@helia/json"
 import {FsBlockstore} from 'blockstore-fs'
 import {FsDatastore} from 'datastore-fs'
 import {Mutex} from 'async-mutex'
-import {createLibp2p, Libp2p} from 'libp2p';
-import {tcp} from '@libp2p/tcp';
-import {bootstrap} from '@libp2p/bootstrap';
-import {identifyService} from 'libp2p/identify'
+import {Libp2p} from 'libp2p';
+// import { tcp } from '@libp2p/tcp';
+// import { identifyService } from 'libp2p/identify'
+// import { noise } from '@chainsafe/libp2p-noise';
+// import { yamux } from '@chainsafe/libp2p-yamux';
 
 
 declare global {
@@ -45,13 +46,12 @@ export async function getHelia() {
       //    })
       //  ],
       //})
-      var hel = await helia.createHelia({
+      globalThis._helia = await helia.createHelia({
         blockstore: globalThis.heliaBlockstore!,
         datastore: globalThis.heliaDatastore!,
         //libp2p: globalThis.libp2p
       })
-      await hel.libp2p.services.dht.setMode("server");
-      globalThis._helia = hel
+      globalThis._helia.libp2p.services.dht.setMode("server");
       globalThis.helia = hJson(globalThis._helia);
     }
   })
