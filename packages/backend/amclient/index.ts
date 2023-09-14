@@ -8,7 +8,7 @@ import {json as hJson, JSON as hJsonI} from "@helia/json"
 import {FsBlockstore} from 'blockstore-fs'
 import {FsDatastore} from 'datastore-fs'
 import {Mutex} from 'async-mutex'
-import { Libp2p, createLibp2p } from 'libp2p';
+import { Libp2p } from 'libp2p';
 //import { tcp } from '@libp2p/tcp';
 
 declare global {
