@@ -8,9 +8,9 @@ import {json as hJson, JSON as hJsonI} from "@helia/json"
 import {FsBlockstore} from 'blockstore-fs'
 import {FsDatastore} from 'datastore-fs'
 import {Mutex} from 'async-mutex'
-import { Libp2p, createLibp2p } from 'libp2p';
-import { tcp } from '@libp2p/tcp';
-import { identifyService } from 'libp2p/identify'
+import { Libp2p } from 'libp2p';
+// import { tcp } from '@libp2p/tcp';
+// import { identifyService } from 'libp2p/identify'
 // import { noise } from '@chainsafe/libp2p-noise';
 // import { yamux } from '@chainsafe/libp2p-yamux';
 
@@ -29,17 +29,21 @@ export async function getHelia() {
     if (globalThis.helia == null) {
       globalThis.heliaBlockstore = new FsBlockstore('/opt/ipfs/blocks')
       globalThis.heliaDatastore = new FsDatastore('/opt/ipfs/data')
-      globalThis.libp2p = await createLibp2p({
-        transports: [tcp()], 
-        datastore: globalThis.heliaDatastore,
-        services: {
-          identify: identifyService()
-        }
-      })
+      // globalThis.libp2p = await createLibp2p({
+      //   addresses: {
+      //     listen: [],
+      //     announce: [] // ipv4/ip/p2p/...
+      //   },
+      //   transports: [tcp()], 
+      //   datastore: globalThis.heliaDatastore,
+      //   services: {
+      //     identify: identifyService()
+      //   }
+      // })
       globalThis._helia = await helia.createHelia({
         blockstore: globalThis.heliaBlockstore!,
         datastore: globalThis.heliaDatastore!,
-        libp2p: globalThis.libp2p
+        // libp2p: globalThis.libp2p
       })
       globalThis.helia = hJson(globalThis._helia);
     }
