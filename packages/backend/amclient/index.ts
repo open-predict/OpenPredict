@@ -9,9 +9,11 @@ import {FsBlockstore} from 'blockstore-fs'
 import {FsDatastore} from 'datastore-fs'
 import {Mutex} from 'async-mutex'
 import { Libp2p, createLibp2p } from 'libp2p';
-import { tcp } from '@libp2p/tcp';
+// import { tcp } from '@libp2p/tcp';
+import { identifyService } from 'libp2p/identify'
 // import { noise } from '@chainsafe/libp2p-noise';
 // import { yamux } from '@chainsafe/libp2p-yamux';
+
 
 declare global {
   var _helia: any
@@ -28,13 +30,9 @@ export async function getHelia() {
       globalThis.heliaBlockstore = new FsBlockstore('/opt/ipfs/blocks')
       globalThis.heliaDatastore = new FsDatastore('/opt/ipfs/data')
       globalThis.libp2p = await createLibp2p({
-        transports: [tcp()], 
         datastore: globalThis.heliaDatastore,
-        // connectionEncryption: [noise()],
-        // streamMuxers: [yamux()],
-        addresses: {
-          listen: ["/ip4/0.0.0.0/tcp/5022"],
-          announce: ["/ip4/0.0.0.0/tcp/5022"],  
+        services: {
+          identify: identifyService()
         }
       })
       globalThis._helia = await helia.createHelia({
