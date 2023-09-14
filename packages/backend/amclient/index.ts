@@ -8,6 +8,8 @@ import {json as hJson, JSON as hJsonI} from "@helia/json"
 import {FsBlockstore} from 'blockstore-fs'
 import {FsDatastore} from 'datastore-fs'
 import {Mutex} from 'async-mutex'
+import { Libp2p, createLibp2p } from 'libp2p';
+import { tcp } from '@libp2p/tcp';
 
 declare global {
   var _helia: any
@@ -15,6 +17,7 @@ declare global {
   var heliaBlockstore: FsBlockstore | null
   var heliaDatastore: FsDatastore | null
   var heliaM: Mutex
+  var libp2p: Libp2p
 }
 
 export async function getHelia() {
@@ -22,14 +25,20 @@ export async function getHelia() {
     if (globalThis.helia == null) {
       globalThis.heliaBlockstore = new FsBlockstore('/opt/ipfs/blocks')
       globalThis.heliaDatastore = new FsDatastore('/opt/ipfs/data')
+        globalThis.libp2p = await createLibp2p({
+        transports: [tcp()], 
+        datastore: globalThis.heliaDatastore,
+      })
       globalThis._helia = await helia.createHelia({
         blockstore: globalThis.heliaBlockstore!,
         datastore: globalThis.heliaDatastore!,
+        libp2p: globalThis.libp2p
       })
       globalThis.helia = hJson(globalThis._helia);
     }
   })
-  console.log("helia address", globalThis._helia.libp2p.getMultiaddrs(), globalThis._helia.libp2p.peerId.toString());
+  console.log("helia addresses", globalThis._helia.libp2p.getMultiaddrs(), globalThis._helia.libp2p.peerId.toString());
+  console.log("libp2p addresses", globalThis.libp2p.getMultiaddrs(), globalThis.libp2p.peerId)
   return globalThis.helia!;
 }
 
