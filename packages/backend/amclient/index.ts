@@ -8,8 +8,8 @@ import {json as hJson, JSON as hJsonI} from "@helia/json"
 import {FsBlockstore} from 'blockstore-fs'
 import {FsDatastore} from 'datastore-fs'
 import {Mutex} from 'async-mutex'
-import { Libp2p } from 'libp2p';
-//import { tcp } from '@libp2p/tcp';
+import { Libp2p, createLibp2p } from 'libp2p';
+import { tcp } from '@libp2p/tcp';
 
 declare global {
   var _helia: any
@@ -25,14 +25,18 @@ export async function getHelia() {
     if (globalThis.helia == null) {
       globalThis.heliaBlockstore = new FsBlockstore('/opt/ipfs/blocks')
       globalThis.heliaDatastore = new FsDatastore('/opt/ipfs/data')
-      // globalThis.libp2p = await createLibp2p({
-      //   transports: [tcp()], 
-      //   datastore: globalThis.heliaDatastore,
-      // })
+      globalThis.libp2p = await createLibp2p({
+        transports: [tcp()], 
+        datastore: globalThis.heliaDatastore,
+        addresses: {
+          listen: ["/ip4/0.0.0.0/tcp/5022"],
+          announce: ["/ip4/0.0.0.0/tcp/5022"],  
+        }
+      })
       globalThis._helia = await helia.createHelia({
         blockstore: globalThis.heliaBlockstore!,
         datastore: globalThis.heliaDatastore!,
-        // libp2p: globalThis.libp2p
+        libp2p: globalThis.libp2p
       })
       globalThis.helia = hJson(globalThis._helia);
     }

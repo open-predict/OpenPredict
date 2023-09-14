@@ -8,6 +8,8 @@
   },
   "type": "module",
   "dependencies": {
+    "@chainsafe/libp2p-noise": "^13.0.1",
+    "@chainsafe/libp2p-yamux": "^5.0.0",
     "@helia/json": "^1.0.0",
     "@helia/unixfs": "^1.4.0",
     "@libp2p/tcp": "^8.0.6",
