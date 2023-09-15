@@ -26,7 +26,7 @@ export type TMarketData = TMarketDataPoint[];
 export function getIdealPeriod(start: Date, end: Date): TPeriod {
 	const diffDays = Math.round(Math.abs(((start as unknown as number) - (end as unknown as number)) / (24 * 60 * 60 * 1000)));
 	if (diffDays > 365) return "week"
-	if (diffDays > 15) return "day"
+	if (diffDays > 14) return "day"
 	if (diffDays > 1) return "hour"
 	return "minute"
 }
@@ -42,7 +42,7 @@ export function resample(rawData: marketPricePoint[], term: PriceHistoryTerm) {
 
 	let start = new Date();
 	let end = new Date();
-	let period: TPeriod = "day";
+	let period: TPeriod = "minute";
 
 	switch (term) {
 		case PriceHistoryTerm.DAY:
@@ -55,7 +55,6 @@ export function resample(rawData: marketPricePoint[], term: PriceHistoryTerm) {
 			break;
 		case PriceHistoryTerm.MONTH:
 			start = new Date(Date.now() - 30 * (24 * 60 * 60 * 1000));
-			console.log("MONTH TERM SELECTED", start)
 			period = "day";
 			break;
 		case PriceHistoryTerm.THREEMONTH:
@@ -67,16 +66,14 @@ export function resample(rawData: marketPricePoint[], term: PriceHistoryTerm) {
 			period = "week";
 			break;
 		case PriceHistoryTerm.ALL:
-			start = data.length > 0 ? new Date(data[0].At) : new Date(Date.now() - (24 * 60 * 60 * 1000));
-			getIdealPeriod(start, end)
+			start = data.length > 0 ? data[0].At : new Date(Date.now() - (24 * 60 * 60 * 1000));
+			period = getIdealPeriod(start, end)
 			break;
 		default:
 			start = new Date(Date.now() - (24 * 60 * 60 * 1000));
-			period = "day";
+			period = "minute";
 			break;
 	}
-
-	period = 'day';
 
 	// fill start & end date
 	const firstDp: marketPricePoint =
@@ -112,22 +109,10 @@ export function resample(rawData: marketPricePoint[], term: PriceHistoryTerm) {
 
 	let startTime = moment(start).startOf(period)
 	let endTime = moment(end)
-
-	// console.log('samples-->')
-	// samples.forEach((value, key) => {
-	//     console.log('[', key, '] ', moment(value.date).format("YY-MM-DD hh:mm:ss"), value.chance)
-	// })
-
 	let datesResampled = samples.map(value => {
 		let resampled = moment(value.date).startOf(period)
 		return {date: resampled, chance: value.chance, subsidy: value.subsidy}
 	})
-
-	// console.log('datesResampled-->')
-	// datesResampled.forEach((value, key) => {
-	//     console.log('[', key, '] ', value.date.format("YY-MM-DD hh:mm:ss"), value.chance)
-	// })
-
 	type DPWithMoment = {
 		date: moment.Moment;
 		chance: number;
@@ -139,12 +124,6 @@ export function resample(rawData: marketPricePoint[], term: PriceHistoryTerm) {
 		return result
 	}, {})
 
-	// console.log('datesReduced-->', datesReduced)
-	// for (const [key, value] of Object.entries(datesReduced)) {
-	//     console.log('[', key, '] ', value.date.format("YY-MM-DD hh:mm:ss"), value.chance)
-	// }
-
-	// console.log("startTime.isBefore(endTime)", startTime.isBefore(endTime))
 	let filled: DPWithMoment[] = []
 	while (startTime.isBefore(endTime)) {
 		if (datesReduced[startTime.valueOf()]) {
@@ -155,9 +134,5 @@ export function resample(rawData: marketPricePoint[], term: PriceHistoryTerm) {
 		startTime.add(1, period)
 	}
 
-	// console.log('filled-->', filled)
 	return filled.map(dp => ({...dp, date: dp.date.toDate()}));
-	// filled.forEach((value, key) => {
-	//     console.log('[', key, '] ', value.date.format("YY-MM-DD hh:mm:ss"), value.chance ? "EXISTS: " + value.chance : value.chance)
-	// })
 }
