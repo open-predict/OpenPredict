@@ -42,10 +42,9 @@ export async function getHelia() {
         // streamMuxers: [
         //   yamux()
         // ],
-        services: {
-          identify: identifyService()
-
-        },
+        // services: {
+        //   identify: identifyService()
+        // },
         datastore: globalThis.heliaDatastore,
         //  peerDiscovery: [
         //    bootstrap({
@@ -67,6 +66,7 @@ export async function getHelia() {
       globalThis.helia = hJson(globalThis._helia);
     }
   })
+  console.log("debug", globalThis._helia.libp2p.services, globalThis.libp2p.services)
   console.log("helia addresses", globalThis._helia.libp2p.getMultiaddrs());
   return globalThis.helia!;
 }
