@@ -12,7 +12,7 @@ import { Libp2p, createLibp2p } from 'libp2p';
 import { tcp } from '@libp2p/tcp';
 // import { identifyService } from 'libp2p/identify'
 import { noise } from '@chainsafe/libp2p-noise';
-// import { yamux } from '@chainsafe/libp2p-yamux';
+import { yamux } from '@chainsafe/libp2p-yamux';
 
 
 declare global {
@@ -31,17 +31,19 @@ export async function getHelia() {
       globalThis.heliaDatastore = new FsDatastore('/opt/ipfs/data')
       globalThis.libp2p = await createLibp2p({
         addresses: {
-          listen: ['/ip4/23.145.40.102/tcp/34731', '/ip4/0.0.0.0/tcp/34731'],
-          announce: ['/ip4/23.145.40.102/tcp/34731', '/ip4/0.0.0.0/tcp/34731'],
+          // listen: ['/ip4/23.145.40.102/tcp/34731', '/ip4/0.0.0.0/tcp/34731', 'ip4/127.0.0.1/tcp/0'],
+          // announce: ['/ip4/23.145.40.102/tcp/34731', '/ip4/0.0.0.0/tcp/34731'],
+          listen: ["/ip4/0.0.0.0/tcp/9094"],
+          announce: ["/ip4/0.0.0.0/tcp/9094"]
         },
 
         transports: [tcp()],
         connectionEncryption: [
           noise()
         ],
-        // streamMuxers: [
-        //   yamux()
-        // ],
+        streamMuxers: [
+          yamux()
+        ],
         // services: {
         //   identify: identifyService()
         // },
@@ -156,8 +158,8 @@ export async function searchMarkets(options: {
       _ret.push(
         (async (): Promise<marketFulldata> => {
           try {
-            console.log(nxt.value.data.IPFS_Cid.length);
             const mfcid = multiformats.CID.decode(nxt.value.data.IPFS_Cid)
+            console.log("CID", mfcid.toString())
             const result = await helia.get(mfcid)
             const metadata = await marketMetadataSchemaV0.safeParseAsync(result);
             if (metadata.success) {
