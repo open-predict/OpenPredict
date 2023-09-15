@@ -12,7 +12,7 @@ import { Libp2p, createLibp2p } from 'libp2p';
 import { tcp } from '@libp2p/tcp';
 // import { identifyService } from 'libp2p/identify'
 import { noise } from '@chainsafe/libp2p-noise';
-// import { yamux } from '@chainsafe/libp2p-yamux';
+import { yamux } from '@chainsafe/libp2p-yamux';
 
 
 declare global {
@@ -31,7 +31,7 @@ export async function getHelia() {
       globalThis.heliaDatastore = new FsDatastore('/opt/ipfs/data')
       globalThis.libp2p = await createLibp2p({
         addresses: {
-          listen: ['/ip4/23.145.40.102/tcp/34731', '/ip4/0.0.0.0/tcp/34731', '/ip4/127.0.0.1/tcp/0'],
+          listen: ['/ip4/23.145.40.102/tcp/34731', '/ip4/0.0.0.0/tcp/34731'],
           announce: ['/ip4/23.145.40.102/tcp/34731', '/ip4/0.0.0.0/tcp/34731'],
         },
 
@@ -39,9 +39,9 @@ export async function getHelia() {
         connectionEncryption: [
           noise()
         ],
-        // streamMuxers: [
-        //   yamux()
-        // ],
+        streamMuxers: [
+          yamux()
+        ],
         // services: {
         //   identify: identifyService()
         // },

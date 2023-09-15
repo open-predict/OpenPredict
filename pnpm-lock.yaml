@@ -14,8 +14,8 @@ importers:
         specifier: ^13.0.1
         version: 13.0.1
       '@chainsafe/libp2p-yamux':
-        specifier: ^5.0.0
-        version: 5.0.0
+        specifier: 4.0.2
+        version: 4.0.2
       '@helia/json':
         specifier: ^1.0.0
         version: 1.0.0
@@ -570,21 +570,6 @@ packages:
       '@libp2p/logger': 2.1.1
       abortable-iterator: 5.0.1
       any-signal: 4.1.1
-      it-pipe: 3.0.1
-      it-pushable: 3.2.1
-      uint8arraylist: 2.4.3
-    transitivePeerDependencies:
-      - supports-color
-    dev: false
-
-  /@chainsafe/libp2p-yamux@5.0.0:
-    resolution: {integrity: sha512-aWTnBPR2hJt0A2y579sMtZVB6IqgSSHlZ6Eg+WDxNZQ0zcexafuruZQDj+z3FUTNPz+E8IeuyCi7tjI4IEehjw==}
-    engines: {node: '>=16.0.0', npm: '>=7.0.0'}
-    dependencies:
-      '@libp2p/interface': 0.1.2
-      '@libp2p/logger': 3.0.2
-      abortable-iterator: 5.0.1
-      it-foreach: 2.0.3
       it-pipe: 3.0.1
       it-pushable: 3.2.1
       uint8arraylist: 2.4.3
