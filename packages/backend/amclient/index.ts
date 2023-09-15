@@ -10,7 +10,7 @@ import { FsDatastore } from 'datastore-fs'
 import { Mutex } from 'async-mutex'
 import { Libp2p, createLibp2p } from 'libp2p';
 import { tcp } from '@libp2p/tcp';
-import { identifyService } from 'libp2p/identify'
+// import { identifyService } from 'libp2p/identify'
 import { noise } from '@chainsafe/libp2p-noise';
 // import { yamux } from '@chainsafe/libp2p-yamux';
 
