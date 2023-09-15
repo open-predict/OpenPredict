@@ -69,6 +69,16 @@ fn next_from_address<'a, 'b>(
     return Ok((account, bump_seed));
 }
 
+struct AmmAccount {
+    address: [u8; 32],
+    creator_key: [u8; 32],
+    resolved: bool,
+    ipfs: Option<[u8; 32]>,
+    subsidy: i128,
+    yes: i128,
+    no: i128,
+}
+
 fn next_amm_account<'a, 'b>(
     iter: &mut Iter<'a, AccountInfo<'b>>,
     amm_address: &[u8],

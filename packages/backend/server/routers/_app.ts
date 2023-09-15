@@ -1,10 +1,10 @@
-import { z } from 'zod';
-import { procedure, router } from '../trpc.js';
-import { commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata } from '../../types/market.js';
-import { checkoutWithChangenowSchemaV0, makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0 } from '../../types/user.js';
-import { getHelia, marketByAddress, searchMarkets } from '../../amclient/index.js';
+import {z} from 'zod';
+import {procedure, router} from '../trpc.js';
+import {commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata} from '../../types/market.js';
+import {checkoutWithChangenowSchemaV0, makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0} from '../../types/user.js';
+import {getHelia, getMarketFulldata, marketByAddress, searchMarkets} from '../../amclient/index.js';
 import * as nodeCache from "node-cache"
-import { createHash, randomBytes } from "crypto"
+import {createHash, randomBytes} from "crypto"
 import * as web3 from "@solana/web3.js"
 import * as cookie from "cookie"
 import * as ed25519 from "@noble/ed25519"
@@ -98,9 +98,9 @@ export async function createAccounts(
     }
 
     if (error) {
-      results.push({ error })
+      results.push({error})
     } else {
-      results.push({ ...account, address: res })
+      results.push({...account, address: res})
     }
   }
 
@@ -116,7 +116,7 @@ export async function validateTransaction(
   feePayer: web3.Keypair,
   maxSignatures: number,
   lamportsPerSignature: number
-): Promise<{ signature: web3.TransactionSignature; rawTransaction: Buffer }> {
+): Promise<{signature: web3.TransactionSignature; rawTransaction: Buffer}> {
   // Check the fee payer and blockhash for basic validity
   if (!transaction.feePayer?.equals(feePayer.publicKey)) throw new Error('invalid fee payer');
   if (!transaction.recentBlockhash) throw new Error('missing recent blockhash');
@@ -148,7 +148,7 @@ export async function validateTransaction(
   const rawTransaction = transaction.serialize();
 
   // Return the primary signature (aka txid) and serialized transaction
-  return { signature: base58.encode(transaction.signature!), rawTransaction };
+  return {signature: base58.encode(transaction.signature!), rawTransaction};
 }
 
 //TODO: This function may be insecure, idk. If it is it will only allow someone
@@ -199,7 +199,7 @@ export const appRouter = router({
       })
       if (response.status !== 200) {
         console.log(response);
-        return { error: "Error checking out with changenow" }
+        return {error: "Error checking out with changenow"}
       }
       const json = await response.json();
       if (json['redirect_url']) {
@@ -209,7 +209,7 @@ export const appRouter = router({
       }
     } catch (e) {
       console.error(e);
-      return { error: "Error checking out with changenow" }
+      return {error: "Error checking out with changenow"}
     }
   }),
 
@@ -283,7 +283,7 @@ export const appRouter = router({
     const txid = await web3.sendAndConfirmRawTransaction(
       globalThis.chainCache.w3conn,
       transaction.serialize(),
-      { commitment: 'confirmed' }
+      {commitment: 'confirmed'}
     );
 
     return {
@@ -356,7 +356,9 @@ export const appRouter = router({
         if (maybe_profile != null) {
           var js;
           try {
-            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid))
+            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid), {
+              signal: AbortSignal.timeout(500),
+            })
           } catch (err) {
             console.log("Couldn't get ipfs data: ", err)
             return;
@@ -389,16 +391,8 @@ export const appRouter = router({
       }
     })
     var map = new Map<string, marketFulldata>();
-    const helia = await getHelia();
     await Promise.allSettled([..._map.entries()].map(async ([k, v]) => {
-      const js = await helia.get(multiformats.CID.decode(v.data.IPFS_Cid))
-      const metadata = marketMetadataSchemaV0.safeParse(js)
-      if (metadata.success) {
-        map.set(k, {
-          data: v,
-          metadata: metadata.data
-        })
-      }
+      map.set(k, await getMarketFulldata(v))
     }))
     return map
 
@@ -411,25 +405,13 @@ export const appRouter = router({
       market: marketFulldata,
       account: marketUserChaindata,
     }>()
-    chainCache.markets.forEach(v => {
+    await Promise.allSettled([...chainCache.markets.values()].map(async (v) => {
       var maybe_account = v.UserAccounts.get(opts.input.userId);
       if (maybe_account != null) {
         map.set(base58.encode(v.data.AmmAddress), {
-          market: {
-            data: v,
-            metadata: null,
-          },
+          market: await getMarketFulldata(v),
           account: maybe_account!
         });
-      }
-    })
-    const helia = await getHelia();
-    await Promise.allSettled([...map.entries()].map(async ([k, v]) => {
-      const js = await helia.get(multiformats.CID.decode(v.market.data.data.IPFS_Cid))
-      const metadata = marketMetadataSchemaV0.safeParse(js)
-      if (metadata.success) {
-        v.market.metadata = metadata.data;
-        map.set(k, v)
       }
     }))
     return map
@@ -453,7 +435,9 @@ export const appRouter = router({
         if (maybe_profile != null) {
           var js;
           try {
-            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid))
+            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid), {
+              signal: AbortSignal.timeout(500),
+            })
           } catch (err) {
             console.log("Couldn't get ipfs data: ", err)
             return;
@@ -572,7 +556,7 @@ export const appRouter = router({
           userKey: key.toBuffer(),
         }
       })
-      opts.ctx.res.setHeader("Set-Cookie", cookie.serialize("session", JSON.stringify({ "id": sessionId, "secret": cookieSecret }), {
+      opts.ctx.res.setHeader("Set-Cookie", cookie.serialize("session", JSON.stringify({"id": sessionId, "secret": cookieSecret}), {
         secure: false,
         sameSite: "none",
         maxAge: new Date().getTime() + (10 * 365 * 24 * 60 * 60)
@@ -607,6 +591,18 @@ export const appRouter = router({
     }
   }),
 
+  storeMarketPrivate: procedure.input(
+    marketMetadataSchema2V0,
+  ).mutation(async (opts) => {
+    await globalThis.chainCache.prisma.marketMeta.create({
+      data: {
+        ammAddress: Buffer.from(opts.input.ammAddress),
+        meta: Buffer.from(JSON.stringify(opts.input.meta)),
+      },
+    });
+    return {}
+  }),
+
   storeMarketIpfs: procedure.input(
     marketMetadataSchemaV0
   ).mutation(async (opts) => {
@@ -629,6 +625,7 @@ export const appRouter = router({
     })
     const helia = await getHelia()
     var users = new Map<string, TUser | null>()
+    console.log("Searching markets...")
     await Promise.allSettled(markets.map(async (m) => {
       var v = m.data.data.OperatorKey.toBase58()
       var maybe_username = globalThis.chainCache.usernames.get(v);
@@ -637,7 +634,9 @@ export const appRouter = router({
         if (maybe_profile != null) {
           var js;
           try {
-            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid))
+            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid), {
+              signal: AbortSignal.timeout(500),
+            })
           } catch (err) {
             console.log("error getting ipfs data: ", err)
           }

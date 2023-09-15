@@ -1,9 +1,9 @@
 import SuperJSON from 'superjson';
-import {btrpcc} from '../lib/btrpc.js';
+import {trpcc} from '../lib/trpc.js';
 import type {marketFulldata} from '@am/backend/types/market';
 import type {TUser} from '@am/backend/types/user';
-import { browser } from '$app/environment';
-import { trpcc } from '$lib/trpc.js';
+
+export const ssr = false;
 
 export type TPageData = {
   searchResponse: {
@@ -12,7 +12,7 @@ export type TPageData = {
   }
 }
 
-export async function load({params: any}) {
+export async function load() {
   var data: TPageData = {
     searchResponse: {
       markets: [],
@@ -21,19 +21,12 @@ export async function load({params: any}) {
   }
 
   try {
-    if(browser){
-      data.searchResponse = await trpcc.searchMarkets.query({
-        term: "",
-        limit: 10,
-      });
-    } else {
-      data.searchResponse = await btrpcc.searchMarkets.query({
-        term: "",
-        limit: 10,
-      });
-    }
+    data.searchResponse = await trpcc.searchMarkets.query({
+      term: "",
+      limit: 10,
+    });
   } catch (err) {
-    console.log(err)
+    console.log("Couldn't search markets: ", err)
   }
 
   return SuperJSON.serialize(data);

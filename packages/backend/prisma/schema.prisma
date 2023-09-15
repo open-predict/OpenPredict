@@ -2,13 +2,13 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-        provider   = "prisma-client-js"
-        engineType = "binary"
+  provider   = "prisma-client-js"
+  engineType = "binary"
 }
 
 datasource db {
-        provider = "postgresql"
-        url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 //model SolTransaction {
@@ -63,91 +63,96 @@ datasource db {
 //}
 
 model Cookies {
-        sessionId     String @id @default(uuid())
-        sessionSecret String
-        userKey       Bytes
+  sessionId     String @id @default(uuid())
+  sessionSecret String
+  userKey       Bytes
+}
+
+model MarketMeta {
+  ammAddress Bytes @id
+  meta       Bytes
 }
 
 model MarketTrade {
-        txId          Bytes
-        instructionNo Int
+  txId          Bytes
+  instructionNo Int
 
-        slot          Int
-        blockTime     Int
-        retrievalTime DateTime
+  slot          Int
+  blockTime     Int
+  retrievalTime DateTime
 
-        ammAddress Bytes
-        market     MarketData @relation(fields: [ammAddress], references: [ammAddress])
+  ammAddress Bytes
+  market     MarketData @relation(fields: [ammAddress], references: [ammAddress])
 
-        userKey Bytes
+  userKey Bytes
 
-        microUSDC      BigInt
-        direction      Boolean
-        expectedShares BigInt
-        drift          BigInt
+  microUSDC      BigInt
+  direction      Boolean
+  expectedShares BigInt
+  drift          BigInt
 
-        @@id([txId, instructionNo])
-        @@index(fields: [txId], type: Hash)
-        @@index(fields: [retrievalTime], type: BTree)
-        @@index(fields: [slot], type: BTree)
-        @@index(fields: [blockTime], type: BTree)
-        @@index(fields: [userKey], type: Hash)
+  @@id([txId, instructionNo])
+  @@index(fields: [txId], type: Hash)
+  @@index(fields: [retrievalTime], type: BTree)
+  @@index(fields: [slot], type: BTree)
+  @@index(fields: [blockTime], type: BTree)
+  @@index(fields: [userKey], type: Hash)
 }
 
 model MarketLike {
-        ammAddress Bytes
-        userKey    Bytes
-        createdAt  DateTime @default(now())
+  ammAddress Bytes
+  userKey    Bytes
+  createdAt  DateTime @default(now())
 
-        @@id([ammAddress, userKey])
+  @@id([ammAddress, userKey])
 }
 
 model MarketData {
-        ammAddress Bytes @id
+  ammAddress Bytes @id
 
-        version  Int
-        resolved Boolean?
+  version  Int
+  resolved Boolean?
 
-        subsidy BigInt
-        yes     BigInt
-        no      BigInt
+  subsidy BigInt
+  yes     BigInt
+  no      BigInt
 
-        ipfsCid     Bytes
-        operatorKey Bytes
+  ipfsCid     Bytes
+  operatorKey Bytes
 
-        trades MarketTrade[]
+  trades MarketTrade[]
 
-        @@index(fields: [operatorKey], type: Hash)
+  @@index(fields: [operatorKey], type: Hash)
 }
 
 model MarketDataSnapshot {
-        ammAddress    Bytes
-        retrievalTime DateTime
+  ammAddress    Bytes
+  retrievalTime DateTime
 
-        version  Int
-        resolved Boolean?
+  version  Int
+  resolved Boolean?
 
-        subsidy BigInt
-        yes     BigInt
-        no      BigInt
+  subsidy BigInt
+  yes     BigInt
+  no      BigInt
 
-        ipfsCid     Bytes
-        operatorKey Bytes
+  ipfsCid     Bytes
+  operatorKey Bytes
 
-        @@id([ammAddress, retrievalTime])
-        @@index(fields: [operatorKey], type: Hash)
-        @@index(fields: [ammAddress], type: Hash)
-        @@index(fields: [retrievalTime], type: BTree)
+  @@id([ammAddress, retrievalTime])
+  @@index(fields: [operatorKey], type: Hash)
+  @@index(fields: [ammAddress], type: Hash)
+  @@index(fields: [retrievalTime], type: BTree)
 }
 
 model MarketComment {
-        id         String   @id @default(uuid())
-        ammAddress Bytes
-        createdAt  DateTime @default(now())
-        userKey    Bytes
-        content    String
+  id         String   @id @default(uuid())
+  ammAddress Bytes
+  createdAt  DateTime @default(now())
+  userKey    Bytes
+  content    String
 
-        @@index(fields: [createdAt], type: BTree)
-        @@index(fields: [ammAddress], type: Hash)
-        @@index(fields: [userKey], type: Hash)
+  @@index(fields: [createdAt], type: BTree)
+  @@index(fields: [ammAddress], type: Hash)
+  @@index(fields: [userKey], type: Hash)
 }

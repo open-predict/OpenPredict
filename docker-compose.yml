@@ -1,0 +1,45 @@
+version: '3'
+services:
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./
+      dockerfile: ./packages/backend/Dockerfile
+    environment:
+      - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - RPC_URL=${SOLANA_RPC_URL}
+      - NODE_ENV=production
+      - MAIN_PROGRAM_ID=${MAIN_PROGRAM_ID}
+      - USDC_MINT_ADDR=${USDC_MINT_ADDRESS}
+      - FEE_PAYER_PRIVKEY=${FEE_PAYER_PRIVKEY}
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./
+      dockerfile: ./packages/frontend/Dockerfile
+      args:
+        - PUBLIC_MAGIC_PUBLISHABLE_API_KEY=${MAGIC_PUBLISHABLE_API_KEY}
+        - PUBLIC_MAIN_PROGRAM_ID=${MAIN_PROGRAM_ID}
+        - PUBLIC_USDC_MINT_ADDR=${USDC_MINT_ADDRESS}
+        - PUBLIC_FEE_PAYER_KEY=${FEE_PAYER_PUBKEY}
+        - PUBLIC_SOLANA_RPC_URL=${SOLANA_RPC_URL}
+        - PUBLIC_TRPC_URL=http://localhost:3000
+    environment:
+      - INTERNAL_TRPC_URL=http://backend:3000
+      - PORT=5173
+    ports:
+      - 5173:5173  
+    depends_on:
+      - backend

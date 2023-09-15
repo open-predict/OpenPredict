@@ -1,7 +1,7 @@
 import * as helia from "helia"
 import * as pb from './oppb.js'
 import base58 from 'bs58'
-import {marketFulldata, marketMetadataSchemaV0, profileChaindata} from '../types/market.js'
+import {extMarketChaindata, marketFulldata, marketMetadataSchemaV0, profileChaindata} from '../types/market.js'
 import './globals.js'
 import * as multiformats from "multiformats"
 import {json as hJson, JSON as hJsonI} from "@helia/json"
@@ -129,6 +129,65 @@ export async function alertNewConfirmedTransaction(sig: string) {
   }
 }
 
+export async function getMarketFulldata(data: extMarketChaindata): Promise<marketFulldata> {
+  const helia = await getHelia();
+  var ipfs_ln = data.data.IPFS_Cid.length;
+  if (globalThis.instanceId == null || data.data.AmmAddress.slice(0, 16).equals(globalThis.instanceId!)) {
+    try {
+      if (ipfs_ln > 0) {
+        const mfcid = multiformats.CID.decode(data.data.IPFS_Cid)
+        const result = await helia.get(mfcid, {
+          signal: AbortSignal.timeout(500)
+        })
+        const metadata = await marketMetadataSchemaV0.safeParseAsync(result);
+        if (metadata.success) {
+          return {
+            data: data,
+            metadata: metadata.data,
+          }
+        } else {
+          throw "errParsingMetadata";
+        }
+      } else {
+        const meta = await globalThis.chainCache.prisma.marketMeta.findUnique({
+          where: {
+            ammAddress: data.data.AmmAddress,
+          },
+          select: {
+            meta: true,
+          },
+        })
+        if (meta != null) {
+          const metadata = await marketMetadataSchemaV0.safeParseAsync(meta!.meta);
+          if (metadata.success) {
+            return {
+              data: data,
+              metadata: metadata.data,
+            }
+          } else {
+            throw "errParsingMetadata";
+          }
+        } else {
+          return {
+            data: data,
+            metadata: null,
+          }
+        }
+      }
+    } catch (e) {
+      return {
+        data: data,
+        metadata: null,
+      }
+    }
+  } else {
+    return {
+      data: data,
+      metadata: null,
+    }
+  }
+}
+
 export async function searchMarkets(options: {
   term?: string,
   limit?: number,
@@ -136,34 +195,13 @@ export async function searchMarkets(options: {
 }): Promise<marketFulldata[]> {
   var _ret: Promise<marketFulldata>[] = []
   const iter = chainCache.markets.values();
-  const helia = await getHelia();
   while (true) {
     const nxt = iter.next();
     if (nxt.done) {
       break;
     } else {
       _ret.push(
-        (async (): Promise<marketFulldata> => {
-          try {
-            console.log(nxt.value.data.IPFS_Cid.length);
-            const mfcid = multiformats.CID.decode(nxt.value.data.IPFS_Cid)
-            const result = await helia.get(mfcid)
-            const metadata = await marketMetadataSchemaV0.safeParseAsync(result);
-            if (metadata.success) {
-              return {
-                data: nxt.value,
-                metadata: metadata.data,
-              }
-            } else {
-              throw "errParsingMetadata";
-            }
-          } catch (e) {
-            return {
-              data: nxt.value,
-              metadata: null,
-            }
-          }
-        })()
+        getMarketFulldata(nxt.value),
       )
     }
   }
