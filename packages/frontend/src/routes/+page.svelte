@@ -1,5 +1,6 @@
 <script lang="ts">
 	import IconSearch from "@tabler/icons-svelte/dist/svelte/icons/IconSearch.svelte";
+	import IconUfo from "@tabler/icons-svelte/dist/svelte/icons/IconUfo.svelte";
 	import { Modal, modalStore } from "$lib/modals/modalStore";
 	import ColumnLayout from "$lib/components/column_layout.svelte";
 	import MarketCardMedium from "$lib/components/market_card_medium.svelte";
@@ -37,27 +38,37 @@
 		</button>
 	</MainHeader>
 	<div slot="main" class="divide-y divide-gray-200">
-		<div class="divide-y divide-gray-200">
-			{#each markets as market, i}
-				<div class="bg-white">
-					<a
-						href={`/${new PublicKey(
-							market.data.data.AmmAddress
-						).toBase58()}`}
-					>
-						<MarketCardMedium
-							{market}
-							creator={users.get(
-								new PublicKey(
-									market.data.data.OperatorKey
-								).toBase58()
-							) ?? undefined}
-							updateMarket={(m) => updateMarket(i, m)}
-						/>
-					</a>
-				</div>
-			{/each}
-		</div>
+		{#each markets as market, i}
+			<div class="bg-white">
+				<a
+					href={`/${new PublicKey(
+						market.data.data.AmmAddress
+					).toBase58()}`}
+				>
+					<MarketCardMedium
+						{market}
+						creator={users.get(
+							new PublicKey(
+								market.data.data.OperatorKey
+							).toBase58()
+						) ?? undefined}
+						updateMarket={(m) => updateMarket(i, m)}
+					/>
+				</a>
+			</div>
+		{/each}
+		<!-- {#if markets.length === 0}
+			<div class="flex flex-col items-center justify-center h-80 gap-6">
+				<IconUfo size={28} class="rotate-[-12deg]" />
+				<h4 class="">
+					No markets found
+				</h4>
+				<button class="btn_primary w-40 m-4">
+					Create a market
+				</button>
+			</div>
+			<div />
+		{/if} -->
 	</div>
 	<div slot="right">
 		{#if $web3Store?.publicKey}

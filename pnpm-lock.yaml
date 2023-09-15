@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
 
 settings:
   autoInstallPeers: true
@@ -14,17 +14,26 @@ importers:
         specifier: ^13.0.1
         version: 13.0.1
       '@chainsafe/libp2p-yamux':
-        specifier: ^5.0.0
-        version: 5.0.0
+        specifier: 4.0.2
+        version: 4.0.2
       '@helia/json':
         specifier: ^1.0.0
         version: 1.0.0
       '@helia/unixfs':
         specifier: ^1.4.0
         version: 1.4.0
+      '@libp2p/bootstrap':
+        specifier: ^9.0.6
+        version: 9.0.6
+      '@libp2p/kad-dht':
+        specifier: 9.3.8
+        version: 9.3.8
       '@libp2p/tcp':
         specifier: ^8.0.6
         version: 8.0.6
+      '@libp2p/websockets':
+        specifier: ^7.0.7
+        version: 7.0.7
       '@noble/ed25519':
         specifier: ^2.0.0
         version: 2.0.0
@@ -496,7 +505,7 @@ packages:
       '@libp2p/peer-record': 5.0.4
       '@libp2p/pubsub': 7.0.3
       '@libp2p/topology': 4.0.3
-      '@multiformats/multiaddr': 12.1.3
+      '@multiformats/multiaddr': 12.1.7
       abortable-iterator: 5.0.1
       denque: 1.5.1
       it-length-prefixed: 9.0.1
@@ -505,7 +514,7 @@ packages:
       multiformats: 11.0.2
       protobufjs: 6.11.3
       uint8arraylist: 2.4.3
-      uint8arrays: 4.0.4
+      uint8arrays: 4.0.6
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -531,7 +540,7 @@ packages:
       it-stream-types: 2.0.1
       protons-runtime: 5.0.1(uint8arraylist@2.4.3)
       uint8arraylist: 2.4.3
-      uint8arrays: 4.0.4
+      uint8arrays: 4.0.6
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -570,21 +579,6 @@ packages:
       '@libp2p/logger': 2.1.1
       abortable-iterator: 5.0.1
       any-signal: 4.1.1
-      it-pipe: 3.0.1
-      it-pushable: 3.2.1
-      uint8arraylist: 2.4.3
-    transitivePeerDependencies:
-      - supports-color
-    dev: false
-
-  /@chainsafe/libp2p-yamux@5.0.0:
-    resolution: {integrity: sha512-aWTnBPR2hJt0A2y579sMtZVB6IqgSSHlZ6Eg+WDxNZQ0zcexafuruZQDj+z3FUTNPz+E8IeuyCi7tjI4IEehjw==}
-    engines: {node: '>=16.0.0', npm: '>=7.0.0'}
-    dependencies:
-      '@libp2p/interface': 0.1.2
-      '@libp2p/logger': 3.0.2
-      abortable-iterator: 5.0.1
-      it-foreach: 2.0.3
       it-pipe: 3.0.1
       it-pushable: 3.2.1
       uint8arraylist: 2.4.3
@@ -1598,7 +1592,19 @@ packages:
       '@libp2p/logger': 2.1.1
       '@libp2p/peer-id': 2.0.4
       '@multiformats/mafmt': 12.1.5
-      '@multiformats/multiaddr': 12.1.3
+      '@multiformats/multiaddr': 12.1.7
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
+
+  /@libp2p/bootstrap@9.0.6:
+    resolution: {integrity: sha512-YvPQT0jkRpW1meVZQMMaJkQFgRgdJjqpT9dD6GcacOc+EbByAUi+sLB1l0VOA5uNa0UoKUNdv50XHfEsD6BFhg==}
+    dependencies:
+      '@libp2p/interface': 0.1.2
+      '@libp2p/logger': 3.0.2
+      '@libp2p/peer-id': 3.0.2
+      '@multiformats/mafmt': 12.1.5
+      '@multiformats/multiaddr': 12.1.7
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -1737,7 +1743,7 @@ packages:
       '@libp2p/interface-registrar': 2.0.12
       '@libp2p/interface-transport': 4.0.3
       '@libp2p/interfaces': 3.3.2
-      '@multiformats/multiaddr': 12.1.3
+      '@multiformats/multiaddr': 12.1.7
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -1887,7 +1893,7 @@ packages:
       '@libp2p/interfaces': 3.3.2
       '@libp2p/logger': 2.1.1
       '@libp2p/peer-id': 2.0.4
-      '@multiformats/multiaddr': 12.1.3
+      '@multiformats/multiaddr': 12.1.7
       any-signal: 4.1.1
       browser-readablestream-to-it: 2.0.3
       iterable-ndjson: 1.1.0
@@ -1920,7 +1926,7 @@ packages:
       '@libp2p/peer-id': 2.0.4
       '@libp2p/record': 3.0.4
       '@libp2p/topology': 4.0.3
-      '@multiformats/multiaddr': 12.1.3
+      '@multiformats/multiaddr': 12.1.7
       '@types/sinon': 10.0.15
       abortable-iterator: 5.0.1
       any-signal: 4.1.1
@@ -1947,7 +1953,7 @@ packages:
       progress-events: 1.0.0
       protons-runtime: 5.0.1(uint8arraylist@2.4.3)
       uint8arraylist: 2.4.3
-      uint8arrays: 4.0.4
+      uint8arrays: 4.0.6
       varint: 6.0.0
     transitivePeerDependencies:
       - supports-color
@@ -2005,7 +2011,7 @@ packages:
       '@libp2p/interfaces': 3.3.2
       '@libp2p/logger': 2.1.1
       '@libp2p/peer-id': 2.0.4
-      '@multiformats/multiaddr': 12.1.3
+      '@multiformats/multiaddr': 12.1.7
       '@types/multicast-dns': 7.2.1
       dns-packet: 5.6.0
       multicast-dns: 7.2.5
@@ -2029,7 +2035,7 @@ packages:
       it-stream-types: 2.0.1
       rate-limiter-flexible: 2.4.1
       uint8arraylist: 2.4.3
-      uint8arrays: 4.0.4
+      uint8arrays: 4.0.6
       varint: 6.0.0
     transitivePeerDependencies:
       - supports-color
@@ -2161,7 +2167,7 @@ packages:
       multiformats: 11.0.2
       p-queue: 7.3.4
       uint8arraylist: 2.4.3
-      uint8arrays: 4.0.4
+      uint8arrays: 4.0.6
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -2175,7 +2181,7 @@ packages:
       multiformats: 11.0.2
       protons-runtime: 5.0.1(uint8arraylist@2.4.3)
       uint8arraylist: 2.4.3
-      uint8arrays: 4.0.4
+      uint8arrays: 4.0.6
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -2191,7 +2197,7 @@ packages:
       '@libp2p/logger': 2.1.1
       '@libp2p/utils': 3.0.13
       '@multiformats/mafmt': 12.1.5
-      '@multiformats/multiaddr': 12.1.3
+      '@multiformats/multiaddr': 12.1.7
       '@types/sinon': 10.0.15
       stream-to-it: 0.2.4
     transitivePeerDependencies:
@@ -2281,7 +2287,7 @@ packages:
       '@libp2p/logger': 2.1.1
       '@libp2p/peer-id': 2.0.4
       '@multiformats/mafmt': 12.1.5
-      '@multiformats/multiaddr': 12.1.3
+      '@multiformats/multiaddr': 12.1.7
       abortable-iterator: 5.0.1
       detect-browser: 5.3.0
       it-length-prefixed: 9.0.1
@@ -2296,7 +2302,7 @@ packages:
       p-event: 6.0.0
       protons-runtime: 5.0.1(uint8arraylist@2.4.3)
       uint8arraylist: 2.4.3
-      uint8arrays: 4.0.4
+      uint8arrays: 4.0.6
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -2311,13 +2317,34 @@ packages:
       '@libp2p/logger': 2.1.1
       '@libp2p/utils': 3.0.13
       '@multiformats/mafmt': 12.1.5
-      '@multiformats/multiaddr': 12.1.3
+      '@multiformats/multiaddr': 12.1.7
       '@multiformats/multiaddr-to-uri': 9.0.7
       '@types/ws': 8.5.5
       abortable-iterator: 5.0.1
       it-ws: 6.0.1
       p-defer: 4.0.0
       p-timeout: 6.1.2
+      wherearewe: 2.0.1
+      ws: 8.13.0(bufferutil@4.0.7)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+    dev: false
+
+  /@libp2p/websockets@7.0.7:
+    resolution: {integrity: sha512-DQvxq9V2Q7VoF5S4j9zZ0VX8QdzdjnLmUNCZ0Ux4IIQ5TU9RAZAvgbYBeIlQEQwL1iK9vFzjMhcSfYZTpTVKFA==}
+    dependencies:
+      '@libp2p/interface': 0.1.2
+      '@libp2p/logger': 3.0.2
+      '@libp2p/utils': 4.0.3
+      '@multiformats/mafmt': 12.1.5
+      '@multiformats/multiaddr': 12.1.7
+      '@multiformats/multiaddr-to-uri': 9.0.7
+      '@types/ws': 8.5.5
+      abortable-iterator: 5.0.1
+      it-ws: 6.0.1
+      p-defer: 4.0.0
       wherearewe: 2.0.1
       ws: 8.13.0(bufferutil@4.0.7)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
@@ -2337,7 +2364,7 @@ packages:
       '@libp2p/interface-transport': 4.0.3
       '@libp2p/logger': 2.1.1
       '@libp2p/peer-id': 2.0.4
-      '@multiformats/multiaddr': 12.1.3
+      '@multiformats/multiaddr': 12.1.7
       it-stream-types: 2.0.1
       multiformats: 11.0.2
       uint8arraylist: 2.4.3
@@ -2402,7 +2429,7 @@ packages:
     resolution: {integrity: sha512-i3ldtPMN6XJt+MCi34hOl0wGuGEHfWWMw6lmNag5BpckPwPTf9XGOOFMmh7ed/uO3Vjah/g173iOe61HTQVoBA==}
     engines: {node: '>=16.0.0', npm: '>=7.0.0'}
     dependencies:
-      '@multiformats/multiaddr': 12.1.3
+      '@multiformats/multiaddr': 12.1.7
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -7826,7 +7853,7 @@ packages:
       '@libp2p/logger': 2.1.1
       '@libp2p/topology': 4.0.3
       '@libp2p/tracked-map': 3.0.4
-      '@multiformats/multiaddr': 12.1.3
+      '@multiformats/multiaddr': 12.1.7
       '@vascosantos/moving-average': 1.1.0
       abortable-iterator: 5.0.1
       any-signal: 4.1.1
@@ -7845,7 +7872,7 @@ packages:
       protons-runtime: 5.0.1(uint8arraylist@2.4.3)
       timeout-abort-controller: 3.0.0
       uint8arraylist: 2.4.3
-      uint8arrays: 4.0.4
+      uint8arrays: 4.0.6
       varint: 6.0.0
       varint-decoder: 1.0.0
     transitivePeerDependencies:
@@ -7949,7 +7976,7 @@ packages:
       protons-runtime: 5.0.1(uint8arraylist@2.4.3)
       timestamp-nano: 1.0.1
       uint8arraylist: 2.4.3
-      uint8arrays: 4.0.4
+      uint8arrays: 4.0.6
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -8458,7 +8485,7 @@ packages:
     resolution: {integrity: sha512-PCUk9Vn9E9qGYTvGuG9AFSzVflQHW4kRdo2X+c9mU+ZUXPt+szysqDFz46hswQmkYfPvP2xWK5C+q4RI21273g==}
     engines: {node: '>=16.0.0', npm: '>=7.0.0'}
     dependencies:
-      uint8arrays: 4.0.4
+      uint8arrays: 4.0.6
     dev: false
 
   /it-to-stream@1.0.0:
@@ -8479,7 +8506,7 @@ packages:
       event-iterator: 2.0.0
       iso-url: 1.2.1
       it-stream-types: 2.0.1
-      uint8arrays: 4.0.4
+      uint8arrays: 4.0.6
       ws: 8.13.0(bufferutil@4.0.7)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - bufferutil
