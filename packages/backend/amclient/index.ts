@@ -65,7 +65,7 @@ export async function getHelia() {
         datastore: globalThis.heliaDatastore!,
         // libp2p: globalThis.libp2p
       })
-      // globalThis._helia.libp2p.services.dht.setMode("server");
+      globalThis._helia.libp2p.services.dht.setMode("server");
       globalThis.helia = hJson(globalThis._helia);
     }
   })
