@@ -5,6 +5,7 @@ import {extMarketChaindata, marketChaindata, marketPricePoint, profileChaindata}
 import NodeCache from 'node-cache';
 import {Mutex} from "async-mutex";
 import base58 from 'bs58';
+import * as multiformats from "multiformats"
 
 export type ChainCache = {
   markets: Map<string, extMarketChaindata>,
@@ -44,11 +45,13 @@ async function handleAccountChanges(accounts: web3.AccountInfo<Buffer>[], retrie
       console.log(base58.encode(amm_address), newData.Subsidy, newData.No, newData.Yes);
       return [amm_address, newData]
     }
+    var pins: Buffer[] = []
     const marketAccounts = accounts.filter(v => v.data.readUInt8(0) == 1)
     var newMarketAccounts: [Buffer, marketChaindata][] = []
     var updateMarketAccounts: [Buffer, marketChaindata][] = []
     marketAccounts.forEach(v => {
       var [amm_address, newData] = toMarket(v.data)
+      pins.push(newData.IPFS_Cid)
       var maybe_market = globalThis.chainCache.markets.get(base58.encode(amm_address));
       if (maybe_market) {
         if (newData != maybe_market.data) {
@@ -226,6 +229,7 @@ async function handleAccountChanges(accounts: web3.AccountInfo<Buffer>[], retrie
       const key = new web3.PublicKey(_key);
       var ipfs_len = vdata.readUint8(2 + 32);
       var cid = vdata.slice(2 + 32 + 1, 2 + 32 + 1 + ipfs_len)
+      pins.push(cid)
       var username_len = vdata.readUint8(2 + 32 + 1 + ipfs_len)
       var username = vdata.slice(2 + 32 + 1 + ipfs_len + 1, 2 + 32 + 1 + ipfs_len + 1 + username_len).toString('utf8')
       globalThis.chainCache.profiles.set(username, {
@@ -236,6 +240,9 @@ async function handleAccountChanges(accounts: web3.AccountInfo<Buffer>[], retrie
       globalThis.chainCache.usernames.set(key.toBase58(), username)
       console.log("New profiles: ", globalThis.chainCache.profiles, globalThis.chainCache.usernames);
     })
+    await Promise.allSettled(pins.map(async v => {
+      return globalThis._helia.pins.add(multiformats.CID.decode(v))
+    }))
   }
 }
 

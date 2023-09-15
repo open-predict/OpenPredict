@@ -7,16 +7,18 @@ WORKDIR /app
 # Copy package.json and pnpm-lock.yaml to the working directory
 COPY package.json pnpm-lock.yaml ./
 
-# Install pnpm
 RUN npm install -g pnpm
 
-# Install dependencies using pnpm
-RUN pnpm install
-
-# Copy the rest of the application code
-COPY . .
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY node_module[s] ./node_modules
 
 WORKDIR /app/packages/frontend
+COPY packages/frontend/package.json ./
+COPY packages/frontend/node_module[s] ./node_modules
+
+RUN pnpm install
+
+COPY packages/frontend ./
 
 ARG PUBLIC_MAGIC_PUBLISHABLE_API_KEY
 ENV PUBLIC_MAGIC_PUBLISHABLE_API_KEY=$PUBLIC_MAGIC_PUBLISHABLE_API_KEY

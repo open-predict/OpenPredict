@@ -10,6 +10,7 @@ import {FsDatastore} from 'datastore-fs'
 import {Mutex} from 'async-mutex'
 
 declare global {
+  var _helia: any
   var helia: hJsonI | null
   var heliaBlockstore: FsBlockstore | null
   var heliaDatastore: FsDatastore | null
