@@ -1,18 +1,18 @@
 import * as helia from "helia"
 import * as pb from './oppb.js'
 import base58 from 'bs58'
-import {marketFulldata, marketMetadataSchemaV0, profileChaindata} from '../types/market.js'
+import { marketFulldata, marketMetadataSchemaV0, profileChaindata } from '../types/market.js'
 import './globals.js'
 import * as multiformats from "multiformats"
-import {json as hJson, JSON as hJsonI} from "@helia/json"
-import {FsBlockstore} from 'blockstore-fs'
-import {FsDatastore} from 'datastore-fs'
-import {Mutex} from 'async-mutex'
-import {Libp2p} from 'libp2p';
-// import { tcp } from '@libp2p/tcp';
-// import { identifyService } from 'libp2p/identify'
-// import { noise } from '@chainsafe/libp2p-noise';
-// import { yamux } from '@chainsafe/libp2p-yamux';
+import { json as hJson, JSON as hJsonI } from "@helia/json"
+import { FsBlockstore } from 'blockstore-fs'
+import { FsDatastore } from 'datastore-fs'
+import { Mutex } from 'async-mutex'
+import { Libp2p, createLibp2p } from 'libp2p';
+import { tcp } from '@libp2p/tcp';
+import { identifyService } from 'libp2p/identify'
+import { noise } from '@chainsafe/libp2p-noise';
+import { yamux } from '@chainsafe/libp2p-yamux';
 
 
 declare global {
@@ -29,9 +29,39 @@ export async function getHelia() {
     if (globalThis.helia == null) {
       globalThis.heliaBlockstore = new FsBlockstore('/opt/ipfs/blocks')
       globalThis.heliaDatastore = new FsDatastore('/opt/ipfs/data')
+      globalThis.libp2p = await createLibp2p({
+        addresses: {
+          listen: ['/ip4/23.145.40.102/tcp/34731', '/ip4/0.0.0.0/tcp/34731', '/ip4/127.0.0.1/tcp/0'],
+          announce: ['/ip4/23.145.40.102/tcp/34731', '/ip4/0.0.0.0/tcp/34731'],
+        },
+
+        transports: [tcp()],
+        connectionEncryption: [
+          noise()
+        ],
+        // streamMuxers: [
+        //   yamux()
+        // ],
+        services: {
+          identify: identifyService()
+
+        },
+        datastore: globalThis.heliaDatastore,
+        //  peerDiscovery: [
+        //    bootstrap({
+        //      list: [
+        //        "/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN",
+        //        "/dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa",
+        //        "/dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb",
+        //        "/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt"
+        //      ]
+        //    })
+        //  ],
+      })
       globalThis._helia = await helia.createHelia({
         blockstore: globalThis.heliaBlockstore!,
         datastore: globalThis.heliaDatastore!,
+        libp2p: globalThis.libp2p
       })
       globalThis._helia.libp2p.services.dht.setMode("server");
       globalThis.helia = hJson(globalThis._helia);
@@ -48,7 +78,7 @@ export async function marketByAddress(amm_address: string): Promise<[marketFulld
   if (!data) {
     return null
   };
-  var users = new Map<string, {username: string | null}>
+  var users = new Map<string, { username: string | null }>
   users.set(data.data.OperatorKey.toBase58(), {
     username: globalThis.chainCache.usernames.get(data.data.OperatorKey.toBase58()) ?? null
   })
