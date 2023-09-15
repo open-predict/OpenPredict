@@ -31,7 +31,7 @@ export async function getHelia() {
       globalThis.heliaDatastore = new FsDatastore('/opt/ipfs/data')
       globalThis.libp2p = await createLibp2p({
         addresses: {
-          listen: ['/ip4/23.145.40.102/tcp/34731', '/ip4/0.0.0.0/tcp/34731', 'ip4/127.0.0.1/tcp/34731'],
+          listen: ['/ip4/23.145.40.102/tcp/34731', '/ip4/0.0.0.0/tcp/34731', '/ip4/127.0.0.1/tcp/34731'],
           announce: ['/ip4/23.145.40.102/tcp/34731', '/ip4/0.0.0.0/tcp/34731'],
         },
 
