@@ -11,6 +11,7 @@ import {createContext} from './server/trpc.js';
 import {getHelia} from './amclient/index.js';
 import {webcrypto} from 'node:crypto';
 import {readFile} from 'fs/promises';
+import {startAndMaintainPmList} from './amclient/polymarket.js';
 
 // @ts-ignore
 if (!globalThis.crypto) globalThis.crypto = webcrypto
@@ -68,6 +69,7 @@ const start = async () => {
   globalThis.mainProgramId = new web3.PublicKey(mainProgramId!);
   globalThis.usdcMintAddr = new web3.PublicKey(mint!);
 
+  startAndMaintainPmList().then(_ => {})
   startMaintainingAccountState(rpcUrl).then((_: any) => {
     console.log("Chain cache initted; starting helia")
     getHelia().then(_ => {

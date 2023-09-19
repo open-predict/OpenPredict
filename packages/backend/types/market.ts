@@ -54,6 +54,39 @@ export const marketMetadataSchema2V0 = z.object({
 
 export type TMarketMetadataSchemaV0 = z.infer<typeof marketMetadataSchemaV0>;
 
+//PM markets
+
+export type pmMarketData = {
+  condition_id: string,
+  question_id: string,
+  tokens: pmTokenData[],
+
+  active: boolean,
+  closed: boolean,
+
+  question: string,
+  description: string,
+
+  end_date_iso: string,
+
+  categories: string[],
+  parent_categories: string[],
+
+  icon: string,
+  image: string,
+
+  fpmm: string,
+  accepting_orders: boolean,
+}
+
+export type pmTokenData = {
+  token_id: string,
+  outcome: string,
+  winner: boolean | undefined,
+}
+
+//SOL markets
+
 export type marketFulldata = {
   data: extMarketChaindata,
   metadata: TMarketMetadataSchemaV0 | null,

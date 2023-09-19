@@ -1,13 +1,14 @@
 import * as helia from "helia"
 import * as pb from './oppb.js'
 import base58 from 'bs58'
-import {extMarketChaindata, marketFulldata, marketMetadataSchemaV0, profileChaindata} from '../types/market.js'
+import {extMarketChaindata, marketFulldata, marketMetadataSchemaV0, pmMarketData, profileChaindata} from '../types/market.js'
 import './globals.js'
 import * as multiformats from "multiformats"
 import {json as hJson, JSON as hJsonI} from "@helia/json"
 import {FsBlockstore} from 'blockstore-fs'
 import {FsDatastore} from 'datastore-fs'
 import {Mutex} from 'async-mutex'
+import {searchPmMarkets} from "./polymarket.js"
 
 declare global {
   var _helia: any
@@ -165,8 +166,18 @@ export async function getMarketFulldata(data: extMarketChaindata): Promise<marke
 export async function searchMarkets(options: {
   term?: string,
   limit?: number,
+  tradable?: boolean,
   orderBy: "volume" | "recent",
-}): Promise<marketFulldata[]> {
+}): Promise<{
+  opMarkets: marketFulldata[],
+  pmMarkets: {
+    markets: pmMarketData[],
+    assetBooks: Map<string, {
+      asks: [number, number][],
+      bids: [number, number][],
+    }>,
+  },
+}> {
   var _ret: Promise<marketFulldata>[] = []
   const iter = chainCache.markets.values();
   while (true) {
@@ -180,37 +191,39 @@ export async function searchMarkets(options: {
     }
   }
 
-  return Promise.allSettled(_ret).then(result => {
-    var ret = result.filter(v => v.status == "fulfilled").map(v => (v as PromiseFulfilledResult<marketFulldata>).value);
-    console.log(`Did not find metadata for ${ret.filter(r => r.metadata === null).length} of ${result.length} markets`)
-    if (options.term != null) {
-      ret = ret.filter(v => v.metadata && JSON.stringify(v.metadata).includes(options.term!))
-    }
-    if (options.orderBy != null) {
-      switch (options.orderBy) {
-        case "volume":
-          ret.sort((a, b) => b.data.Trades.reduce((prev, cur) => prev + Number(cur.microUSDC), 0) - a.data.Trades.reduce((prev, cur) => prev + Number(cur.microUSDC), 0));
-          break;
-        case "recent":
-          ret.sort((a, b) => {
-            //TODO: Init date at market creation
-            var a_date = 0;
-            if (a.data.PriceHistory.length > 0) {
-              a_date = a.data.PriceHistory[a.data.PriceHistory.length - 1].At.getTime();
-            }
-            var b_date = 0;
-            if (b.data.PriceHistory.length > 0) {
-              b_date = b.data.PriceHistory[b.data.PriceHistory.length - 1].At.getTime();
-            }
-            return b_date - a_date;
-          });
-          break;
+  return {
+    opMarkets: await Promise.allSettled(_ret).then(result => {
+      var ret = result.filter(v => v.status == "fulfilled").map(v => (v as PromiseFulfilledResult<marketFulldata>).value);
+      console.log(`Did not find metadata for ${ret.filter(r => r.metadata === null).length} of ${result.length} markets`)
+      if (options.term != null) {
+        ret = ret.filter(v => v.metadata && JSON.stringify(v.metadata).includes(options.term!))
       }
-    }
-    ret = ret.slice(0, options.limit != null && options.limit < 50 ? options.limit : 50);
-    return ret;
-  })
-
+      if (options.orderBy != null) {
+        switch (options.orderBy) {
+          case "volume":
+            ret.sort((a, b) => b.data.Trades.reduce((prev, cur) => prev + Number(cur.microUSDC), 0) - a.data.Trades.reduce((prev, cur) => prev + Number(cur.microUSDC), 0));
+            break;
+          case "recent":
+            ret.sort((a, b) => {
+              //TODO: Init date at market creation
+              var a_date = 0;
+              if (a.data.PriceHistory.length > 0) {
+                a_date = a.data.PriceHistory[a.data.PriceHistory.length - 1].At.getTime();
+              }
+              var b_date = 0;
+              if (b.data.PriceHistory.length > 0) {
+                b_date = b.data.PriceHistory[b.data.PriceHistory.length - 1].At.getTime();
+              }
+              return b_date - a_date;
+            });
+            break;
+        }
+      }
+      ret = ret.slice(0, options.limit != null && options.limit < 50 ? options.limit : 50);
+      return ret;
+    }),
+    pmMarkets: searchPmMarkets(options),
+  }
 }
 
 export async function alertNewTransaction(sig: string) {
