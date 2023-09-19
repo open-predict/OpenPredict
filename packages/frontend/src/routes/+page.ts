@@ -21,10 +21,10 @@ export async function load() {
   }
 
   try {
-    data.searchResponse = await trpcc.searchMarkets.query({
+    data.searchResponse = (await trpcc.searchMarkets.query({
       term: "",
       limit: 10,
-    });
+    })).opMarkets;
   } catch (err) {
     console.log("Couldn't search markets: ", err)
   }

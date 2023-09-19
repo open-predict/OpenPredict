@@ -22,7 +22,7 @@
     $: result = trpcc.searchMarkets.query({
         term: debouncedSearchTerm,
         limit: 20,
-    });
+    }).then(v => v.opMarkets);
 </script>
 
 <Dialog

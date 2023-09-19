@@ -626,7 +626,7 @@ export const appRouter = router({
     const helia = await getHelia()
     var users = new Map<string, TUser | null>()
     console.log("Searching markets...")
-    await Promise.allSettled(markets.map(async (m) => {
+    await Promise.allSettled(markets.opMarkets.map(async (m) => {
       var v = m.data.data.OperatorKey.toBase58()
       var maybe_username = globalThis.chainCache.usernames.get(v);
       if (maybe_username != null) {
@@ -656,8 +656,14 @@ export const appRouter = router({
       }
     }))
     return {
-      markets: markets,
-      users: users,
+      opMarkets: {
+        markets: markets.opMarkets,
+        users: users,
+      },
+      pmMarkets: {
+        markets: markets.pmMarkets,
+        books: markets.pmMarkets,
+      },
     }
   }),
 
