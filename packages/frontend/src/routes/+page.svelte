@@ -37,7 +37,7 @@
 			<h2 class="text-stone-500 text-sm">Search...</h2>
 		</button>
 	</MainHeader>
-	<div slot="main" class="divide-y divide-gray-200">
+	<div slot="main" class="divide-y divide-gray-200 w-full overflow-wrap">
 		{#each markets as market, i}
 			<div class="bg-white">
 				<a
@@ -57,21 +57,17 @@
 				</a>
 			</div>
 		{/each}
-		<!-- {#if markets.length === 0}
+		{#if markets.length === 0}
 			<div class="flex flex-col items-center justify-center h-80 gap-6">
 				<IconUfo size={28} class="rotate-[-12deg]" />
-				<h4 class="">
-					No markets found
-				</h4>
-				<button class="btn_primary w-40 m-4">
-					Create a market
-				</button>
+				<h4 class="">No markets found</h4>
+				<button class="btn_primary w-40"> Create a market </button>
 			</div>
 			<div />
-		{/if} -->
+		{/if}
 	</div>
 	<div slot="right">
-		{#if $web3Store?.publicKey}
+		{#if $web3Store?.polygonAddress}
 			<div class="bg-white ring-1 rounded-3xl ring-gray-200">
 				<AccountSummary />
 			</div>

@@ -42,7 +42,7 @@
     let comment = "";
 
     async function postComment() {
-        if ($web3Store.publicKey) {
+        if ($web3Store.solanaAddress) {
             const posted = await $web3Workspace.makeAuthenticatedRequest(() =>
                 trpcc.comment
                     .mutate({
@@ -60,7 +60,7 @@
                 }
                 commentsRes.comments.unshift({
                     createdAt: new Date(Date.now() - 1000),
-                    userKey: $web3Store.publicKey?.toBase58(),
+                    userKey: $web3Store.solanaAddress,
                     content: comment,
                 });
                 commentsRes = commentsRes; // svelte reactivity
@@ -74,9 +74,9 @@
     }
 
     $: creator =
-        $web3Store?.publicKey &&
+        $web3Store?.solanaAddress &&
         market &&
-        $web3Store.publicKey.toBase58() ===
+        $web3Store.solanaAddress ===
             new PublicKey(market.data.data.OperatorKey).toBase58();
 
     $: createdAt = market?.data?.PriceHistory[0]?.At as Date | undefined;
@@ -189,10 +189,10 @@
         {#if currentTab === Tabs.Comments}
             <div class="flex flex-col divide-y divide-gray-200">
                 <div class="w-full p-8 flex gap-4 items-start">
-                    {#if $web3Store?.publicKey}
+                    {#if $web3Store?.solanaAddress}
                         <div class="mt-1">
                             <ProfileButton
-                                publicKey={$web3Store?.publicKey}
+                                publicKey={new PublicKey($web3Store?.solanaAddress)}
                                 small
                             />
                         </div>
@@ -254,7 +254,7 @@
     </div>
     <div slot="right" class="flex flex-col gap-2.5">
         {#if market}
-            {#if $web3Store?.publicKey}
+            {#if $web3Store?.solanaAddress}
                 <div class="bg-white ring-1 rounded-3xl ring-gray-200">
                     <AccountSummary />
                 </div>
@@ -266,7 +266,7 @@
                     <CreatorControls {market} {updateMarket} />
                 </div>
             {/if}
-            {#if $web3Store?.publicKey}
+            {#if $web3Store?.solanaAddress}
                 <div
                     class="ring-1 rounded-3xl bg-white ring-gray-200 flex flex-col"
                 >

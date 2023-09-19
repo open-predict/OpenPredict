@@ -165,7 +165,6 @@ async function setupLocalEnvironment(rpcUrl: string) {
 
   console.log(`[prebuild] > Main Program Id: ${mainProgramId}`)
 
-
   return {
     mainProgramId,
     tokenAccount,
@@ -173,8 +172,6 @@ async function setupLocalEnvironment(rpcUrl: string) {
     feePayerKey
   }
 }
-
-
 
 start().catch(err => {
   console.error("error in main program loop: ", err)

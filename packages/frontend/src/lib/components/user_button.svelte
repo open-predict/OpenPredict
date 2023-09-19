@@ -14,11 +14,12 @@
     } from "@rgossiaux/svelte-headlessui";
     import { web3Store } from "$lib/web3Store";
     import { toastsStore } from "$lib/toasts/toastsStore";
+    import { PublicKey } from "@solana/web3.js";
     $: ({ logout } = $web3Workspace);
     let mobileModal = false;
 </script>
 
-{#if $web3Store?.publicKey}
+{#if $web3Store?.solanaAddress}
     <button
         on:click={() => {
             mobileModal = true;
@@ -32,7 +33,7 @@
                 class="flex overflow-hidden rounded-full w-6 h-6 lg:w-7 lg:h-7"
             >
                 <img
-                    src={generateProfileImage($web3Store.publicKey)}
+                    src={generateProfileImage($web3Store.solanaAddress)}
                     alt="profile"
                 />
             </div>
@@ -46,7 +47,7 @@
             <IconMenu size={16} />
         </div>
     </button>
-{:else if $web3Store?.publicKey === null}
+{:else if $web3Store?.solanaAddress === null}
     <!-- <button
         on:click={() => {
             modalStore.openModal(Modal.login);
@@ -90,16 +91,16 @@
         <div class="flex flex-col gap-2.5 p-6">
             <button
                 on:click={async () => {
-                    if (!$web3Store.publicKey) {
+                    if (!$web3Store.solanaAddress) {
                         modalStore.openModal(Modal.login);
                         return;
                     }
                     window.navigator.clipboard.writeText(
-                        $web3Store.publicKey?.toBase58()
+                        $web3Store.solanaAddress
                     );
                     toastsStore.create({
                         title: "Copied!",
-                        message: readablePublicKey($web3Store.publicKey),
+                        message: readablePublicKey(new PublicKey($web3Store.solanaAddress)),
                         variant: "success"
                     })
                 }}
@@ -109,16 +110,16 @@
             </button>
             <button
                 on:click={async () => {
-                    if (!$web3Store.usdcAddress) {
+                    if (!$web3Store.solanaUsdcAddress) {
                         modalStore.openModal(Modal.login);
                         return;
                     }
                     window.navigator.clipboard.writeText(
-                        $web3Store.usdcAddress?.toBase58()
+                        $web3Store.solanaUsdcAddress
                     );
                     toastsStore.create({
                         title: "Copied!",
-                        message: readablePublicKey($web3Store.usdcAddress),
+                        message: readablePublicKey(new PublicKey($web3Store.solanaUsdcAddress)),
                         variant: "success"
                     })
                 }}

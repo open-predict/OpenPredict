@@ -118,7 +118,7 @@
         class={`relative col-span-12 md:col-span-6 lg:col-span-6 xl:col-span-4 bg-white`}
     >
         <!-- mobile banner -->
-        {#if !$web3Store?.publicKey}
+        {#if !$web3Store?.solanaAddress}
             <div
                 class="md:hidden w-full h-8 flex items-center p-0.5 px-4 pr-1 gap-2 fill-white text-white bg-black"
             >
@@ -208,7 +208,7 @@
                 <UserButton />
             </div>
             <div class="flex flex-col p-2.5 xl:pr-0 gap-2.5">
-                {#if $web3Store?.publicKey === null}
+                {#if $web3Store?.solanaAddress === null}
                     <div
                         class="bg-white ring-1 rounded-2xl ring-gray-200 p-8 mb-4"
                     >

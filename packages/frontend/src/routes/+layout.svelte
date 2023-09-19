@@ -1,7 +1,6 @@
 <script lang="ts">
   import "../app.postcss";
   import { onMount } from "svelte";
-  import WalletProvider from "$lib/wallets/WalletProvider.svelte";
   import type { Adapter } from "@solana/wallet-adapter-base";
   import Web3Provider from "$lib/Web3Provider.svelte";
   import LoginModal from "$lib/modals/login.svelte";
@@ -9,20 +8,20 @@
   import BackendAuth from "$lib/modals/backend_auth.svelte";
   import SendFunds from "$lib/modals/send_funds.svelte";
   import AccountSummary from "$lib/modals/account_summary.svelte";
-  import { Buffer } from "buffer";
-  import process from "process";
-  import { browser } from "$app/environment";
+  // import { Buffer } from "buffer/";
+  // import process from "process";
+  // import { browser } from "$app/environment";
   import NProgress from "nprogress";
   import { navigating } from "$app/stores";
   import "nprogress/nprogress.css";
-  import '@fontsource-variable/open-sans';
-  import '@fontsource-variable/inter';
+  import "@fontsource-variable/open-sans";
+  import "@fontsource-variable/inter";
   import Topup from "$lib/modals/topup.svelte";
   import ToastsProvider from "$lib/toasts/toastsProvider.svelte";
-  
+
   NProgress.configure({
     minimum: 0.16,
-    showSpinner: false    
+    showSpinner: false,
   });
 
   $: {
@@ -34,14 +33,16 @@
     }
   }
 
-  globalThis.Buffer = Buffer;
-  globalThis.process = process;
+  // globalThis.Buffer = Buffer;
+  // globalThis.process = process;
 
-  if (browser) {
-    window.process = process;
-    window.Buffer = Buffer;
-    window.global = window;
-  }
+  // if (browser) {
+  //   console.log("ADDED PROCESS MF");
+  //   console.log(Buffer);
+  //     window.process = process;
+  //   window.Buffer = Buffer;
+  //   window.global = window;
+  // }
 
   const localStorageKey = "walletAdapter";
   let wallets: Adapter[];
@@ -71,7 +72,6 @@
   });
 </script>
 
-<WalletProvider {localStorageKey} {wallets} autoConnect />
 <Web3Provider />
 <ToastsProvider />
 
@@ -80,7 +80,5 @@
 <!-- Global modals -->
 <LoginModal />
 <BackendAuth />
-<SendFunds />
-<Topup />
 <SearchMarkets />
 <AccountSummary />

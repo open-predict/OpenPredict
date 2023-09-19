@@ -2,17 +2,14 @@
     import type { marketFulldata } from "@am/backend/types/market";
     import { PublicKey } from "@solana/web3.js";
     import IconUser from "@tabler/icons-svelte/dist/svelte/icons/IconUserCheck.svelte";
-    import IconCurrency from "@tabler/icons-svelte/dist/svelte/icons/IconCurrency.svelte";
     import IconComment from "@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte";
-    import { USDC_PER_DOLLAR, getChance, shortDateFormatter, usdFormatter } from "$lib/utils";
-    import IconMenu from "@tabler/icons-svelte/dist/svelte/icons/IconDotsVertical.svelte";
+    import { getChance } from "$lib/utils";
     import SmallChart from "../charts/small_chart.svelte";
     import ProfileButton from "./profile_button.svelte";
     import type { TUser } from "@am/backend/types/user";
     import MarketActions from "./market_actions.svelte";
-    import base58, { encode } from "bs58";
+    import base58 from "bs58";
     import LikeButton from "../elements/like_button.svelte";
-    import { format } from "d3";
     import SubsidyButton from "$lib/elements/subsidy_button.svelte";
 
     export let market: marketFulldata;

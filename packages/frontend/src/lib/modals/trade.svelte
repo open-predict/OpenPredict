@@ -37,9 +37,11 @@
   const step = 0.1 * USDC_PER_DOLLAR;
   const chance = getChance(market.data.data.Yes, market.data.data.No);
 
-  $: ({ publicKey } =
-    $web3Workspace);
-  $: userShares = getUserShares(market.data, $web3Store?.publicKey);
+  $: ({ solanaAddress } = $web3Workspace);
+  $: userShares = getUserShares(
+    market.data,
+    $web3Store?.solanaAddress ? new PublicKey($web3Store.solanaAddress) : null
+  );
   $: buying =
     userShares.sharesUI === 0 ||
     (userShares.shares > 0 && direction) ||
@@ -104,14 +106,14 @@
   async function executeTrade() {
     loadingMessage = "Creating instructions...";
 
-    if (!publicKey) {
+    if (!solanaAddress) {
       throw new Error(Errors.LOGGED_OUT);
     }
 
     const instructions = await buySharesInstruction(
       new PublicKey(PUBLIC_USDC_MINT_ADDR),
       new PublicKey(PUBLIC_MAIN_PROGRAM_ID),
-      publicKey,
+      new PublicKey(solanaAddress),
       new PublicKey(market.data.data.AmmAddress).toBytes(),
       microUsd,
       direction,
@@ -119,11 +121,12 @@
       0
     );
 
-    const usdcSwapNeeded = !$web3Store.usdc
+    const usdcSwapNeeded = !$web3Store.solanaUsdcAddress
       ? microUsd
-      : parseInt($web3Store.usdc.amount) - microUsd < 0
-      ? microUsd - parseInt($web3Store.usdc.amount)
+      : Number($web3Store.solanaUsdcBalance) - microUsd < 0
+      ? microUsd - Number($web3Store.solanaUsdcBalance)
       : undefined;
+
     if (usdcSwapNeeded) {
       alert("need usdc");
     } else {
@@ -146,7 +149,7 @@
           }
         },
         (s, h) => {
-          const publicKey = $web3Store?.publicKey;
+          const publicKey = $web3Store?.solanaAddress;
 
           market.data.PriceHistory.push({
             Yes: expectedYes,
@@ -157,11 +160,9 @@
           market.data.data.Yes = expectedYes;
           market.data.data.No = expectedNo;
           if (publicKey) {
-            const userAccount = market.data.UserAccounts.get(
-              publicKey.toBase58()
-            );
+            const userAccount = market.data.UserAccounts.get(publicKey);
             if (userAccount) {
-              market.data.UserAccounts.set(publicKey.toBase58(), {
+              market.data.UserAccounts.set(publicKey, {
                 ...userAccount,
                 Shares:
                   userAccount?.Shares +
@@ -371,7 +372,9 @@
   </button>
   <p class="text-sm text-gray-500 whitespace-pre-wrap">
     {#if buying}
-      {`You have ${usdFormatter.format($web3Store?.usdc?.uiAmount ?? 0)} available for trading`}
+      {`You have ${usdFormatter.format(
+        Number($web3Store?.solanaUsdcBalance ?? 0) ?? 0
+      )} available for trading`}
     {:else}
       {`You must sell your existing ${Math.abs(userShares.sharesUI)} ${
         userShares.shares > 0 ? "'Yes'" : "'No'"

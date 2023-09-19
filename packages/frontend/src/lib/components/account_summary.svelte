@@ -11,6 +11,7 @@
   import { web3Workspace } from "$lib/web3Workspace";
   import { trpcc } from "$lib/trpc";
   import { onMount } from "svelte";
+  import { PublicKey } from "@solana/web3.js";
 
   let loading = false;
 
@@ -21,12 +22,15 @@
     redeemable: number;
   }> {
     let ret = { active: 0, redeemable: 0 };
-    if (!$web3Store.publicKey) return ret;
+    if (!$web3Store.solanaAddress) return ret;
     const positions = await trpcc.getMarketAccounts.query({
-      userId: $web3Store.publicKey.toBase58(),
+      userId: $web3Store.solanaAddress,
     });
     positions.forEach((p) => {
-      const us = getUserShares(p.market.data, $web3Store.publicKey);
+      const us = getUserShares(
+        p.market.data,
+        new PublicKey($web3Store.solanaAddress as string)
+      );
       if (p.market.data.data.Resolved) {
         ret.redeemable = ret.redeemable + us.valueCents;
       } else {
@@ -72,7 +76,7 @@
       <div class="flex justify-end items-center py-2 gap-2">
         <p class="text-gray-500 mr-auto">Cash</p>
         <p class="">
-          {usdFormatter.format($web3Store?.usdc?.uiAmount ?? 0)}
+          <!-- {usdFormatter.format($web3Store?.usdc?.uiAmount ?? 0)} -->
         </p>
       </div>
       <div class="flex justify-between items-center py-2">
@@ -127,11 +131,7 @@
     on:click={() => {
       modalStore.openModal(Modal.topup);
     }}
-    class={`btn_secondary ${
-      ($web3Store?.usdc?.uiAmount ?? 0) < 0.05
-        ? "bg-gradient-to-br from-sky-500 to-indigo-600 text-white ring-0 hover:shadow-sky-400/50"
-        : ""
-    }`}
+    class={`btn_secondary`}
   >
     <IconCoins size={16} />
     Fund Account

@@ -7,14 +7,18 @@ import log from './log';
 
 export type TSol = { amount?: number };
 export type TUsdc = { publicKey?: PublicKey | null, value?: TokenAmount };
+export type TAddressKey = "polygonAddress" | "polygonUsdcAddress" | "solanaAddress" | "solanaUsdcAddress";
 
 export type TWeb3Store = {
-    publicKey?: PublicKey | null,
-    usdcAddress?: PublicKey | null;
-    magicWallet?: boolean,
-    oPauthed?: boolean;
-    usdc?: TokenAmount,
-    sol?: number,
+    polygonAddress?: string | null,
+    solanaAddress?: string | null,
+    polygonUsdcAddress?: string | null,
+    solanaUsdcAddress?: string | null,
+    authedWithBackend?: boolean;
+    polygonUsdcBalance?: bigint,
+    solanaUsdcBalance?: bigint,
+    solanaBalance?: bigint,
+    polygonBalance?: bigint,
 }
 
 export const web3StoreLsKey = 'wallet_state';
@@ -25,7 +29,7 @@ function createWeb3Store() {
     const initialValueRaw = Cookies.get(web3StoreLsKey);
     const initialValueParsed = initialValueRaw ? JSON.parse(initialValueRaw) : undefined;
     const initialValue = initialValueParsed ? {
-        ...initialValueParsed, 
+        ...initialValueParsed,
         publicKey: initialValueParsed.publicKey ? new PublicKey(initialValueParsed.publicKey) : initialValueParsed.publicKey === null ? null : undefined,
         usdcAddress: initialValueParsed.usdcAddress ? new PublicKey(initialValueParsed.usdcAddress) : initialValueParsed.usdcAddress === null ? null : undefined,
     } : undefined;
@@ -55,86 +59,61 @@ function createWeb3Store() {
         }
     })
 
-    function upsertPublicKey(value: PublicKey | null) {
-        log("debug", FILE, "upsertPublicKey", value)
-        update(wss => {
-            if (!wss) {
-                wss = { publicKey: value, magicWallet: false }
-            } else {
-                wss.publicKey = value;
+
+    function upsertAddress(value: Partial<Record<TAddressKey, string | null>>) {
+        update(store => {
+            store = {
+                ...store,
+                ...value
             }
-            return wss
+            return store
         })
     }
 
-    function updateWalletKind(magic: boolean) {
-        log("debug", FILE, "updateWalletKind", magic)
+    function upsertBalance(value: Partial<Record<TAddressKey, bigint>>) {
+        const balances = (Object.entries(value) as [TAddressKey, bigint][]).map(a => {
+            let b;
+            switch (a[0]) {
+                case "polygonAddress":
+                    b = { polygonBalance: a[1] }
+                    break;
+                case 'polygonUsdcAddress':
+                    b = { polygonUsdcBalance: a[1] }
+                    break;
+                case 'solanaAddress':
+                    b = { solanaBalance: a[1] }
+                case 'solanaUsdcAddress':
+                    b = { solanaUsdcBalance: a[1] }
+                default:
+                    break;
+            }
+            return b;
+        })
+        update(store => {
+            store = {
+                ...store,
+                ...balances
+            }
+            return store
+        })
+    }
+
+    function updateAuthedWithBackend(value: boolean) {
         update(wss => {
             if (!wss) {
                 log("error", FILE, "no store, not logged in?")
                 return wss;
             }
-            wss.magicWallet = magic;
-            return wss
-        })
-    }
-
-    function updateUsdcAddress(value: PublicKey | null) {
-        log("debug", FILE, "updateUsdcAddress", value)
-        update(wss => {
-            if (!wss) {
-                log("error", FILE, "no store, not logged in?")
-                return wss;
-            }
-            wss.usdcAddress = value;
-            return wss;
-        })
-    }
-
-    function updateUsdcBalance(value?: TokenAmount) {
-        log("debug", FILE, "updateUsdcBalance", value)
-        update(wss => {
-            if (!wss) {
-                log("error", FILE, "no store, not logged in?")
-                return wss;
-            }
-            wss.usdc = value;
-            return wss;
-        })
-    }
-
-    function updateSolBalance(value: number) {
-        log("debug", FILE, "updateSolBalance", value)
-        update(wss => {
-            if (!wss) {
-                log("error", FILE, "no store, not logged in?")
-                return wss;
-            }
-            wss.sol = value;
-            return wss;
-        })
-    }
-
-    function updateOpAuth(value: boolean) {
-        log("debug", FILE, "updateOpAuth", value)
-        update(wss => {
-            if (!wss) {
-                log("error", FILE, "no store, not logged in?")
-                return wss;
-            }
-            wss.oPauthed = value;
+            wss.authedWithBackend = value;
             return wss;
         })
     }
 
     return {
         subscribe,
-        upsertPublicKey,
-        updateWalletKind,
-        updateUsdcAddress,
-        updateSolBalance,
-        updateUsdcBalance,
-        updateOpAuth
+        upsertAddress,
+        upsertBalance,
+        updateAuthedWithBackend
     }
 
 }

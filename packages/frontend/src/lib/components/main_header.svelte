@@ -4,44 +4,44 @@
     import { onMount, onDestroy } from "svelte";
     import UserButton from "./user_button.svelte";
     export let fadeHeader = false;
-    // let observer: IntersectionObserver;
+    let observer: IntersectionObserver;
 
     onMount(() => {
-        // if (browser && fadeHeader) {
-        //     observer = new IntersectionObserver(
-        //         (entries) => {
-        //             entries.forEach((entry) => {
-        //                 if (
-        //                     entry.isIntersecting &&
-        //                     entry.intersectionRatio >= 0.75
-        //                 ) {
-        //                     if (entry.target.nextElementSibling) {
-        //                         entry.target.nextElementSibling.classList.remove(
-        //                             "bg-white/80", "border-b", "border-b-gray-200"
-        //                         );
-        //                     }
-        //                     return;
-        //                 }
-        //                 if (entry.target.nextElementSibling) {
-        //                     entry.target.nextElementSibling.classList.add(
-        //                         "bg-white/80", "border-b", "border-b-gray-200"
-        //                     );
-        //                 }
-        //             });
-        //         },
-        //         { threshold: 1.0 }
-        //     );
-        //     let target = document.querySelector("#scroll_top_indicator");
-        //     if (target) observer.observe(target);
-        // }
+        if (browser && fadeHeader) {
+            observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (
+                            entry.isIntersecting &&
+                            entry.intersectionRatio >= 0.75
+                        ) {
+                            if (entry.target.nextElementSibling) {
+                                entry.target.nextElementSibling.classList.remove(
+                                    "bg-white/80", "border-b", "border-b-gray-200"
+                                );
+                            }
+                            return;
+                        }
+                        if (entry.target.nextElementSibling) {
+                            entry.target.nextElementSibling.classList.add(
+                                "bg-white/80", "border-b", "border-b-gray-200"
+                            );
+                        }
+                    });
+                },
+                { threshold: 1.0 }
+            );
+            let target = document.querySelector("#scroll_top_indicator");
+            if (target) observer.observe(target);
+        }
     });
 
-    // onDestroy(() => {
-    //     if(browser && fadeHeader && observer){
-    //         let target = document.querySelector("#main_header");
-    //         if(target) observer.unobserve(target)
-    //     }
-    // })
+    onDestroy(() => {
+        if(browser && fadeHeader && observer){
+            let target = document.querySelector("#main_header");
+            if(target) observer.unobserve(target)
+        }
+    })
 
     $: locationSplit = browser ? window.location.pathname.split("/") : [];
 </script>

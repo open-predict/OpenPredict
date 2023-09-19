@@ -93,18 +93,20 @@
     }
 
     async function publishMarket() {
-        const publicKey = $web3Store?.publicKey;
-        const usdcAmount = $web3Store?.usdc?.amount;
+        const address = $web3Store?.solanaAddress;
+        const usdcAmount = $web3Store?.solanaUsdcBalance;
         const metadata = $draftsStore[data.draft_id].metadata;
         const marketAddress = base58.decode(data.draft_id);
         const subsidy =
             (($draftsStore[data.draft_id].subsidy ?? 0) / 100) *
             USDC_PER_DOLLAR;
 
-        if (!publicKey) {
+        if (!address) {
             modalStore.openModal(Modal.login);
             return;
         }
+
+        const publicKey = new PublicKey(address)
 
         // if (!usdcAmount || Number(usdcAmount) < subsidy) {
         //     alert("Will add swap to instruction set ")
@@ -140,10 +142,10 @@
             subsidy
         );
 
-        const neededUsdc = !$web3Store.usdc
+        const neededUsdc = !$web3Store.solanaUsdcBalance
             ? subsidy
-            : parseInt($web3Store.usdc.amount) - subsidy < 0
-            ? subsidy - parseInt($web3Store.usdc.amount)
+            : Number($web3Store.solanaUsdcBalance ?? 0n) - subsidy < 0
+            ? subsidy - Number($web3Store.solanaUsdcBalance ?? 0n)
             : undefined;
         $web3Workspace.handleTransaction(
             [instructions],
@@ -308,7 +310,7 @@
                         {`Create market`}
                     </button>
                     <p class="text-sm text-gray-500">
-                        {`You have ${usdFormatter.format($web3Store?.usdc?.uiAmount ?? 0)}`}
+                        {`You have ${usdFormatter.format(Number($web3Store?.solanaUsdcBalance ?? 0n)/1000000)}`}
                     </p>
                 </div>
             </div>

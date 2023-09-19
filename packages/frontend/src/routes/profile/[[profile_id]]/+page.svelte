@@ -16,7 +16,6 @@
     } from "$lib/utils";
     import { trpcc } from "$lib/trpc.js";
     import SuperJSON from "superjson";
-    import type { TProfilePageData } from "./+page.server.js";
     import MarketCardSmall from "$lib/components/market_card_small.svelte";
     import { Modal, modalStore } from "$lib/modals/modalStore.js";
     import AccountSummary from "$lib/components/account_summary.svelte";
@@ -28,6 +27,7 @@
     import MainHeader from "$lib/components/main_header.svelte";
     import { goto } from "$app/navigation";
     import { browser } from "$app/environment";
+    import type { TProfilePageData } from "./+page.js";
 
     export let data;
     let { profile, markets, id, positions } =
@@ -53,7 +53,7 @@
     let completedMessage = "";
     let usernameTaken = false;
 
-    $: ({ publicKey } = $web3Workspace);
+    $: ({ solanaAddress } = $web3Workspace);
     $: $page.url.pathname, refreshProfile();
 
 
@@ -75,8 +75,8 @@
         const urlId = split.length > 1 ? split[2] : undefined;
         id = urlId
             ? urlId
-            : $web3Store?.publicKey
-            ? $web3Store?.publicKey?.toBase58()
+            : $web3Store?.solanaAddress
+            ? $web3Store?.solanaAddress
             : null;
         if (!id || id.length < 32) {
             profile = null;
@@ -103,7 +103,7 @@
     }
     
     async function saveProfile(initUsername: boolean = false) {
-        if (!publicKey) return;
+        if (!solanaAddress) return;
 
         if (initUsername) {
             if (!username) {
@@ -128,7 +128,7 @@
         loadingMessage = "Preparing instructions...";
 
         const instructions = await createProfileInstruction(
-            publicKey,
+            new PublicKey(solanaAddress),
             initUsername ? username : (profile?.username as string),
             new PublicKey(PUBLIC_MAIN_PROGRAM_ID),
             ipfsResponse.cid
@@ -175,7 +175,7 @@
         >
             {#if id}
                 <img
-                    src={generateProfileImage(new PublicKey(id))}
+                    src={generateProfileImage(id)}
                     alt="profile"
                 />
             {/if}
@@ -220,7 +220,7 @@
                 </p>
             {/if}
         </div>
-        {#if id && publicKey && id === publicKey.toString()}
+        {#if id && solanaAddress && id === solanaAddress}
             <div class="px-8 pb-8 flex gap-2">
                 {#if !profile?.username}
                     <button
@@ -270,7 +270,7 @@
         </nav>
         <div class="divide-y divide-gray-200">
             {#if currentTab === Tabs.Positions}
-                {#if positions && publicKey}
+                {#if positions && solanaAddress}
                     {#each Array.from(positions) as [market, marketUserChaindata]}
                         <a
                             href={`/${market}`}
@@ -346,7 +346,7 @@
         </div>
     </div>
     <div slot="right">
-        {#if $web3Store?.publicKey}
+        {#if $web3Store?.solanaAddress}
             <div class="bg-white ring-1 rounded-3xl ring-gray-200">
                 <AccountSummary />
             </div>

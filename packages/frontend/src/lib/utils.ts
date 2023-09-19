@@ -84,11 +84,11 @@ export function getChance(yes: bigint, no: bigint) {
   return Number(yes + no) !== 0 ? Number((no * 10000n) / (no + yes)) / 10000 : .50
 }
 
-export function generateProfileImage(publicKey: PublicKey) {
+export function generateProfileImage(publicKey: string) {
   const full = ["ellipse", "ellipseFilled", "line", "polygon", "polygonFilled", "rectangle", "rectangleFilled"];
   const shapeColors = ["0284c7", "4f46e5", "4338ca"]
   return createAvatar(shapes, {
-    seed: publicKey.toString(),
+    seed: publicKey,
     backgroundType: ["gradientLinear"],
     backgroundColor: ["c4b5fd", "7dd3fc", "67e8f9"],
     shape1Color: shapeColors,
