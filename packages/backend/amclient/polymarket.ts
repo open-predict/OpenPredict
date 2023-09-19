@@ -117,7 +117,7 @@ export function searchPmMarkets(options: {
     v.tokens.forEach(v => {
       var book = globalThis.pmChainCache.assetBooks.get(v.token_id)
       if (book != null) {
-        globalThis.pmChainCache.assetBooks.set(v.token_id, book)
+        ret2.set(v.token_id, book)
       }
     })
   })
