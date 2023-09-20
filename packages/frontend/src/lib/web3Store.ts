@@ -1,9 +1,11 @@
 import { browser } from '$app/environment'
 import { writable } from 'svelte/store';
-import { PublicKey, type TokenAmount } from '@solana/web3.js';
+import type { PublicKey, TokenAmount } from '@solana/web3.js';
 import Cookies from 'js-cookie';
 import { web3Workspace } from './web3Workspace';
 import log from './log';
+import SuperJSON from 'superjson';
+import type { ApiKeyCreds } from './clob';
 
 export type TSol = { amount?: number };
 export type TUsdc = { publicKey?: PublicKey | null, value?: TokenAmount };
@@ -19,6 +21,7 @@ export type TWeb3Store = {
     solanaUsdcBalance?: bigint,
     solanaBalance?: bigint,
     polygonBalance?: bigint,
+    polyClobApiKeys?: ApiKeyCreds;
 }
 
 export const web3StoreLsKey = 'wallet_state';
@@ -27,11 +30,9 @@ const FILE = "web3Store";
 function createWeb3Store() {
 
     const initialValueRaw = Cookies.get(web3StoreLsKey);
-    const initialValueParsed = initialValueRaw ? JSON.parse(initialValueRaw) : undefined;
+    const initialValueParsed = initialValueRaw ? SuperJSON.parse<TWeb3Store>(initialValueRaw) : undefined;
     const initialValue = initialValueParsed ? {
-        ...initialValueParsed,
-        publicKey: initialValueParsed.publicKey ? new PublicKey(initialValueParsed.publicKey) : initialValueParsed.publicKey === null ? null : undefined,
-        usdcAddress: initialValueParsed.usdcAddress ? new PublicKey(initialValueParsed.usdcAddress) : initialValueParsed.usdcAddress === null ? null : undefined,
+        ...initialValueParsed
     } : undefined;
 
     const { subscribe, set, update } = writable<TWeb3Store>((() => {
@@ -45,17 +46,9 @@ function createWeb3Store() {
 
     subscribe((value) => {
         log("debug", FILE, "subscribe")
-        if (browser && JSON.stringify(value) !== Cookies.get(web3StoreLsKey)) {
+        if (browser && SuperJSON.stringify(value) !== Cookies.get(web3StoreLsKey)) {
             log("debug", FILE, "setting cookies...")
-            Cookies.set(web3StoreLsKey, JSON.stringify(value))
-            // set same properties in web3Workspace to avoid a refactor, remove it later
-            if (value) {
-                log("debug", FILE, "updating workspace in subscribe...")
-                web3Workspace.update(v => ({
-                    ...v,
-                    ...value,
-                }))
-            }
+            Cookies.set(web3StoreLsKey, SuperJSON.stringify(value))
         }
     })
 
@@ -99,21 +92,38 @@ function createWeb3Store() {
     }
 
     function updateAuthedWithBackend(value: boolean) {
-        update(wss => {
-            if (!wss) {
+        update(store => {
+            if (!store) {
                 log("error", FILE, "no store, not logged in?")
-                return wss;
+                return store;
             }
-            wss.authedWithBackend = value;
-            return wss;
+            store.authedWithBackend = value;
+            return store;
+        })
+    }
+
+    function updatePolyClobApiKeys(keys: ApiKeyCreds){
+        update(store => {
+            return {
+                ...store,
+                polyClobApiKeys: keys
+            }
+        })
+    }
+
+    function clear() {
+        update(v => {
+            return {};
         })
     }
 
     return {
+        clear,
         subscribe,
         upsertAddress,
         upsertBalance,
-        updateAuthedWithBackend
+        updateAuthedWithBackend,
+        updatePolyClobApiKeys
     }
 
 }

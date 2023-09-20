@@ -7,7 +7,10 @@
   import { web3Workspace } from "./web3Workspace";
   import { Modal, modalStore } from "$lib/modals/modalStore";
   import base58 from "bs58";
-  import { PUBLIC_MAIN_PROGRAM_ID } from "$env/static/public";
+  import {
+    PUBLIC_MAIN_PROGRAM_ID,
+    PUBLIC_POLYGON_RPC_URL,
+  } from "$env/static/public";
   import { onMount } from "svelte";
   import { trpcc } from "./trpc";
   import createConnection from "./createConnection";
@@ -15,11 +18,14 @@
   import log from "$lib/log";
   import { web3Store, type TAddressKey } from "./web3Store";
   import { Network, Web3 } from "./network";
+  import { ClobClient, type ApiKeyCreds } from "$lib/clob";
+  import { ethers as ethers5 } from "ethers5";
 
   const FILE = "Web3Provider";
 
   let web3Evm: Web3;
   let web3Sol: Web3;
+  let polyClob: ClobClient;
 
   const mainProgramId = new PublicKey(PUBLIC_MAIN_PROGRAM_ID);
   const connection = createConnection();
@@ -34,34 +40,79 @@
     );
   }
 
+  async function initialize() {
+    await Promise.all([
+      refreshAddress("polygonAddress"),
+      refreshAddress("solanaAddress"),
+      refreshAddress("solanaAddress"),
+      refreshAddress("solanaUsdcAddress"),
+      refreshBalance("polygonAddress"),
+      refreshBalance("polygonUsdcAddress"),
+      refreshBalance("solanaAddress"),
+      refreshBalance("solanaUsdcAddress"),
+      createClob()
+    ]);
+  }
+
   onMount(async () => {
     log("debug", FILE, "onMount");
     web3Evm = await Web3.create(Network.Polygon);
     web3Sol = await Web3.create(Network.Solana);
     if (await web3Evm.loggedIn()) {
-      refreshAddress("polygonAddress");
-      refreshAddress("solanaAddress");
-      refreshAddress("solanaAddress");
-      refreshAddress("solanaUsdcAddress");
-      refreshBalance("polygonAddress");
-      refreshBalance("polygonUsdcAddress");
-      refreshBalance("solanaAddress");
-      refreshBalance("solanaUsdcAddress");
+      initialize();
     } else {
-      web3Store.upsertAddress({
-        polygonAddress: null,
-        polygonUsdcAddress: null,
-        solanaAddress: null,
-        solanaUsdcAddress: null,
-      });
-      web3Store.upsertBalance({
-        polygonAddress: 0n,
-        polygonUsdcAddress: 0n,
-        solanaAddress: 0n,
-        solanaUsdcAddress: 0n,
-      });
+      web3Store.clear();
     }
+    web3Workspace.update((v) => ({
+      ...v,
+      web3Sol,
+      web3Evm,
+    }));
   });
+
+  async function createClob() {
+    if (!web3Evm || !web3Evm.provider) {
+      console.log("Cannot create clob, !web3Evm");
+      return;
+    }
+
+    const privateKey = await web3Evm.provider?.request({
+      method: "eth_private_key",
+    });
+
+    const provider = new ethers5.providers.JsonRpcProvider(
+      PUBLIC_POLYGON_RPC_URL
+    );
+
+    const ethers5Walllet = new ethers5.Wallet(
+      privateKey as ethers5.utils.BytesLike,
+      provider
+    );
+
+    async function getClobClient(keys?: ApiKeyCreds) {
+      return new ClobClient(
+        "https://polyclob.openpredict.org",
+        await ethers5Walllet.getChainId(),
+        ethers5Walllet,
+        keys
+      );
+    }
+
+    let keys: ApiKeyCreds | undefined = $web3Store.polyClobApiKeys;
+
+    if (!keys) {
+      const pc = await getClobClient();
+      keys = await pc.createOrDeriveApiKey();
+    }
+
+    polyClob = await getClobClient(keys);
+
+    web3Store.updatePolyClobApiKeys(keys);
+    web3Workspace.update((v) => ({
+      ...v,
+      polyClob,
+    }));
+  }
 
   async function refreshBalance(address: TAddressKey) {
     let n: Partial<Record<TAddressKey, bigint>> = {};
@@ -87,26 +138,30 @@
     web3Store.upsertBalance(n);
   }
 
-  async function refreshAddress(address: TAddressKey) {
+  async function refreshAddress(kind: TAddressKey) {
     let n: Partial<Record<TAddressKey, string | null>> = {};
     if (!web3Evm || !web3Sol) {
-      console.error(
-        "Cannot refresh balance",
-        address,
-        "web3 not initialized..."
-      );
+      console.error("Cannot refresh balance", kind, "web3 not initialized...");
       return;
     }
-    if (address === "polygonAddress" || address === "polygonUsdcAddress") {
-      const addr = await web3Evm.getAddress();
-      n[address] = addr ?? null;
-    } else if (address === "solanaAddress") {
-      const addr = await web3Sol.getAddress();
-      n[address] = addr ?? null;
-    } else {
-      const addr = await web3Sol.getUsdcAddress();
-      n[address] = addr ?? null;
+    let address;
+    switch (kind) {
+      case "polygonAddress":
+        address = await web3Evm.getAddress();
+        break;
+      case "polygonUsdcAddress":
+        address = await web3Evm.getUsdcAddress();
+        break;
+      case "solanaAddress":
+        address = await web3Sol.getAddress();
+        break;
+      case "solanaUsdcAddress":
+        address = await web3Sol.getUsdcAddress();
+        break;
+      default:
+        break;
     }
+    n[kind] = address;
     web3Store.upsertAddress(n);
   }
 
@@ -167,14 +222,7 @@
       if (!(await web3Evm.loggedIn())) {
         return false;
       }
-      refreshAddress("polygonAddress");
-      refreshAddress("solanaAddress");
-      refreshAddress("solanaAddress");
-      refreshAddress("solanaUsdcAddress");
-      refreshBalance("polygonAddress");
-      refreshBalance("polygonUsdcAddress");
-      refreshBalance("solanaAddress");
-      refreshBalance("solanaUsdcAddress");
+      await initialize();
       return true;
     } catch (err) {
       alert(err);

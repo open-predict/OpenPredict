@@ -1,12 +1,13 @@
-import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
-import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
-// import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
+import { sveltekit } from '@sveltejs/kit/vite';
 import inject from '@rollup/plugin-inject';
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 export default defineConfig({
     plugins: [
         sveltekit(),
+        nodePolyfills()
     ],
     ssr: { noExternal: ["svelte-headlessui"] },
     resolve: {
@@ -24,13 +25,15 @@ export default defineConfig({
             plugins: [
                 NodeGlobalsPolyfillPlugin({
                     buffer: true
-                })
+                }),
             ]
         }
     },
     build: {
         rollupOptions: {
-            plugins: [inject({ Buffer: ['buffer', 'Buffer'] })],
+            plugins: [inject({ 
+                Buffer: ['buffer', 'Buffer'],
+            })],
         },
     },
 });

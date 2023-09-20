@@ -1,5 +1,5 @@
 
-import { ethers, BrowserProvider, type TransactionRequest } from "ethers";
+import { ethers, BrowserProvider, type TransactionRequest } from "ethers6";
 import { Web3 } from "./web3"
 import type { Network } from "./networks"
 import type { Errors } from "$lib/utils";

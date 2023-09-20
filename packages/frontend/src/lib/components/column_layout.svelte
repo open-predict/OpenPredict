@@ -7,6 +7,7 @@
     import IconGithub from "@tabler/icons-svelte/dist/svelte/icons/IconBrandGithub.svelte";
     import IconDiscord from "@tabler/icons-svelte/dist/svelte/icons/IconBrandDiscord.svelte";
     import IconPencil from "@tabler/icons-svelte/dist/svelte/icons/IconEditCircle.svelte";
+    import IconArrowUpRight from "@tabler/icons-svelte/dist/svelte/icons/IconArrowUpRight.svelte";
     import UserButton from "./user_button.svelte";
     import Login from "./login.svelte";
     import { goto } from "$app/navigation";
@@ -17,7 +18,7 @@
     import NavItem from "../elements/nav_item.svelte";
     import { Modal, modalStore } from "$lib/modals/modalStore";
     import WalletWidget from "./wallet_widget.svelte";
-    
+
     $: creatingMarket = browser
         ? window.location.href.includes("/drafts/")
         : false;
@@ -120,15 +121,19 @@
         <!-- mobile banner -->
         {#if !$web3Store?.solanaAddress}
             <div
-                class="md:hidden w-full h-8 flex items-center p-0.5 px-4 pr-1 gap-2 fill-white text-white bg-black"
+                class="md:hidden w-full h-14 flex items-center p-0.5 px-4 gap-2 fill-white text-white bg-gradient-to-r from-violet-600 via-violet-600 to-indigo-600"
             >
-                <Logo size={18} />
-                <p class="text-[0.8rem] font-semibold">OpenPredict</p>
+                <p class="text-sm">
+                    Prediction markets for everyone.
+                    <!-- <a href="/about" class="underline opacity-80 hover:opacity-100">
+                        Learn more ↗
+                    </a> -->
+                </p>
                 <button
                     on:click={() => modalStore.openModal(Modal.login)}
-                    class="text-xs underline rounded-full text-white p-0.5 px-3 font-semibold ml-auto"
+                    class="btn_primary bg-white/10 h-8 px-4 text-xs font-semibold ml-auto"
                 >
-                    Signup / Login
+                    Join OpenPredict
                 </button>
             </div>
         {/if}

@@ -10,7 +10,7 @@ import type { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import type { Transaction, TransactionInstruction } from "@solana/web3.js";
 import type { Errors } from "$lib/utils";
-import type { TransactionRequest } from "ethers"
+import type { TransactionRequest } from "ethers6"
 
 export abstract class Web3 {
 
@@ -75,8 +75,6 @@ export abstract class Web3 {
 
         torus = new SolanaWalletConnectorPlugin(torusConfig);
         await web3Auth.addPlugin(torus);
-
-        alert("inited")
 
         if (web3Auth.connected) {
           await torus.initWithWeb3Auth(web3Auth);

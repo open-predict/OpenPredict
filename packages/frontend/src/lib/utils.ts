@@ -100,9 +100,8 @@ export function generateProfileImage(publicKey: string) {
   }).toDataUriSync();
 }
 
-export function readablePublicKey(publicKey: PublicKey) {
-  const publicKeyString = publicKey.toBase58();
-  return `${publicKeyString.substring(0, 4)}...${publicKeyString.slice(-4)}`;
+export function readableAddress(address: string) {
+  return `${address.substring(0, 4)}...${address.slice(-4)}`;
 }
 
 export function timeAgo(date: Date) {

@@ -28,7 +28,7 @@ export class SOL extends Web3 {
   }
 
   public async getBalance(): Promise<bigint | undefined> {
-    const address = this.getAddress();
+    const address = await this.getAddress();
     if (!address) {
       return;
     }
@@ -84,7 +84,7 @@ export class SOL extends Web3 {
         if (res.error || !res.address) {
           console.error("Unable to create USDC wallet", res.error);
         } else {
-          return res.address.toBase58()
+          return res.address as unknown as string
         }
       } else {
         console.error("Unable to create USDC wallet", err);

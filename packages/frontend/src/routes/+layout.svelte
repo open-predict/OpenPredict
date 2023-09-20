@@ -5,9 +5,8 @@
   import SearchMarkets from "$lib/modals/search_markets.svelte";
   import BackendAuth from "$lib/modals/backend_auth.svelte";
   import AccountSummary from "$lib/modals/account_summary.svelte";
-  // import { Buffer } from "buffer/";
-  // import process from "process";
-  // import { browser } from "$app/environment";
+  import { Buffer } from "buffer";
+  import { browser } from "$app/environment";
   import NProgress from "nprogress";
   import { navigating } from "$app/stores";
   import "nprogress/nprogress.css";
@@ -29,16 +28,13 @@
     }
   }
 
-  // globalThis.Buffer = Buffer;
-  // globalThis.process = process;
+  // for the ported polyclob lib
+  globalThis.Buffer = Buffer;
+  if (browser) {
+    window.Buffer = Buffer;
+    window.global = window;
+  }
 
-  // if (browser) {
-  //   console.log("ADDED PROCESS MF");
-  //   console.log(Buffer);
-  //     window.process = process;
-  //   window.Buffer = Buffer;
-  //   window.global = window;
-  // }
 </script>
 
 <Web3Provider />

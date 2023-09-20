@@ -49,7 +49,7 @@
                     {/if}
                 </button>
             </div>
-            <div class="relative my-8 mx-10">
+            <!-- <div class="relative my-8 mx-10">
                 <div
                     class="absolute inset-0 flex items-center"
                     aria-hidden={true}
@@ -61,7 +61,7 @@
                         >or connect a wallet</span
                     >
                 </div>
-            </div>
+            </div> -->
         </div>
     {:else if $web3Store?.solanaAddress === undefined}
         <IconLoader class="animate-spin text-gray-400" />

@@ -8,7 +8,7 @@
     import {
         autoresizeTextarea,
         generateProfileImage,
-        readablePublicKey,
+        readableAddress,
         createProfileInstruction,
         TxStatus,
         getChance,
@@ -185,7 +185,7 @@
                 <p
                     class={`text-xs text-gray-500 rounded-md flex items-center gap-1.5`}
                 >
-                    {`${id ? readablePublicKey(new PublicKey(id)) : "n/a"}`}
+                    {`${id ? readableAddress(id) : "n/a"}`}
                     <CopyButton value={id} />
                 </p>
             {/if}
@@ -207,7 +207,7 @@
                 {profile?.username
                     ? profile.username
                     : id
-                    ? readablePublicKey(new PublicKey(id))
+                    ? readableAddress(id)
                     : ""}
             </p>
             {#if profile?.metadata.description}

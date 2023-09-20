@@ -3,7 +3,7 @@
     import { Modal, modalStore } from "$lib/modals/modalStore";
     import IconLoader from "@tabler/icons-svelte/dist/svelte/icons/IconLoader2.svelte";
     import IconMenu from "@tabler/icons-svelte/dist/svelte/icons/IconMenu2.svelte";
-    import { generateProfileImage, readablePublicKey, usdFormatter } from "$lib/utils";
+    import { generateProfileImage, readableAddress, usdFormatter } from "$lib/utils";
     import {
         Dialog,
         DialogOverlay,
@@ -100,7 +100,7 @@
                     );
                     toastsStore.create({
                         title: "Copied!",
-                        message: readablePublicKey(new PublicKey($web3Store.solanaAddress)),
+                        message: readableAddress($web3Store.solanaAddress),
                         variant: "success"
                     })
                 }}
@@ -119,7 +119,7 @@
                     );
                     toastsStore.create({
                         title: "Copied!",
-                        message: readablePublicKey(new PublicKey($web3Store.solanaUsdcAddress)),
+                        message: readableAddress($web3Store.solanaUsdcAddress),
                         variant: "success"
                     })
                 }}

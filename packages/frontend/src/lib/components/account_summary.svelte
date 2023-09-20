@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getUserShares, readablePublicKey, usdFormatter } from "$lib/utils";
+  import { getUserShares, readableAddress, usdFormatter } from "$lib/utils";
   import { web3Store } from "$lib/web3Store";
   import CopyButton from "../elements/copy_button.svelte";
   import { Modal, modalStore } from "$lib/modals/modalStore";
@@ -93,16 +93,16 @@
       </div>
     </div>
   </div>
-  <!-- <div class="flex flex-col gap-2 mb-8">
+  <div class="flex flex-col gap-2 mb-8">
     <p class="text-xs font-semibold text-left">Addresses</p>
     <div class="divide-y divide-gray-200 text-sm">
       <div />
       <div class="flex items-center py-2">
         <p class="text-gray-500 mr-auto">Solana</p>
-        {#if !!$web3Store?.publicKey}
-          <CopyButton value={$web3Store?.publicKey?.toBase58()} />
+        {#if !!$web3Store?.solanaAddress}
+          <CopyButton value={$web3Store?.solanaAddress} />
           <p class="ml-2">
-            {readablePublicKey($web3Store?.publicKey)}
+            {readableAddress($web3Store?.solanaAddress)}
           </p>
         {:else}
           <p class="ml-2">
@@ -112,10 +112,36 @@
       </div>
       <div class="flex items-center py-2">
         <p class="text-gray-500 mr-auto">USDC Token</p>
-        {#if !!$web3Store?.usdcAddress}
-          <CopyButton value={$web3Store?.usdcAddress.toBase58()} />
+        {#if !!$web3Store?.solanaUsdcAddress}
+          <CopyButton value={$web3Store?.solanaUsdcAddress} />
           <p class="ml-2">
-            {readablePublicKey($web3Store?.usdcAddress)}
+            {readableAddress($web3Store?.solanaUsdcAddress)}
+          </p>
+        {:else}
+          <p class="ml-2">
+            {"None"}
+          </p>
+        {/if}
+      </div>
+      <div class="flex items-center py-2">
+        <p class="text-gray-500 mr-auto">Polygon Address</p>
+        {#if !!$web3Store?.polygonAddress}
+          <CopyButton value={$web3Store?.polygonAddress} />
+          <p class="ml-2">
+            {readableAddress($web3Store?.polygonAddress)}
+          </p>
+        {:else}
+          <p class="ml-2">
+            {"None"}
+          </p>
+        {/if}
+      </div>
+      <div class="flex items-center py-2">
+        <p class="text-gray-500 mr-auto">Polygon USDC</p>
+        {#if !!$web3Store?.polygonUsdcAddress}
+          <CopyButton value={$web3Store?.polygonUsdcAddress} />
+          <p class="ml-2">
+            {readableAddress($web3Store?.polygonUsdcAddress)}
           </p>
         {:else}
           <p class="ml-2">
@@ -124,7 +150,7 @@
         {/if}
       </div>
     </div>
-  </div> -->
+  </div>
 </div>
 <div class="px-5 pb-5 flex flex-col gap-2.5 w-full mt-4">
   <button

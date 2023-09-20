@@ -4,8 +4,6 @@ import superjson from "superjson"
 import {Buffer} from "buffer"
 import {env} from "$env/dynamic/private";
 
-console.log(env.INTERNAL_TRPC_URL)
-
 superjson.registerCustom<Buffer, number[]>(
   {
     isApplicable: (v): v is Buffer => v instanceof Buffer,
