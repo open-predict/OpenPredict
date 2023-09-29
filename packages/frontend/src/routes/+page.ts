@@ -5,6 +5,11 @@ import type { TUser } from '@am/backend/types/user.js';
 
 export const ssr = false;
 
+export type TBooks = Map<string, {
+  asks: [number, number][];
+  bids: [number, number][];
+}>;
+
 export type TPageData = {
   searchResponse: {
     opMarkets: {
@@ -13,7 +18,7 @@ export type TPageData = {
     },
     pmMarkets: {
       markets: pmMarketData[]
-      books: any
+      books: TBooks
     }
   }
 }

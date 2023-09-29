@@ -53,8 +53,8 @@
 
 <div id="scroll_top_indicator" />
 <div
-    class={`sticky flex whitespace-nowrap justify-between items-center top-0 z-10 h-16 py-3.5 px-4 gap-4 w-full overflow-hidden border-r border-l ${
-        fadeHeader ? "" : "bg-white/80 border-b-gray-200 border-b"
+    class={`sticky flex whitespace-nowrap justify-between items-center top-0 z-10 h-16 py-3.5 px-4 gap-4 w-full overflow-hidden border-r border-l border-gray-200 dark:bg-black/80 dark:border-neutral-800 ${
+        fadeHeader ? "" : "border-b bg-white/80 dark:bg-black/80"
     } transition-all duration-300`}
 >
     <div class="w-1/5 flex md:hidden">

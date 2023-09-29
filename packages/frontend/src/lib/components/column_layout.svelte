@@ -18,6 +18,7 @@
     import NavItem from "../elements/nav_item.svelte";
     import { Modal, modalStore } from "$lib/modals/modalStore";
     import WalletWidget from "./wallet_widget.svelte";
+    import BetaIndicator from "$lib/elements/beta_indicator.svelte";
 
     $: creatingMarket = browser
         ? window.location.href.includes("/drafts/")
@@ -34,17 +35,17 @@
 </script>
 
 <div
-    class="absolute top-0 bottom-0 right-0 left-0 grid md:grid-cols-11 lg:grid-cols-12 xl:grid-cols-10 overflow-y-scroll"
+    class="absolute top-0 bottom-0 right-0 left-0 grid md:grid-cols-11 lg:grid-cols-12 xl:grid-cols-10 overflow-y-scroll bg-gray-100 dark:bg-black"
 >
     <!-- left column -->
     <header
-        class="sticky top-0 hidden md:block md:col-span-1 lg:col-span-3 xl:col-span-3 max-h-screen"
+        class="sticky top-0 hidden md:block md:col-span-1 lg:col-span-3 xl:col-span-3 max-h-screen bg-transparent"
     >
         <div class="ml-auto max-w-xs h-full">
             <!-- desktop navigation -->
             <a
                 href="/"
-                class="flex justify-center px-2 lg:px-4 gap-2 lg:justify-start items-center h-16 border-b border-gray-200"
+                class="flex justify-center px-2 lg:px-4 gap-2 lg:justify-start items-center h-16 border-b border-gray-200 dark:border-neutral-900										"
             >
                 <Logo />
                 <h1
@@ -52,17 +53,13 @@
                 >
                     OpenPredict
                 </h1>
-                <span
-                    class="hidden xl:block text-[0.65rem] text-black bg-white ring-1 ring-gray-300 rounded-full p-0.5 px-2 ml-auto"
-                >
-                    BETA
-                </span>
+                <BetaIndicator />
             </a>
             <div
                 class="h-full max-h-[calc(100%-4rem)] flex flex-col p-2.5 xl:pl-0"
             >
                 <div
-                    class="flex p-4 rounded-3xl flex-col justify-center items-center gap-8 lg:gap-4 bg-white ring-1 ring-gray-200"
+                    class="flex p-4 rounded-3xl flex-col justify-center items-center gap-8 lg:gap-4 ring-1 bg-white ring-gray-200 dark:bg-neutral-900 dark:ring-neutral-950"
                 >
                     {#each links as link}
                         <NavItem LinkDef={link} />
@@ -116,7 +113,7 @@
 
     <!-- center column -->
     <main
-        class={`relative col-span-12 md:col-span-6 lg:col-span-6 xl:col-span-4 bg-white`}
+        class={`relative col-span-12 md:col-span-6 lg:col-span-6 xl:col-span-4 bg-white dark:bg-neutral-950`}
     >
         <!-- mobile banner -->
         {#if !$web3Store?.solanaAddress}
@@ -143,7 +140,7 @@
 
         <!-- main content -->
         <div
-            class="w-full border-r border-l border-gray-200 pb-16"
+            class="w-full border-r border-l border-gray-200 dark:border-neutral-900										 pb-16"
             style="min-height: calc(100% - 4rem)"
         >
             <slot name="main" />
@@ -152,7 +149,7 @@
         <!-- main footer -->
         {#if $$slots["main-footer"]}
             <div
-                class="sticky bottom-16 md:bottom-0 h-16 w-full overflow-visible shadow-2xl border-r border-l border-gray-200"
+                class="sticky bottom-16 md:bottom-0 h-16 w-full overflow-visible shadow-2xl border-r border-l border-gray-200 dark:border-neutral-900										"
             >
                 <slot name="main-footer" />
             </div>
@@ -161,7 +158,7 @@
 
     <!-- mobile navigation -->
     <nav
-        class="fixed bottom-0 flex justify-evenly md:hidden items-center gap-6 w-full h-16 bg-white/90 border-t border-gray-200"
+        class="fixed bottom-0 flex justify-evenly md:hidden items-center gap-6 w-full h-16 bg-white/90 dark:bg-black/90 border-t border-gray-200 dark:border-neutral-700"
     >
         <a
             href="/"
@@ -207,7 +204,7 @@
     >
         <div class="max-w-xs">
             <div
-                class="h-16 flex justify-end items-center gap-2.5 border-b border-gray-200"
+                class="h-16 flex justify-end items-center gap-2.5 border-b border-gray-200 dark:border-neutral-900"
             >
                 <WalletWidget />
                 <UserButton />

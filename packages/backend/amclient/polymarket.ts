@@ -1,6 +1,6 @@
-import {Chain, ClobClient} from "@polymarket/clob-client";
-import {pmMarketData} from "../types/market.js";
-import {WebSocket} from "ws";
+import { Chain, ClobClient } from "@polymarket/clob-client";
+import { pmMarketData } from "../types/market.js";
+import { WebSocket } from "ws";
 
 declare global {
   var pmChainCache: {
@@ -12,33 +12,11 @@ declare global {
   }
 }
 
-export async function startAndMaintainPmList() {
-  global.pmChainCache = {
-    markets: new Map(),
-    assetBooks: new Map(),
-  }
-  const env_url = process.env.CLOB_HOST || "https://polyclob.openpredict.org";
-  const client = new ClobClient(env_url, Chain.POLYGON);
-  var markets = await client.getMarkets()
-  markets.data.forEach(v => global.pmChainCache.markets.set(v.condition_id, v))
-  while (markets.next_cursor != "LTE=") {
-    markets = await client.getMarkets(markets.next_cursor);
-    if (markets.data == null || markets.data.length == 0) {
-      break;
-    }
-    markets.data.forEach(v => global.pmChainCache.markets.set(v.condition_id, v))
-  }
-  var found = false;
-  for (var market of globalThis.pmChainCache.markets.values()) {
-    if (!market.active || !market.closed) {
-      console.log("Non-active+closed market:", market)
-      found = true;
-    }
-  }
-  console.log("Found !active || !closed market: ", found)
-  console.log([...global.pmChainCache.markets.values()].filter(v => v.question.includes("SBF") || v.question.includes("UAW")));
+let ws: WebSocket;
+
+function connectWebsocket() {
   const ws_env_url = process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org";
-  let ws = new WebSocket(`${ws_env_url}/market`); // change to market for market, user for user
+  ws = new WebSocket(`${ws_env_url}/market`); // change to market for market, user for user
   var asset_ids: string[] = [...global.pmChainCache.markets.values()].filter(v => v.active == true).reduce((prev, cur) => [...prev, ...cur.tokens.map(v2 => v2.token_id)], <string[]>[]);
   console.log(asset_ids)
   ws.on("open", () => {
@@ -60,12 +38,51 @@ export async function startAndMaintainPmList() {
       }
       if (resp['event_type'] == 'book') {
         globalThis.pmChainCache.assetBooks.set(resp['asset_id'], {
-          asks: resp['asks'].map((v: {price: string, size: string}) => [new Number(v.price), new Number(v.size)]),
-          bids: resp['bids'].map((v: {price: string, size: string}) => [new Number(v.price), new Number(v.size)]),
+          asks: resp['asks'].map((v: { price: string, size: string }) => [new Number(v.price), new Number(v.size)]),
+          bids: resp['bids'].map((v: { price: string, size: string }) => [new Number(v.price), new Number(v.size)]),
         })
       }
     };
   })
+  
+  ws.on("error", (error) => {
+    // Handle the error, you can log or take appropriate action
+    console.error("WebSocket error:", error);
+  });
+  ws.on("close", () => {
+    // WebSocket connection closed, you can attempt to reconnect here
+    console.log("WebSocket connection closed");
+    // setTimeout(connectWebsocket, 5000); // Reconnect after 5 seconds
+  });
+
+}
+
+export async function startAndMaintainPmList() {
+  global.pmChainCache = {
+    markets: new Map(),
+    assetBooks: new Map(),
+  }
+  const env_url = process.env.CLOB_HOST || "https://polyclob.openpredict.org";
+  const client = new ClobClient(env_url, Chain.POLYGON);
+  var markets = (await client.getMarkets() ?? []);
+  markets.data.forEach(v => global.pmChainCache.markets.set(v.condition_id, v))
+  while (markets.next_cursor != "LTE=") {
+    markets = await client.getMarkets(markets.next_cursor);
+    if (markets.data == null || markets.data.length == 0) {
+      break;
+    }
+    markets.data.forEach(v => global.pmChainCache.markets.set(v.condition_id, v))
+  }
+  var found = false;
+  for (var market of globalThis.pmChainCache.markets.values()) {
+    if (!market.active || !market.closed) {
+      console.log("Non-active+closed market:", market)
+      found = true;
+    }
+  }
+  console.log("Found !active || !closed market: ", found)
+  console.log([...global.pmChainCache.markets.values()].filter(v => v.question.includes("SBF") || v.question.includes("UAW")));
+  connectWebsocket();
 }
 
 export function searchPmMarkets(options: {
