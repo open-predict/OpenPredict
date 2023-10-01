@@ -33,13 +33,12 @@
     let microUsdc: number = 0;
 
     $: creator =
-        $web3Store?.publicKey &&
-        $web3Store.publicKey.toBase58() ===
-            new PublicKey(market.data.data.OperatorKey).toBase58();
+        $web3Store?.solanaAddress &&
+        $web3Store.solanaAddress === market.data.data.OperatorKey.toBase58();
 
     async function increaseSubsidy() {
         try {
-            const publicKey = $web3Store?.publicKey;
+            const publicKey = $web3Store?.solanaAddress;
 
             if (!publicKey) {
                 alert("Please login");
@@ -55,7 +54,7 @@
             const instructions = await subsidizeMarketInstruction(
                 new PublicKey(PUBLIC_USDC_MINT_ADDR),
                 new PublicKey(PUBLIC_MAIN_PROGRAM_ID),
-                publicKey,
+                new PublicKey($web3Store.solanaAddress!),
                 ammAddressBytes,
                 microUsdc
             );
@@ -102,7 +101,7 @@
 
     async function resolveMarket(direction: boolean) {
         try {
-            const publicKey = $web3Store?.publicKey;
+            const publicKey = $web3Store?.solanaAddress;
 
             if (!publicKey) {
                 alert("Please login");
@@ -116,7 +115,7 @@
             ).toBytes();
 
             const instructions = await resolveMarketInstruction(
-                publicKey,
+                new PublicKey(publicKey),
                 new PublicKey(PUBLIC_MAIN_PROGRAM_ID),
                 ammAddressBytes,
                 direction
@@ -236,8 +235,9 @@
             >
                 NO
             </button>
-    </div>
-</Dialog>
+        </div>
+    </div></Dialog
+>
 
 <Dialog
     open={editMarketModal}

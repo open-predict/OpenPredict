@@ -35,86 +35,86 @@
   let errorMessage = "";
   let completedMessage = "";
 
-  async function execute() {
-    try {
-      if (
-        (token === "SOL" && lamports > lamportLimit) ||
-        (token === "USDC" && microUsdc > microUsdcLimit)
-      ) {
-        errorMessage =
-          "Amount exceeds beta max send limit (50). Please try again";
-        return;
-      }
+  // async function execute() {
+  //   try {
+  //     if (
+  //       (token === "SOL" && lamports > lamportLimit) ||
+  //       (token === "USDC" && microUsdc > microUsdcLimit)
+  //     ) {
+  //       errorMessage =
+  //         "Amount exceeds beta max send limit (50). Please try again";
+  //       return;
+  //     }
 
-      if (!$web3Store?.publicKey) {
-        modalStore.openModal(Modal.login);
-        return;
-      }
+  //     if (!$web3Store?.publicKey) {
+  //       modalStore.openModal(Modal.login);
+  //       return;
+  //     }
 
-      if (!$web3Store.usdcAddress && token === "USDC") {
-        modalStore.openModal(Modal.no_usdc_account);
-        return;
-      }
+  //     if (!$web3Store.usdcAddress && token === "USDC") {
+  //       modalStore.openModal(Modal.no_usdc_account);
+  //       return;
+  //     }
 
-      let instructions: TransactionInstruction;
+  //     let instructions: TransactionInstruction;
 
-      if (token === "SOL") {
-        loadingMessage = "Preparing SOL transfer...";
-        instructions = SystemProgram.transfer({
-          fromPubkey: $web3Store?.publicKey,
-          toPubkey: new PublicKey(address),
-          lamports,
-        });
-      } else {
-        loadingMessage = "Preparing USDC transfer...";
-        instructions = splToken.createTransferInstruction(
-          $web3Store?.usdcAddress as PublicKey,
-          new PublicKey(address),
-          $web3Store?.publicKey,
-          microUsdc
-        );
-      }
+  //     if (token === "SOL") {
+  //       loadingMessage = "Preparing SOL transfer...";
+  //       instructions = SystemProgram.transfer({
+  //         fromPubkey: $web3Store?.publicKey,
+  //         toPubkey: new PublicKey(address),
+  //         lamports,
+  //       });
+  //     } else {
+  //       loadingMessage = "Preparing USDC transfer...";
+  //       instructions = splToken.createTransferInstruction(
+  //         $web3Store?.usdcAddress as PublicKey,
+  //         new PublicKey(address),
+  //         $web3Store?.publicKey,
+  //         microUsdc
+  //       );
+  //     }
 
-      $web3Workspace.handleTransaction(
-        [instructions],
-        (s) => {
-          switch (s) {
-            case TxStatus.SIGNING:
-              loadingMessage = "Waiting for signature...";
-              break;
-            case TxStatus.SENDING:
-              loadingMessage = "Sending transaction...";
-              break;
-            case TxStatus.CONFIRMING:
-              loadingMessage = "Confirming transaction...";
-              break;
-          }
-        },
-        async () => {
-          await $web3Workspace.refreshKeys();
-          await $web3Workspace.refreshBalances();
-          loadingMessage = "";
-          completedMessage = "Completed swap!";
-        },
-        (e) => {
-          loadingMessage = "";
-          if (e instanceof Error) {
-            errorMessage = e.message;
-          } else {
-            errorMessage = "Couldn't execute transaction: " + e;
-          }
-        }
-      );
-    } catch (e) {
-      loadingMessage = "";
-      if (e instanceof Error) {
-        errorMessage = e.message;
-      } else {
-        errorMessage = "Couldn't execute transaction: " + e;
-      }
-      console.error(e);
-    }
-  }
+  //     $web3Workspace.handleTransaction(
+  //       [instructions],
+  //       (s) => {
+  //         switch (s) {
+  //           case TxStatus.SIGNING:
+  //             loadingMessage = "Waiting for signature...";
+  //             break;
+  //           case TxStatus.SENDING:
+  //             loadingMessage = "Sending transaction...";
+  //             break;
+  //           case TxStatus.CONFIRMING:
+  //             loadingMessage = "Confirming transaction...";
+  //             break;
+  //         }
+  //       },
+  //       async () => {
+  //         await $web3Workspace.refreshKeys();
+  //         await $web3Workspace.refreshBalances();
+  //         loadingMessage = "";
+  //         completedMessage = "Completed swap!";
+  //       },
+  //       (e) => {
+  //         loadingMessage = "";
+  //         if (e instanceof Error) {
+  //           errorMessage = e.message;
+  //         } else {
+  //           errorMessage = "Couldn't execute transaction: " + e;
+  //         }
+  //       }
+  //     );
+  //   } catch (e) {
+  //     loadingMessage = "";
+  //     if (e instanceof Error) {
+  //       errorMessage = e.message;
+  //     } else {
+  //       errorMessage = "Couldn't execute transaction: " + e;
+  //     }
+  //     console.error(e);
+  //   }
+  // }
 </script>
 
 <Dialog
@@ -206,15 +206,15 @@
         class="mt-2 w-full rounded-xl border-0 py-1.5 px-3 text-gray-900 bg-gray-100 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500"
       />
     </div>
-    <div class="flex flex-col gap-2.5 p-6">
+    <!-- <div class="flex flex-col gap-2.5 p-6">
       <button on:click={execute} class="btn_primary">
         {`Send ${
           token === "SOL"
             ? solFormatter.format(lamports / LAMPORTS_PER_SOL) + " SOL"
             : usdFormatter.format(microUsdc / USDC_PER_DOLLAR)
         }`}
-      </button>
-      <p class="text-sm text-gray-500 whitespace-pre-wrap mt-4">
+      </button> -->
+    <!-- <p class="text-sm text-gray-500 whitespace-pre-wrap mt-4">
         {`You have ${usdFormatter.format(
           token === "USDC"
             ? $web3Store?.usdc?.uiAmount ?? 0
@@ -223,7 +223,7 @@
         <span class="text-yellow-600">
           {`\nPlease double check the address before sending.`}
         </span>
-      </p>
-    </div>
+      </p> -->
+    <!-- </div> -->
   </div>
 </Dialog>

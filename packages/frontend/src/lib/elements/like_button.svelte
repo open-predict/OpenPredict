@@ -9,12 +9,12 @@
     export let market: marketFulldata;
     export let updateMarket: (market: marketFulldata) => void;
 
-    $: liked = $web3Store?.publicKey ? market.data.Likes.has($web3Store.publicKey.toBase58()) : undefined;
+    $: liked = $web3Store?.solanaAddress ? market.data.Likes.has($web3Store.solanaAddress) : undefined;
 
     async function like() {
         const newState = !liked;
 
-        if (!$web3Store.publicKey) {
+        if (!$web3Store.solanaAddress) {
             modalStore.openModal(Modal.login);
             return;
         }
@@ -36,9 +36,9 @@
             return
         } 
         if(newState){
-            market.data.Likes.add($web3Store.publicKey.toBase58())
+            market.data.Likes.add($web3Store.solanaAddress)
         } else {
-            market.data.Likes.delete($web3Store.publicKey.toBase58())
+            market.data.Likes.delete($web3Store.solanaAddress)
         }
         updateMarket(market);
     }

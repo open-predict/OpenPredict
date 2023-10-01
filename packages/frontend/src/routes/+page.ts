@@ -1,22 +1,34 @@
 import SuperJSON from 'superjson';
-import {trpcc} from '../lib/trpc.js';
-import type {marketFulldata} from '@am/backend/types/market';
-import type {TUser} from '@am/backend/types/user';
+import { trpcc } from '../lib/trpc.js';
+import type { marketFulldata, pmMarketData } from '@am/backend/types/market';
+import type { TUser } from '@am/backend/types/user.js';
 
 export const ssr = false;
 
 export type TPageData = {
   searchResponse: {
-    markets: marketFulldata[];
-    users: Map<string, TUser | null>;
+    opMarkets: {
+      markets: marketFulldata[];
+      users: Map<string, TUser | null>;
+    },
+    pmMarkets: {
+      markets: pmMarketData[]
+      books: any
+    }
   }
 }
 
 export async function load() {
   var data: TPageData = {
     searchResponse: {
-      markets: [],
-      users: new Map(),
+      opMarkets: {
+        markets: [],
+        users: new Map(),
+      },
+      pmMarkets: {
+        markets: [],
+        books: new Map()
+      }
     }
   }
 
@@ -24,7 +36,7 @@ export async function load() {
     data.searchResponse = (await trpcc.searchMarkets.query({
       term: "",
       limit: 10,
-    })).opMarkets;
+    }))
   } catch (err) {
     console.log("Couldn't search markets: ", err)
   }

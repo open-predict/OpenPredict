@@ -1,13 +1,11 @@
 <script lang="ts">
     import type { marketFulldata } from "@am/backend/types/market";
     import Svend3rChart from "$lib/charts/interactive_chart.svelte";
-    import { web3Store } from "$lib/web3Store";
-    import { USDC_PER_DOLLAR, getChance } from "$lib/utils";
+    import { getChance } from "$lib/utils";
     import ProfileButton from "./profile_button.svelte";
     import { PublicKey } from "@solana/web3.js";
     import MarketActions from "./market_actions.svelte";
     import type { TUser } from "@am/backend/types/user";
-    import IconCurrency from "@tabler/icons-svelte/dist/svelte/icons/IconCurrency.svelte";
     import LikeButton from "../elements/like_button.svelte";
     import SubsidyButton from "$lib/elements/subsidy_button.svelte";
 
@@ -16,17 +14,10 @@
     export let updateMarket: (market: marketFulldata) => void;
 
     $: chance = getChance(market.data.data.Yes, market.data.data.No);
-    $: position = $web3Store?.publicKey
-        ? market.data.UserAccounts.get($web3Store.publicKey.toBase58())
-        : null;
 
     const operatorKey = market ? market.data.data.OperatorKey.toString() : "";
     const operatorProfile = users ? users.get(operatorKey) : null;
-    const isCreator =
-        operatorKey &&
-        $web3Store?.publicKey &&
-        operatorKey === $web3Store.publicKey?.toBase58();
-    const isResolved = market.data.data.Resolved;
+
 </script>
 
 {#if !!market}

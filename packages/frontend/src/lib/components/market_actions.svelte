@@ -40,14 +40,14 @@
     let tradeYes = true;
     let redeemSharesModal = false;
 
-    $: userShares = getUserShares(market.data, $web3Store?.publicKey);
+    $: userShares = getUserShares(market.data, $web3Store?.solanaAddress ? new PublicKey($web3Store.solanaAddress) : null);
     $: console.log("userShares changed", userShares);
     $: canRedeem =
         isResolved && userShares.shares && resolved === userShares.shares > 0;
 
     async function redeemShares() {
         try {
-            const publicKey = $web3Store?.publicKey;
+            const publicKey = $web3Store?.solanaAddress;
 
             if (!publicKey) {
                 errorMessage = "Missing user's public key."
@@ -63,7 +63,7 @@
             const instructions = await redeemSharesInstruction(
                 new PublicKey(PUBLIC_USDC_MINT_ADDR),
                 new PublicKey(PUBLIC_MAIN_PROGRAM_ID),
-                publicKey,
+                new PublicKey(publicKey),
                 ammAddressBytes
             );
 
@@ -84,7 +84,7 @@
                 },
                 async (s, h) => {
                     completedMessage = "Redeemed your shares!";
-                    market.data.UserAccounts.set(publicKey.toBase58(), {
+                    market.data.UserAccounts.set(publicKey, {
                         Shares: 0n,
                         Version: 1,
                     });

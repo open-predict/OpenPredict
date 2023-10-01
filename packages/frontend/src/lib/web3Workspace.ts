@@ -1,24 +1,25 @@
 import {writable} from 'svelte/store'
 import type {TransactionInstruction, Connection, PublicKey, TokenAmount, VersionedTransaction, Transaction, TransactionError} from '@solana/web3.js';
-import type {TMagic} from './createMagic';
 import type {Errors, TxStatus} from './utils';
 import type {TWeb3Store} from './web3Store';
+import type { Web3 } from './network';
+import type { ClobClient } from '$lib/clob';
 
 export type TsignAndSendTxResponse = {txId: string, slot: number, error: null} | {error: unknown, txId: null, slot: null}
 
 export type TWeb3Workspace = {
 
-  magic?: TMagic,
-  loginToMagic?: (email: string) => Promise<boolean>,
+  login: (email: string) => Promise<boolean>,
   logout: () => Promise<void>,
+
+  web3Evm: Web3,
+  web3Sol: Web3,
+
+  polyClob: ClobClient;
 
   refreshBalances: () => Promise<void>,
   refreshKeys: () => Promise<void>,
-  requestSol?: () => void,
 
-  signTransaction: (transaction: TransactionInstruction[]) => Promise<{id?: string; error?: Errors | Error, signedTx?: VersionedTransaction | Transaction}>,
-  sendTransaction: (txId: string, signedTx: VersionedTransaction | Transaction) => Promise<{id?: string; error?: Errors | Error}>,
-  confirmTransaction: (id: string) => Promise<{slot?: number, txError?: TransactionError, error?: Errors | Error}>,
   handleTransaction: (
     instructions: TransactionInstruction[],
     onStatus?: (status: TxStatus) => void,

@@ -1,8 +1,5 @@
 <script lang="ts">
     import ColumnLayout from "$lib/components/column_layout.svelte";
-    import { draftsStore } from "$lib/marketDraftStore";
-    import { PublicKey } from "@solana/web3.js";
-    import { customRandom, random } from "nanoid";
 
     const rotations = Array.from(new Array(10)).map(() =>
         (Math.random() * 360).toFixed()

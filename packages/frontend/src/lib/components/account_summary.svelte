@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getUserShares, readablePublicKey, usdFormatter } from "$lib/utils";
+  import { getUserShares, readableAddress, usdFormatter } from "$lib/utils";
   import { web3Store } from "$lib/web3Store";
   import CopyButton from "../elements/copy_button.svelte";
   import { Modal, modalStore } from "$lib/modals/modalStore";
@@ -11,6 +11,7 @@
   import { web3Workspace } from "$lib/web3Workspace";
   import { trpcc } from "$lib/trpc";
   import { onMount } from "svelte";
+  import { PublicKey } from "@solana/web3.js";
 
   let loading = false;
 
@@ -21,12 +22,15 @@
     redeemable: number;
   }> {
     let ret = { active: 0, redeemable: 0 };
-    if (!$web3Store.publicKey) return ret;
+    if (!$web3Store.solanaAddress) return ret;
     const positions = await trpcc.getMarketAccounts.query({
-      userId: $web3Store.publicKey.toBase58(),
+      userId: $web3Store.solanaAddress,
     });
     positions.forEach((p) => {
-      const us = getUserShares(p.market.data, $web3Store.publicKey);
+      const us = getUserShares(
+        p.market.data,
+        new PublicKey($web3Store.solanaAddress as string)
+      );
       if (p.market.data.data.Resolved) {
         ret.redeemable = ret.redeemable + us.valueCents;
       } else {
@@ -72,7 +76,7 @@
       <div class="flex justify-end items-center py-2 gap-2">
         <p class="text-gray-500 mr-auto">Cash</p>
         <p class="">
-          {usdFormatter.format($web3Store?.usdc?.uiAmount ?? 0)}
+          <!-- {usdFormatter.format($web3Store?.usdc?.uiAmount ?? 0)} -->
         </p>
       </div>
       <div class="flex justify-between items-center py-2">
@@ -89,16 +93,16 @@
       </div>
     </div>
   </div>
-  <!-- <div class="flex flex-col gap-2 mb-8">
+  <div class="flex flex-col gap-2 mb-8">
     <p class="text-xs font-semibold text-left">Addresses</p>
     <div class="divide-y divide-gray-200 text-sm">
       <div />
       <div class="flex items-center py-2">
         <p class="text-gray-500 mr-auto">Solana</p>
-        {#if !!$web3Store?.publicKey}
-          <CopyButton value={$web3Store?.publicKey?.toBase58()} />
+        {#if !!$web3Store?.solanaAddress}
+          <CopyButton value={$web3Store?.solanaAddress} />
           <p class="ml-2">
-            {readablePublicKey($web3Store?.publicKey)}
+            {readableAddress($web3Store?.solanaAddress)}
           </p>
         {:else}
           <p class="ml-2">
@@ -108,10 +112,36 @@
       </div>
       <div class="flex items-center py-2">
         <p class="text-gray-500 mr-auto">USDC Token</p>
-        {#if !!$web3Store?.usdcAddress}
-          <CopyButton value={$web3Store?.usdcAddress.toBase58()} />
+        {#if !!$web3Store?.solanaUsdcAddress}
+          <CopyButton value={$web3Store?.solanaUsdcAddress} />
           <p class="ml-2">
-            {readablePublicKey($web3Store?.usdcAddress)}
+            {readableAddress($web3Store?.solanaUsdcAddress)}
+          </p>
+        {:else}
+          <p class="ml-2">
+            {"None"}
+          </p>
+        {/if}
+      </div>
+      <div class="flex items-center py-2">
+        <p class="text-gray-500 mr-auto">Polygon Address</p>
+        {#if !!$web3Store?.polygonAddress}
+          <CopyButton value={$web3Store?.polygonAddress} />
+          <p class="ml-2">
+            {readableAddress($web3Store?.polygonAddress)}
+          </p>
+        {:else}
+          <p class="ml-2">
+            {"None"}
+          </p>
+        {/if}
+      </div>
+      <div class="flex items-center py-2">
+        <p class="text-gray-500 mr-auto">Polygon USDC</p>
+        {#if !!$web3Store?.polygonUsdcAddress}
+          <CopyButton value={$web3Store?.polygonUsdcAddress} />
+          <p class="ml-2">
+            {readableAddress($web3Store?.polygonUsdcAddress)}
           </p>
         {:else}
           <p class="ml-2">
@@ -120,18 +150,14 @@
         {/if}
       </div>
     </div>
-  </div> -->
+  </div>
 </div>
 <div class="px-5 pb-5 flex flex-col gap-2.5 w-full mt-4">
   <button
     on:click={() => {
       modalStore.openModal(Modal.topup);
     }}
-    class={`btn_secondary ${
-      ($web3Store?.usdc?.uiAmount ?? 0) < 0.05
-        ? "bg-gradient-to-br from-sky-500 to-indigo-600 text-white ring-0 hover:shadow-sky-400/50"
-        : ""
-    }`}
+    class={`btn_secondary`}
   >
     <IconCoins size={16} />
     Fund Account

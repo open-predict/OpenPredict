@@ -12,45 +12,45 @@
   import { PUBLIC_SOLANA_RPC_URL } from "$env/static/public";
   import { trpcc } from "$lib/trpc";
   import LoadingOverlay from "$lib/components/loading_overlay.svelte";
-  $: sol = $web3Store?.sol ? $web3Store.sol.toFixed(6) : 0;
+  // $: sol = $web3Store?.sol ? $web3Store.sol.toFixed(6) : 0;
   let microUsdc: number = 0;
 
   let loadingMessage = "";
   let errorMessage = "";
   let completedMessage = "";
 
-  async function payWithChangenow() {
-    try {
-      if (!$web3Store.publicKey) {
-        modalStore.openModal(Modal.login);
-        return;
-      }
-      loadingMessage = "Fetching details...";
-      const res = await trpcc.checkoutWithChangenow.query({
-        publicKey: $web3Store.publicKey?.toBase58(),
-        amount: Math.round((microUsdc * 100) / USDC_PER_DOLLAR) / 100,
-      });
-      loadingMessage = "Redirecting you...";
-      if (res) {
-        if (res.error || !res.url) {
-          errorMessage = res.error ?? "No url.";
-        } else {
-          var win = window.open(res.url, "_blank");
-          win?.focus();
-        }
-      } else {
-        errorMessage = "Error checking out. No response.";
-      }
-    } catch (e) {
-      loadingMessage = "";
-      if (e instanceof Error) {
-        errorMessage = e.message;
-      } else {
-        errorMessage = "Couldn't execute transaction: " + e;
-      }
-      console.error(e);
-    }
-  }
+  // async function payWithChangenow() {
+  //   try {
+  //     if (!$web3Store.publicKey) {
+  //       modalStore.openModal(Modal.login);
+  //       return;
+  //     }
+  //     loadingMessage = "Fetching details...";
+  //     const res = await trpcc.checkoutWithChangenow.query({
+  //       publicKey: $web3Store.publicKey?.toBase58(),
+  //       amount: Math.round((microUsdc * 100) / USDC_PER_DOLLAR) / 100,
+  //     });
+  //     loadingMessage = "Redirecting you...";
+  //     if (res) {
+  //       if (res.error || !res.url) {
+  //         errorMessage = res.error ?? "No url.";
+  //       } else {
+  //         var win = window.open(res.url, "_blank");
+  //         win?.focus();
+  //       }
+  //     } else {
+  //       errorMessage = "Error checking out. No response.";
+  //     }
+  //   } catch (e) {
+  //     loadingMessage = "";
+  //     if (e instanceof Error) {
+  //       errorMessage = e.message;
+  //     } else {
+  //       errorMessage = "Couldn't execute transaction: " + e;
+  //     }
+  //     console.error(e);
+  //   }
+  // }
 </script>
 
 <Dialog
@@ -85,7 +85,7 @@
           </DialogDescription>
         </div>
       </div>
-      <div class="flex flex-col gap-2.5 p-6">
+      <!-- <div class="flex flex-col gap-2.5 p-6">
         <button
           on:click={() => {
             if (!$web3Store?.usdcAddress) {
@@ -106,7 +106,7 @@
         >
           Pay for USDC manually
         </a>
-      </div>
+      </div> -->
     </div>
-  </div></Dialog
->
+  </div>
+</Dialog>

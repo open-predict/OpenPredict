@@ -1,12 +1,13 @@
 <script lang="ts">
-    import { generateProfileImage, readablePublicKey } from "$lib/utils";
+    import { generateProfileImage, readableAddress } from "$lib/utils";
     import type { TUser, TUserMetadataSchemaV0 } from "@am/backend/types/user";
     import type { PublicKey } from "@solana/web3.js";
     import base58 from "bs58";
 
     export let small = false;
-    export let publicKey: PublicKey;
+    export let publicKey: string;
     export let profile: TUser | undefined | null = undefined;
+
 </script>
 
 <a
@@ -20,7 +21,7 @@
     </div>
     {#if !small}
         <span class="text-sm text-gray-600 font-medium group-hover:text-black">
-            {profile?.username ?? readablePublicKey(publicKey)}
+            {profile?.username ?? readableAddress(publicKey)}
         </span>
     {/if}
 </a>

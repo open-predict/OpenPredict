@@ -7,7 +7,7 @@
     import { Modal, modalStore } from "$lib/modals/modalStore";
 </script>
 
-{#if $web3Store?.publicKey}
+{#if $web3Store?.solanaAddress}
     <div
         class="flex flex-nowrap items-center rounded-full bg-white ring-1 ring-gray-200 p-1.5 gap-1.5 h-11"
     >
@@ -16,7 +16,7 @@
         >
             <img src="/usdc.svg" alt="usdc" class="w-6" />
             <p class="text-sm font-medium">
-                {usdFormatter.format($web3Store?.usdc?.uiAmount ?? 0)}
+                {usdFormatter.format(Number($web3Store?.solanaUsdcBalance) ?? 0)}
             </p>
             <!-- <IconDown size={8} /> -->
         </div>
