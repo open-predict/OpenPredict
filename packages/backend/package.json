@@ -8,6 +8,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@certusone/wormhole-sdk": "^0.10.3",
     "@chainsafe/libp2p-noise": "^13.0.1",
     "@chainsafe/libp2p-yamux": "4.0.2",
     "@helia/json": "^1.0.0",
@@ -38,6 +39,7 @@
     "bs58": "^5.0.0",
     "cookie": "^0.5.0",
     "cors": "^2.8.5",
+    "cross-fetch": "^4.0.0",
     "d3-array": "^3.2.4",
     "d3-time-format": "^4.1.0",
     "datastore-fs": "^9.1.2",

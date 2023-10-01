@@ -36,36 +36,43 @@ export async function startAndMaintainPmList() {
     }
   }
   console.log("Found !active || !closed market: ", found)
-  console.log([...global.pmChainCache.markets.values()].filter(v => v.question.includes("SBF") || v.question.includes("UAW")));
   const ws_env_url = process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org";
-  let ws = new WebSocket(`${ws_env_url}/market`); // change to market for market, user for user
-  var asset_ids: string[] = [...global.pmChainCache.markets.values()].filter(v => v.active == true).reduce((prev, cur) => [...prev, ...cur.tokens.map(v2 => v2.token_id)], <string[]>[]);
-  console.log(asset_ids)
-  ws.on("open", () => {
-    ws.send(JSON.stringify({
-      auth: {},
-      type: "market",
-      markets: [] as string[],
-      assets_ids: asset_ids,
-    }))
-    setInterval(() => {
-      ws.send("PING")
-    }, 5000)
-    ws.onmessage = function (msg: any) {
-      var resp: any
-      try {
-        resp = JSON.parse(msg.data)
-      } catch {
-        return;
-      }
-      if (resp['event_type'] == 'book') {
-        globalThis.pmChainCache.assetBooks.set(resp['asset_id'], {
-          asks: resp['asks'].map((v: {price: string, size: string}) => [new Number(v.price), new Number(v.size)]),
-          bids: resp['bids'].map((v: {price: string, size: string}) => [new Number(v.price), new Number(v.size)]),
-        })
-      }
-    };
-  })
+  var startWs = () => {
+    var asset_ids: string[] = [...global.pmChainCache.markets.values()].filter(v => v.active == true).reduce((prev, cur) => [...prev, ...cur.tokens.map(v2 => v2.token_id)], <string[]>[]);
+    let ws = new WebSocket(`${ws_env_url}/market`); // change to market for market, user for user
+    console.log("Opened new PM websocket")
+    ws.on("open", () => {
+      ws.send(JSON.stringify({
+        auth: {},
+        type: "market",
+        markets: [] as string[],
+        assets_ids: asset_ids,
+      }))
+      setInterval(() => {
+        ws.send("PING")
+      }, 5000)
+      ws.onmessage = function (msg: any) {
+        var resp: any
+        try {
+          resp = JSON.parse(msg.data)
+        } catch {
+          return;
+        }
+        console.log("PM update: ", resp);
+        if (resp['event_type'] == 'book') {
+          globalThis.pmChainCache.assetBooks.set(resp['asset_id'], {
+            asks: resp['asks'].map((v: {price: string, size: string}) => [new Number(v.price), new Number(v.size)]),
+            bids: resp['bids'].map((v: {price: string, size: string}) => [new Number(v.price), new Number(v.size)]),
+          })
+        }
+      };
+    })
+    ws.on("error", (err) => {
+      console.log("ws err, reconnecting: ", err)
+      startWs()
+    })
+  }
+  startWs()
 }
 
 export function searchPmMarkets(options: {
