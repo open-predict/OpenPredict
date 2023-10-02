@@ -19,8 +19,8 @@ export async function startAndMaintainPmList() {
   }
   const env_url = process.env.CLOB_HOST || "https://polyclob.openpredict.org";
   const client = new ClobClient(env_url, Chain.POLYGON);
-  var markets = await client.getMarkets()
-  markets.data.forEach(v => global.pmChainCache.markets.set(v.condition_id, v))
+  var markets = await client.getMarkets();
+  (markets.data ?? []).forEach(v => global.pmChainCache.markets.set(v.condition_id, v))
   while (markets.next_cursor != "LTE=") {
     markets = await client.getMarkets(markets.next_cursor);
     if (markets.data == null || markets.data.length == 0) {
@@ -73,10 +73,10 @@ export async function startAndMaintainPmList() {
           if (!globalThis.pmChainCache.assetBooks.has(token.token_id)) {
             const book = await client.getOrderBook(token.token_id)
             if (!globalThis.pmChainCache.assetBooks.has(token.token_id)) {
-              console.log("got token book for ", token.token_id);
+              console.log("got token book for ", token.token_id, book);
               globalThis.pmChainCache.assetBooks.set(token.token_id, {
-                asks: book.asks.map((v) => [new Number(v.price) as number, new Number(v.size) as number]),
-                bids: book.bids.map((v) => [new Number(v.price) as number, new Number(v.size) as number]),
+                asks: (book.asks ?? []).map((v) => [new Number(v.price) as number, new Number(v.size) as number]),
+                bids: (book.bids ?? []).map((v) => [new Number(v.price) as number, new Number(v.size) as number]),
               })
             }
           }

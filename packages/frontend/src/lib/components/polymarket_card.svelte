@@ -2,10 +2,8 @@
     import IconCal from "@tabler/icons-svelte/dist/svelte/icons/IconCalendar.svelte";
     import IconMenu from "@tabler/icons-svelte/dist/svelte/icons/IconDotsVertical.svelte";
     import IconDown from "@tabler/icons-svelte/dist/svelte/icons/IconTriangleFilled.svelte";
-    import IconHeart from "@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte";
     import IconExchange from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsExchange2.svelte";
     import IconSubsidy from "@tabler/icons-svelte/dist/svelte/icons/IconMoneybag.svelte";
-    import IconShare from "@tabler/icons-svelte/dist/svelte/icons/IconShare.svelte";
     import IconTrade from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsUpDown.svelte";
     import type { pmMarketData } from "@am/backend/types/market";
     import { faker } from "@faker-js/faker";
@@ -15,7 +13,21 @@
     import LikeButton from "$lib/elements/like_button.svelte";
     import ShareButton from "$lib/elements/share_button.svelte";
     import CommentButton from "$lib/elements/comment_button.svelte";
+    import type { TBooks } from "../../routes/+page";
     export let market: pmMarketData;
+    export let book: TBooks | undefined;
+
+    function calculateTotalLiquidity(orderBook: TBooks): number {
+        let totalLiquidity = 0;
+        orderBook.forEach((outcome) => {
+            for (const side of Object.values(outcome)) {
+                for (const [price, quantity] of side) {
+                    totalLiquidity += price * quantity;
+                }
+            }
+        });
+        return totalLiquidity;
+    }
 </script>
 
 <div
@@ -52,23 +64,25 @@
                             <Pill>
                                 <IconExchange
                                     size={14}
-                                    class="text-neutral-500"
+                                    class="text-emerald-300/75"
                                 />
                                 <span>
-                                    {"$247.9K"}
+                                    {`$${calculateTotalLiquidity(
+                                        book ?? new Map()
+                                    ).toFixed(0)}`}
                                 </span>
                             </Pill>
                             <Pill>
                                 <IconSubsidy
                                     size={14}
-                                    class="text-neutral-500"
+                                    class="text-yellow-300/50"
                                 />
                                 <span>
-                                    {"$1.2K"}
+                                    {"1.2K"}
                                 </span>
                             </Pill>
                             <Pill>
-                                <IconCal size={14} class="text-neutral-500" />
+                                <IconCal size={14} class="text-red-400/50" />
                                 {`${new Date(
                                     market.end_date_iso
                                 ).toLocaleDateString("en-us", {
@@ -144,9 +158,12 @@
                 </div>
                 <!-- <p
                     class="w-full text-sm lg:text-md overflow-hidden line-clamp-3 whitespace-pre-wrap text-neutral-700 dark:text-neutral-400"
+                > -->
+                <p
+                    class="w-full text-sm lg:text-md break-words overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-400"
                 >
-                    {market.description.replaceAll("\n\n", "\n")}
-                </p> -->
+                    <!-- {Array.from(book?.entries() ?? new Map()).map((e) => )} -->
+                </p>
                 <div class="w-full flex flex-nowrap justify-start items-center">
                     <div class="flex flex-nowrap pl-4 p-1">
                         {#each Array.from(Array(4)) as t}
