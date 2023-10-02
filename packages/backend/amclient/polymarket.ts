@@ -28,17 +28,9 @@ export async function startAndMaintainPmList() {
     }
     markets.data.forEach(v => global.pmChainCache.markets.set(v.condition_id, v))
   }
-  var found = false;
-  for (var market of globalThis.pmChainCache.markets.values()) {
-    if (!market.active || !market.closed) {
-      console.log("Non-active+closed market:", market)
-      found = true;
-    }
-  }
-  console.log("Found !active || !closed market: ", found)
   const ws_env_url = process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org";
   var startWs = () => {
-    var asset_ids: string[] = [...global.pmChainCache.markets.values()].filter(v => v.active == true).reduce((prev, cur) => [...prev, ...cur.tokens.map(v2 => v2.token_id)], <string[]>[]);
+    var asset_ids: string[] = [...global.pmChainCache.markets.values()].filter(v => v.active == true && v.closed == false).reduce((prev, cur) => [...prev, ...cur.tokens.map(v2 => v2.token_id)], <string[]>[]);
     let ws = new WebSocket(`${ws_env_url}/market`); // change to market for market, user for user
     console.log("Opened new PM websocket")
     ws.on("open", () => {
@@ -73,8 +65,26 @@ export async function startAndMaintainPmList() {
     })
   }
   startWs()
+  var proms: Promise<void>[] = []
+  for (var market of globalThis.pmChainCache.markets.values()) {
+    if (market.active && market.accepting_orders && !market.closed) {
+      market.tokens.forEach(token => {
+        proms.push((async () => {
+          if (!globalThis.pmChainCache.assetBooks.has(token.token_id)) {
+            const book = await client.getOrderBook(token.token_id)
+            if (!globalThis.pmChainCache.assetBooks.has(token.token_id)) {
+              console.log("got token book for ", token.token_id);
+              globalThis.pmChainCache.assetBooks.set(token.token_id, {
+                asks: book.asks.map((v) => [new Number(v.price) as number, new Number(v.size) as number]),
+                bids: book.bids.map((v) => [new Number(v.price) as number, new Number(v.size) as number]),
+              })
+            }
+          }
+        })())
+      })
+    }
+  }
 }
-
 export function searchPmMarkets(options: {
   term?: string,
   limit?: number,
