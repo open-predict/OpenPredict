@@ -6,52 +6,63 @@
     import { Modal, modalStore } from "$lib/modals/modalStore";
     import { trpcc } from "../trpc";
     import { PublicKey } from "@solana/web3.js";
-    export let market: marketFulldata;
+    export let market: marketFulldata | undefined;
     export let updateMarket: (market: marketFulldata) => void;
 
-    $: liked = $web3Store?.solanaAddress ? market.data.Likes.has($web3Store.solanaAddress) : undefined;
+    const liked = false;
+    // $: liked = $web3Store?.solanaAddress
+    //     ? market.data.Likes.has($web3Store.solanaAddress)
+    //     : undefined;
 
     async function like() {
-        const newState = !liked;
+        //     const newState = !liked;
 
-        if (!$web3Store.solanaAddress) {
-            modalStore.openModal(Modal.login);
-            return;
+        //     if (!$web3Store.solanaAddress) {
+        //         modalStore.openModal(Modal.login);
+        //         return;
+        //     }
+
+        //     const done = await $web3Workspace.makeAuthenticatedRequest(() =>
+        //         trpcc.like
+        //             .query({
+        //                 ammAddress: new PublicKey(
+        //                     market.data.data.AmmAddress
+        //                 ).toBase58(),
+        //                 liked: newState,
+        //             })
+        //             .then((res) => !res?.error)
+        //             .catch(() => false)
+        //     );
+        //     modalStore.closeModal(Modal.login);
+        //     if (!done) {
+        //         alert("Unable to like or unlike this market.");
+        //         return;
+        //     }
+        //     if (newState) {
+        //         market.data.Likes.add($web3Store.solanaAddress);
+        //     } else {
+        //         market.data.Likes.delete($web3Store.solanaAddress);
+        //     }
+        if (false) {
+            updateMarket(market as marketFulldata);
         }
-        
-        const done = await $web3Workspace.makeAuthenticatedRequest(() =>
-            trpcc.like
-                .query({
-                    ammAddress: new PublicKey(
-                        market.data.data.AmmAddress
-                    ).toBase58(),
-                    liked: newState,
-                })
-                .then((res) => !res?.error)
-                .catch(() => false)
-        );
-        modalStore.closeModal(Modal.login);
-        if (!done) {
-            alert("Unable to like or unlike this market.")
-            return
-        } 
-        if(newState){
-            market.data.Likes.add($web3Store.solanaAddress)
-        } else {
-            market.data.Likes.delete($web3Store.solanaAddress)
-        }
-        updateMarket(market);
     }
-
 </script>
 
 <button
     on:click|stopPropagation|preventDefault={(e) => {
         e.stopPropagation();
-        like()
+        like();
     }}
-    class={`flex py-2.5 px-4 justify-center items-center rounded-full gap-2 text-md hover:bg-gray-100 text-gray-600 hover:text-gray-700 ${liked ? "fill-rose-400 stroke-rose-700 hover:stroke-gray-600 hover:fill-gray-300" : "fill-gray-100 stroke-gray-500 hover:stroke-gray-600 hover:fill-gray-300"}`}
+    class={`flex group/like items-center justify-center text-sm gap-1.5 py-1.5 px-2.5 rounded-lg text-neutral-400 hover:bg-neutral-900`}
 >
-    <IconHeart class={`stroke-inherit ${liked ? "fill-rose-500" : "fill-inherit"}`} size={20} />
-    {market.data.Likes.size}
+    <IconHeart
+        class={`${
+            liked
+                ? "group-hover/like:rotate-12 stroke-rose-400 fill-rose-400/25 group-hover/like:fill-rose-400/25 group-hover/like:stroke-rose-400/50"
+                : "group-hover/like:-rotate-12 stroke-neutral-600 fill-transparent group-hover/like:fill-rose-400/25 group-hover/like:stroke-rose-400/50"
+        }`}
+        size={20}
+    />
+    {market?.data.Likes.size ?? 0}
 </button>

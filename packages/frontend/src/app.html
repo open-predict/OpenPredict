@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="overflow: hidden;" class="bg-white dark:bg-black">
 
 <head>
-	<!-- <script type="module">
-	</script> -->
 	<meta charset="utf-8" />
 	<link rel="icon" href="%sveltekit.assets%/favicon.svg" />
 	<meta name="viewport" content="width=device-width" />
 	%sveltekit.head%
 </head>
 
-<body data-sveltekit-preload-data="hover">
-	<div style="display: contents; overflow: hidden;">%sveltekit.body%</div>
+<body data-sveltekit-preload-data="hover" style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; overflow-y: scroll;" class="bg-white dark:bg-black">
+	<div style="display: contents; overflow: hidden;">
+		%sveltekit.body%
+	</div>
 </body>
 
 </html>

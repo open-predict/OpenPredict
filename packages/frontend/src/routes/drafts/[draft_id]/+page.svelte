@@ -32,7 +32,7 @@
     import { trpcc } from "../../../lib/trpc.js";
     import { web3Workspace } from "$lib/web3Workspace.js";
     import LoadingOverlay from "$lib/components/loading_overlay.svelte";
-    import MainHeader from "$lib/components/main_header.svelte";
+    import MainHeader from "$lib/components/header.svelte";
 
     export let data;
 

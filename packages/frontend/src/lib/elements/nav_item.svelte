@@ -3,16 +3,29 @@
     import { page } from "$app/stores";
     import type { TLinkDef } from "$lib/utils";
     export let LinkDef: TLinkDef;
+    export let target: string | undefined = undefined;
+    export let referrerpolicy: ReferrerPolicy | undefined = undefined;
     $:splitPath = browser ? $page.url.pathname.split("/") : [];
     $:selected = splitPath.length === 2 && "/" + splitPath[1] === LinkDef.href
 </script>
 
 <a
         href={LinkDef.href}
-        class={`flex justify-center lg:justify-start items-center gap-4 text-base rounded-full w-full lg:px-4 lg:py-3 hover:bg-gray-100 text-black ${selected ? "font-bold" : ""}`}
+        target={target}
+        referrerpolicy={referrerpolicy}
+        class={`h-10 w-full flex justify-center lg:justify-start items-center gap-2 lg:py-3 group`}
     >
-        <LinkDef.Icon size={20} stroke={selected ? 2.5 : 1.5} />
-        <span class="hidden lg:block">
+        <div class={`h-10 w-10 flex justify-center items-center`}>
+            <div 
+                class={`h-8 w-8 flex justify-center items-center rounded-xl ring-1 dark:bg-neutral-900 ${selected 
+                    ? "ring-indigo-900 text-indigo-500" 
+                    : "ring-transparent dark:text-neutral-400"
+                } group-hover:dark:ring-indigo-800 group-hover:dark:text-indigo-300 shadow-xl group-hover:shadow-indigo-500/20`}
+            >
+                <LinkDef.Icon size={18} stroke={1.5} />
+            </div>
+        </div>
+        <span class={`hidden lg:block text-md font-medium ${selected ? "dark:text-white" : "dark:text-neutral-400"} group-hover:text-neutral-200`}>
             {LinkDef.name}
         </span>
 </a>

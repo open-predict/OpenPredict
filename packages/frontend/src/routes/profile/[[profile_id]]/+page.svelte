@@ -24,7 +24,7 @@
     import CopyButton from "$lib/elements/copy_button.svelte";
     import LoadingOverlay from "$lib/components/loading_overlay.svelte";
     import debounce from "lodash/debounce.js";
-    import MainHeader from "$lib/components/main_header.svelte";
+    import MainHeader from "$lib/components/header.svelte";
     import { goto } from "$app/navigation";
     import { browser } from "$app/environment";
     import type { TProfilePageData } from "./+page.js";

@@ -5,10 +5,12 @@ import type { TUser } from '@am/backend/types/user.js';
 
 export const ssr = false;
 
-export type TBooks = Map<string, {
+export type TBook = {
   asks: [number, number][];
   bids: [number, number][];
-}>;
+}
+
+export type TBooks = Map<string, TBook>;
 
 export type TPageData = {
   searchResponse: {

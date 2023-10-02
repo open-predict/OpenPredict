@@ -17,7 +17,7 @@
     import { browser } from "$app/environment";
     import AccountSummary from "$lib/components/account_summary.svelte";
     import type { marketFulldata } from "@am/backend/types/market.js";
-    import MainHeader from "$lib/components/main_header.svelte";
+    import MainHeader from "$lib/components/header.svelte";
 
     export let data;
     let { id, marketData, users, commentsRes } =

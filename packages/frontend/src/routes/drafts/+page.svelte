@@ -5,7 +5,7 @@
     import { usdFormatter } from "$lib/utils";
     import { PublicKey } from "@solana/web3.js";
     import { goto } from "$app/navigation";
-    import MainHeader from "$lib/components/main_header.svelte";
+    import MainHeader from "$lib/components/header.svelte";
 </script>
 
 <ColumnLayout>

@@ -1,9 +1,9 @@
 <script lang="ts">
-    import IconBack from "@tabler/icons-svelte/dist/svelte/icons/IconArrowLeft.svelte";
-    import IconMenu from "@tabler/icons-svelte/dist/svelte/icons/IconMenu2.svelte";
     import { browser } from "$app/environment";
     import { onMount, onDestroy } from "svelte";
-    import Logo from "./logo.svelte";
+    import Logo from "$lib/elements/logo.svelte";
+    import BackButton from "$lib/elements/back_button.svelte";
+    import MobileMenuButton from "$lib/elements/mobile_menu_button.svelte";
     export let fadeHeader = false;
     let observer: IntersectionObserver;
 
@@ -48,33 +48,21 @@
         }
     });
 
-    $: locationSplit = browser ? window.location.pathname.split("/") : [];
 </script>
 
 <div id="scroll_top_indicator" />
 <div
-    class={`sticky flex whitespace-nowrap justify-between items-center top-0 z-10 h-16 py-3.5 px-4 gap-4 w-full overflow-hidden border-r border-l border-gray-200 dark:bg-black/80 dark:border-neutral-800 ${
-        fadeHeader ? "" : "border-b bg-white/80 dark:bg-black/80"
+    class={`sticky flex whitespace-nowrap justify-between items-center top-0 z-10 h-16 px-3 py-3.5 w-full backdrop-blur-xl overflow-hidden border-r border-l border-gray-200 dark:border-neutral-900 ${
+        fadeHeader ? "" : "border-b bg-white/70 dark:bg-black/70"
     } transition-all duration-300`}
 >
-    <div class="w-1/5 flex md:hidden">
-        {#if locationSplit.length > 1 && locationSplit[1] !== ""}
-            <button
-                class="rounded-full p-1.5 text-gray-600 hover:text-gray-950 hover:bg-gray-200 mr-2"
-                on:click={() => window.history.back()}
-            >
-                <IconBack size={20} />
-            </button>
-        {:else}
-            <div class="md:hidden">
-                <Logo />
-            </div>
-        {/if}
+    <div class="w-1/5 flex items-center md:w-auto">
+        <BackButton>
+            <Logo slot="fallback" />
+        </BackButton>
     </div>
     <slot />
     <div class="w-1/5 flex justify-end items-center md:hidden">
-        <button class="action_icon">
-            <IconMenu size={16} />
-        </button>
+        <MobileMenuButton />
     </div>
 </div>
