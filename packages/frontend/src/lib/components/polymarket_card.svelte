@@ -174,9 +174,7 @@
                         <button
                             class="flex items-center justify-center rounded-lg text-sm gap-1 py-1.5 px-2.5 ring-1 ring-transparent shadow-lg bg-neutral-900 text-indigo-400/80 hover:text-indigo-300 hover:ring-indigo-800 hover:shadow-indigo-500/10"
                         >
-                            <IconTrade
-                                size={16}
-                            />
+                            <IconTrade size={16} />
                             Trade
                         </button>
                     </div>
