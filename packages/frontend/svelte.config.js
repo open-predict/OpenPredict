@@ -27,11 +27,7 @@ const config = {
 				],
 				'worker-src' : ['wasm-unsafe-eval']	,
 			},
-			// reportOnly: {
-			// 	'script-src': ['self']
-			// }
 		},
-
 		csrf: {
 			checkOrigin: true
 		},
