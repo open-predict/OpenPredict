@@ -65,23 +65,29 @@ export async function startAndMaintainPmList() {
     })
   }
   startWs()
-  var proms: Promise<void>[] = []
+  var proms = new Map<string, Promise<string>>()
   for (var market of globalThis.pmChainCache.markets.values()) {
     if (market.active && market.accepting_orders && !market.closed) {
-      market.tokens.forEach(token => {
-        proms.push((async () => {
-          if (!globalThis.pmChainCache.assetBooks.has(token.token_id)) {
+      for (var token of market.tokens) {
+        if (!globalThis.pmChainCache.assetBooks.has(token.token_id)) {
+          proms.set(token.token_id, ((async () => {
             const book = await client.getOrderBook(token.token_id)
-            if (!globalThis.pmChainCache.assetBooks.has(token.token_id)) {
+            if (book.asks != null && book.bids != null && !globalThis.pmChainCache.assetBooks.has(token.token_id)) {
               console.log("got token book for ", token.token_id);
               globalThis.pmChainCache.assetBooks.set(token.token_id, {
                 asks: book.asks.map((v) => [new Number(v.price) as number, new Number(v.size) as number]),
                 bids: book.bids.map((v) => [new Number(v.price) as number, new Number(v.size) as number]),
               })
             }
-          }
-        })())
-      })
+            return token.token_id
+          })()))
+        }
+        if (proms.size > 10) {
+          await Promise.race([...proms.values()]).then((token_id) => {
+            proms.delete(token_id)
+          })
+        }
+      }
     }
   }
 }
