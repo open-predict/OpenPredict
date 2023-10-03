@@ -673,7 +673,7 @@ export const appRouter = router({
 
   getMarket: procedure.input(
     z.object({
-      id: z.string().min(32).max(44),
+      id: z.string().min(32),
     }),
   ).query(async (opts) => {
     const resp = await marketByAddress(opts.input.id)
