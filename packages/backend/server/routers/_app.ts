@@ -685,8 +685,10 @@ export const appRouter = router({
       return {
         resp: {
           pmMarket: resp.pmMarket,
-          market: resp.market ? resp.market[0] : null,
-          users: resp.market ? resp.market[1] :  null,
+          market: resp.market ? {
+            market: resp.market ? resp.market[0] : null,
+            users: resp.market ? resp.market[1] :  null,
+          } : undefined
         }
       }
     }

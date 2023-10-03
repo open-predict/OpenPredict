@@ -20,17 +20,17 @@
 
 <div class="items-center text-center">
     {#if $web3Store?.solanaAddress === null}
-        <h3 class="font-semibold text-gray-800 text-xl">Join OpenPredict</h3>
+        <h3 class="font-semibold text-xl text-neutral-800 dark:text-white">Join OpenPredict</h3>
         <div class="mt-2">
-            <p class="text-gray-500">
+            <p class="text-neutral-400">
                 {"Login with email"}
             </p>
-            <div class="my-4 mt-8 flex flex-col gap-4">
+            <div class="mt-8 flex flex-col gap-4">
                 <input
                     type="email"
                     name="email"
                     id="email"
-                    class="block text-sm w-full rounded-full border-0 py-2 px-4 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 bg-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-gray-500 sm:leading-6"
+                    class="block text-sm w-full rounded-xl border-0 py-2 px-4 ring-1 ring-inset sm:leading-6 bg-white dark:bg-neutral-900 dark:ring-neutral-800 dark:placeholder:text-neutral-500 dark:text-white dark:focus:ring-indigo-900"
                     placeholder="you@email.com"
                     on:keypress={(e) => {
                         if (e.key === "Enter") handleLogin();

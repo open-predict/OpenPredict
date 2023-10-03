@@ -113,7 +113,11 @@ function createWeb3Store() {
 
     function clear() {
         update(v => {
-            return {};
+            return {
+                solanaAddress: null,
+                polygonAddress: null,
+                authedWithBackend: false
+            };
         })
     }
 

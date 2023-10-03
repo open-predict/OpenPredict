@@ -10,23 +10,23 @@
     import SubsidyButton from "$lib/elements/subsidy_button.svelte";
 
     export let market: marketFulldata;
-    export let users: Map<string, TUser> | undefined;
+    // export let users: Map<string, TUser> | undefined;
     export let updateMarket: (market: marketFulldata) => void;
 
     $: chance = getChance(market.data.data.Yes, market.data.data.No);
 
     const operatorKey = market ? market.data.data.OperatorKey.toString() : "";
-    const operatorProfile = users ? users.get(operatorKey) : null;
+    // const operatorProfile = users ? users.get(operatorKey) : null;
 
 </script>
 
 {#if !!market}
     <div class="w-full text-left bg-white">
         <div class="flex items-center text-gray-400 text-xs">
-            <ProfileButton
-                publicKey={new PublicKey(market.data.data.OperatorKey)}
+            <!-- <ProfileButton
+                publicKey={market.data.data.OperatorKey}
                 profile={operatorProfile}
-            />
+            /> -->
             <div class="ml-auto" />
             <SubsidyButton subsidy={market.data.data.Subsidy} />
             <LikeButton {market} {updateMarket} />

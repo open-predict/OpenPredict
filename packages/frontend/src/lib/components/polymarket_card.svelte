@@ -33,7 +33,7 @@
 <div
     class="group w-full max-w-full p-3 bg-white dark:bg-neutral-950 ring-inset"
 >
-    <a href={`/${market.question_id}`} class="group/link max-w-full">
+    <a href={`/${market.condition_id}`} class="group/link max-w-full">
         <div class="w-full max-w-full py-1.5 lg:p-2 xl:p-4 flex flex-col gap-4">
             <div class="w-full flex flex-col justify-start items-start gap-6">
                 <div
@@ -130,7 +130,6 @@
                 <p
                     class="w-full break-words text-sm lg:text-md overflow-hidden line-clamp-3 whitespace-pre-wrap text-neutral-700 dark:text-neutral-400"
                 >
-                    {book?.size}
                 </p>
                 <div class="w-full flex flex-nowrap justify-start items-center">
                     <div class="flex flex-nowrap pl-4 p-1">

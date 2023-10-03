@@ -9,8 +9,6 @@
     import Links from "./links.svelte";
     import MobileBanner from "./mobile_banner.svelte";
     import MobileNavigation from "./mobile_navigation.svelte";
-    import Cookies from "js-cookie";
-    import ThemeToggle from "$lib/elements/theme_toggle.svelte";
 </script>
 
 <div class="flex w-full min-h-full bg-gray-100 dark:bg-black">
@@ -39,7 +37,6 @@
             >
                 <Navigation />
                 <div class="mt-auto" />
-                <ThemeToggle />
                 <Links />
             </div>
             <div class="pr-8 py-4 pl-4 text-xs overflow-clip" />
@@ -87,10 +84,10 @@
                 <WalletWidget />
                 <UserButton />
             </div>
-            <div class="flex flex-col p-2.5 xl:pr-0 gap-2.5">
+            <div class="flex flex-col p-4 xl:pr-0 gap-2.5">
                 {#if $web3Store?.solanaAddress === null}
                     <div
-                        class="bg-white ring-1 rounded-2xl ring-gray-200 p-8 mb-4"
+                        class="ring-1 rounded-2xl p-6 pt-10 mb-4 bg-white ring-neutral-200 dark:bg-neutral-950 dark:ring-neutral-900"
                     >
                         <Login />
                     </div>

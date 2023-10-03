@@ -18,19 +18,37 @@
     import AccountSummary from "$lib/components/account_summary.svelte";
     import type { marketFulldata } from "@am/backend/types/market.js";
     import MainHeader from "$lib/components/header.svelte";
+    import PolymarketCard from "$lib/components/polymarket_card.svelte";
 
     export let data;
-    let { id, marketData, users, commentsRes } =
+
+    let { id, pmMarket, market } =
         SuperJSON.deserialize<TMarketIdPageData>(data);
 
-    let market = marketData?.market;
-    $: chance = market
-        ? getChance(market.data.data.Yes, market.data.data.No)
-        : 0.5;
+    $: chance = market?.marketData
+        ? getChance(
+              market.marketData.data.data.Yes,
+              market.marketData.data.data.No
+          )
+        : 0.64;
+
+    console.log(pmMarket);
+
+    $: title =
+        market?.marketData?.metadata?.title ??
+        pmMarket?.data.question ??
+        "No title found";
+
+    $: description =
+        market?.marketData?.metadata?.description ??
+        pmMarket?.data.description ??
+        "No description found.";
 
     enum Tabs {
         Comments = "comments",
         Positions = "positions",
+        Activity = "activity",
+        Trades = "trades",
     }
 
     let currentTab: string =
@@ -55,31 +73,33 @@
             if (!posted) {
                 alert("comment not posted");
             } else {
-                if (market) {
-                    market.data.CommentCount = market.data.CommentCount + 1;
-                }
-                commentsRes.comments.unshift({
-                    createdAt: new Date(Date.now() - 1000),
-                    userKey: $web3Store.solanaAddress,
-                    content: comment,
-                });
-                commentsRes = commentsRes; // svelte reactivity
-                comment = "";
+                alert("TODO: re-implement fe update");
+                // if (market) {
+                //     market.data.CommentCount = market.data.CommentCount + 1;
+                // }
+                // commentsRes.comments.unshift({
+                //     createdAt: new Date(Date.now() - 1000),
+                //     userKey: $web3Store.solanaAddress,
+                //     content: comment,
+                // });
+                // commentsRes = commentsRes; // svelte reactivity
+                // comment = "";
             }
         }
     }
 
     function updateMarket(m: marketFulldata) {
-        market = m;
+        // market = m;
+        alert("Impement market updating")
     }
 
-    $: creator =
-        $web3Store?.solanaAddress &&
-        market &&
-        $web3Store.solanaAddress ===
-            new PublicKey(market.data.data.OperatorKey).toBase58();
+    // $: creator =
+    //     $web3Store?.solanaAddress &&
+    //     market &&
+    //     $web3Store.solanaAddress ===
+    //         new PublicKey(market.data.data.OperatorKey).toBase58();
 
-    $: createdAt = market?.data?.PriceHistory[0]?.At as Date | undefined;
+    // $: createdAt = market?.data?.PriceHistory[0]?.At as Date | undefined;
 
     const dateFormatter = new Intl.DateTimeFormat("en-US", {
         dateStyle: "short",
@@ -91,33 +111,20 @@
         <div
             class="text-sm w-full flex flex-col justify-center items-center line-clamp-1 overflow-ellipsis"
         >
-            {#if market}
-                <p
-                    class="text-black max-w-[14rem] overflow-hidden overflow-ellipsis"
-                >
-                    {market.metadata?.title}
-                </p>
-                <p
-                    class="text-xs text-gray-500 max-w-[12rem] overflow-hidden overflow-ellipsis"
-                >
-                    {`Created on ${dateFormatter.format(createdAt)}`}
-                </p>
-            {/if}
+            <p
+                class="text-black dark:text-white max-w-[14rem] overflow-hidden overflow-ellipsis"
+            >
+                {title}
+            </p>
         </div>
         <button
-            class="rounded-full p-1.5 text-gray-600 hover:text-gray-950 hover:bg-gray-200"
+            class="action_icon"
             on:click={() => navigator.clipboard.writeText(window.location.href)}
         >
             <IconLink stroke={1.5} size={20} />
         </button>
     </MainHeader>
     <!-- <div
-        slot="main-header"
-        class="w-full h-full flex justify-center items-center"
-    >
-        
-    </div> -->
-    <div
         slot="main-footer"
         class="flex h-full md:hidden flex-nowrap px-4 justify-between items-center bg-white border-t border-gray-200 rounded-tl-3xl rounded-tr-3xl"
     >
@@ -132,14 +139,15 @@
                 <MarketActions {market} small {updateMarket} />
             </div>
         {/if}
-    </div>
-    <div slot="main" class="min-h-full flex flex-col">
-        <div class="p-8 bg-white">
-            {#if market}
-                <MarketCardLarge {market} {users} {updateMarket} />
-            {/if}
-        </div>
-        <div class="border-y bg-white">
+    </div> -->
+    <div slot="main" class="min-h-full flex flex-col bg-neutral-950">
+        {#if pmMarket}
+            <PolymarketCard market={pmMarket.data} book={pmMarket.book} />
+        {/if}
+        {#if market && market.marketData && market.users}
+            <MarketCardLarge market={market.marketData} {updateMarket} />
+        {/if}
+        <!-- <div class="border-y">
             <nav class="flex space-x-8 -mb-px px-8">
                 {#each Object.entries(Tabs) as [_t, tab]}
                     <button
@@ -168,25 +176,25 @@
                             }`}
                         >
                             {#if market}
-                                <!-- {#if tab === Tabs.Activity}
-                                        {0}
-                                    {/if} -->
+                                {#if tab === Tabs.Activity}
+                                    {0}
+                                {/if}
                                 {#if tab === Tabs.Comments}
-                                    {market.data.CommentCount}
+                                    {0}
                                 {/if}
                                 {#if tab === Tabs.Positions}
-                                    {market.data.UserAccounts.size}
+                                    {0}
                                 {/if}
-                                <!-- {#if tab === Tabs.Trades}
-                                        {res.resp.Trades.length}
-                                    {/if} -->
+                                {#if tab === Tabs.Trades}
+                                    {0}
+                                {/if}
                             {/if}
                         </span>
                     </button>
                 {/each}
             </nav>
-        </div>
-        {#if currentTab === Tabs.Comments}
+        </div> -->
+        <!-- {#if currentTab === Tabs.Comments}
             <div class="flex flex-col divide-y divide-gray-200">
                 <div class="w-full p-8 flex gap-4 items-start">
                     {#if $web3Store?.solanaAddress}
@@ -237,8 +245,8 @@
                 {/each}
                 <div />
             </div>
-        {/if}
-        {#if currentTab === Tabs.Positions}
+        {/if} -->
+        <!-- {#if currentTab === Tabs.Positions}
             <div class="flex flex-col divide-y divide-gray-200">
                 {#if market}
                     {#each Array.from(market.data.UserAccounts) as [publicKey, marketUserChaindata]}
@@ -250,7 +258,7 @@
                     {/each}
                 {/if}
             </div>
-        {/if}
+        {/if} -->
     </div>
     <div slot="right" class="flex flex-col gap-2.5">
         {#if market}
@@ -259,18 +267,18 @@
                     <AccountSummary />
                 </div>
             {/if}
-            {#if creator}
+            <!-- {#if creator}
                 <div
                     class="ring-1 rounded-3xl bg-white ring-gray-200 flex flex-col"
                 >
                     <CreatorControls {market} {updateMarket} />
                 </div>
-            {/if}
+            {/if} -->
             {#if $web3Store?.solanaAddress}
                 <div
                     class="ring-1 rounded-3xl bg-white ring-gray-200 flex flex-col"
                 >
-                    <div class="flex flex-col gap-2 divide-gray-200 p-8">
+                    <!-- <div class="flex flex-col gap-2 divide-gray-200 p-8">
                         {#if market.data.data.Resolved !== null}
                             <h4 class="text-lg">
                                 {`Market resolved as ${
@@ -289,7 +297,7 @@
                     </div>
                     <div class="px-5 pb-5 flex gap-2.5">
                         <MarketActions {market} small {updateMarket} />
-                    </div>
+                    </div> -->
                 </div>
             {/if}
         {/if}

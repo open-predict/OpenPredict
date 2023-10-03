@@ -29,8 +29,8 @@ export async function getHelia() {
       })
       globalThis._helia.libp2p.services.dht.setMode("server");
       globalThis.helia = hJson(globalThis._helia);
+      console.log("helia addresses", globalThis._helia.libp2p.getMultiaddrs());
     }
-    console.log("helia addresses", globalThis._helia.libp2p.getMultiaddrs());
   })
   return globalThis.helia!;
 }
