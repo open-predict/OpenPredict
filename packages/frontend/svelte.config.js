@@ -19,20 +19,23 @@ const config = {
 		// See https://kit.svelte.dev/docs/adapters for more information about adapters.
 		adapter: adapter(),
 		csp: {
-			// directives: {
-			// 	'script-src': ['self', 'wasm-unsafe-eval'],
-			// 	'worker-src' : ['wasm-unsafe-eval']	
-			// },
+			directives: {
+				'script-src': [
+					'self', 
+					'wasm-unsafe-eval', 
+					'sha256-GMaNuNz+3YHnLAQ3KIaMTPsjZNu/LflNPMHDWeGxhSE='
+				],
+				'worker-src' : ['wasm-unsafe-eval']	,
+			},
 			// reportOnly: {
 			// 	'script-src': ['self']
 			// }
 		},
 
-		// csrf: {
-		// 	checkOrigin: true
-		// },
+		csrf: {
+			checkOrigin: true
+		},
 
-		// prerender: { default: true },
 	},
 };
 

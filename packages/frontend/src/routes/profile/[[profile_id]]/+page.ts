@@ -1,13 +1,11 @@
 import SuperJSON from 'superjson';
-import { trpcc } from '../../../lib/trpc.js';
 import type { extMarketChaindata, marketFulldata, marketUserChaindata } from '@am/backend/types/market.js';
 import type { TUser } from '@am/backend/types/user.js';
 import { web3StoreLsKey } from '$lib/web3Store.js';
 import { PublicKey } from '@solana/web3.js';
 import { goto } from '$app/navigation';
 import { redirect } from '@sveltejs/kit';
-
-export const ssr = false;
+import { browser } from '$app/environment';
 
 export type TProfilePageData = {
 	id: string | null;
@@ -19,40 +17,31 @@ export type TProfilePageData = {
 	markets?: Map<string, marketFulldata> | undefined
 }
 
-export async function load({ params, cookies }) {
+export async function load({ data: server_data, params }) {
+
+	const trpc = browser
+		? (await import("$lib/trpc.js")).trpcc 
+		: (await import("$lib/btrpc.js")).btrpc;
 
 	try {
 
-		let publicKey: string | undefined = params.profile_id;
-		if (!params.profile_id) {
-			let web3Store = cookies.get(web3StoreLsKey);
-			if (web3Store) {
-				try {
-					const parsed = JSON.parse(web3Store);
-					if (parsed['publicKey']) {
-						publicKey = new PublicKey(parsed['publicKey']).toBase58()
-					}
-				} catch (e) {
-					console.error(e)
-				}
-			}
-		}
+		const{ publicKey } = server_data
 
 		if (publicKey && publicKey.length < 32) {
 			redirect(300, "/profile")
 		}
 
-		const profileRes = !publicKey ? undefined : await trpcc.getUser.query({
+		const profileRes = !publicKey ? undefined : await trpc.getUser.query({
 			userId: [publicKey],
 		});
 
 		const profile = (publicKey && profileRes !== undefined) ? profileRes.get(publicKey) : undefined;
 
-		const positions = !!publicKey ? await trpcc.getMarketAccounts.query({
+		const positions = !!publicKey ? await trpc.getMarketAccounts.query({
 			userId: publicKey,
 		}) : undefined;
 
-		const markets = !!publicKey ? await trpcc.getUserMarkets.query({
+		const markets = !!publicKey ? await trpc.getUserMarkets.query({
 			userId: publicKey,
 		}) : undefined;
 

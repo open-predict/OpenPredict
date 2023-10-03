@@ -1,9 +1,7 @@
 import SuperJSON from 'superjson';
-import {trpcc} from '../../lib/trpc.js';
 import type {marketFulldata} from '@am/backend/types/market.js';
 import type {TUser} from '@am/backend/types/user.js';
-
-export const ssr = false;
+import { browser } from '$app/environment';
 
 export type TMarketIdPageData = {
   id: string,
@@ -26,6 +24,10 @@ export type TMarketIdPageData = {
 
 export async function load({params}) {
 
+  const trpc = browser 
+    ? (await import("$lib/trpc.js")).trpcc 
+    : (await import("$lib/btrpc.js")).btrpc;
+
   const data: TMarketIdPageData = {
     id: params.market_id ?? "",
     marketData: undefined,
@@ -39,17 +41,17 @@ export async function load({params}) {
   console.log(params, params.market_id.length)
 
   try {
-    var marketData = (await trpcc.getMarket.query({
+    var marketData = (await trpc.getMarket.query({
       id: params.market_id,
     })).resp
     data.marketData = marketData != null ? marketData : undefined;
   } catch (err) {
-    console.log("error getting market in trpc: ", err)
+    console.log("trpc error (market_id): ", err)
     return SuperJSON.serialize(data)
   }
 
   try {
-    data.commentsRes = await trpcc.listComments.query({
+    data.commentsRes = await trpc.listComments.query({
       ammAddress: params.market_id,
     })
   } catch (err) {
@@ -59,7 +61,7 @@ export async function load({params}) {
   if (data.commentsRes.comments) data.commentsRes.comments.reverse()
 
   try {
-    data.users = data.marketData?.users ? await trpcc.getUser.query({
+    data.users = data.marketData?.users ? await trpc.getUser.query({
       userId: Array.from(data.marketData?.users.keys())
     }) : undefined;
   } catch (err) {

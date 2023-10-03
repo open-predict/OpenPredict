@@ -1,9 +1,7 @@
 import SuperJSON from 'superjson';
-import { trpcc } from '../lib/trpc.js';
 import type { marketFulldata, pmMarketData } from '@am/backend/types/market';
 import type { TUser } from '@am/backend/types/user.js';
-
-export const ssr = false;
+import { browser } from '$app/environment';
 
 export type TBook = {
   asks: [number, number][];
@@ -26,6 +24,11 @@ export type TPageData = {
 }
 
 export async function load() {
+
+  const trpc = browser 
+    ? (await import("$lib/trpc.js")).trpcc 
+    : (await import("$lib/btrpc.js")).btrpc;
+
   var data: TPageData = {
     searchResponse: {
       opMarkets: {
@@ -40,7 +43,7 @@ export async function load() {
   }
 
   try {
-    data.searchResponse = (await trpcc.searchMarkets.query({
+    data.searchResponse = (await trpc.searchMarkets.query({
       term: "",
       limit: 10,
     }))

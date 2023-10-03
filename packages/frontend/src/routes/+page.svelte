@@ -11,7 +11,6 @@
 	import SearchButton from "$lib/elements/search_button.svelte";
 	import PolymarketCard from "$lib/components/polymarket_card.svelte";
 	import NoMarkets from "$lib/components/no_markets.svelte";
-	import { size } from "lodash";
 	export let data;
 
 	const { searchResponse } = SuperJSON.deserialize<TPageData>(data);
@@ -22,9 +21,8 @@
 	);
 
 	let pmBook = searchResponse.pmMarkets.books;
-	console.log(pmBook);
 
-	function updateMarket(i: number, m: marketFulldata) {
+	function updateMarket(i: number, m: any) {
 		markets[i] = m;
 		markets = markets;
 	}

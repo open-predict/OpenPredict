@@ -47,11 +47,6 @@
                             class="w-full flex justify-start gap-2 items-center overflow-x-scroll scrollbar_hide pr-20"
                         >
                             <Pill>
-                                <!-- <img
-                                    src={faker.image.avatar()}
-                                    alt="user"
-                                    class="w-3.5 h-3.5 rounded-full ring-white ring-1 ring-inset"
-                                /> -->
                                 <div
                                     class="w-3.5 h-3.5 rounded-full ring-white bg-blue-700 ring-1 ring-inset stroke-white p-1"
                                 >
@@ -130,39 +125,12 @@
                                 <span class="text-xs"> 14% </span>
                             </div>
                         </div>
-                        <!-- <button
-                            class="group/trade flex flex-col items-center justify-center rounded-l-md ring-1 ring-inset ring-neutral-800 bg-neutral-950 text-white font-semibold text-xs hover:bg-neutral-900"
-                        >
-                            <span
-                                class="text-[10px] flex justify-center items-center py-0.5 text-neutral-400 font-normal tracking-widest border-b border-neutral-800 w-full"
-                            >
-                                BUY
-                            </span>
-                            <span class="text-emerald-500 px-3 py-1">
-                                {"Yes"}
-                            </span>
-                        </button>
-                        <button
-                            class="group/trade flex flex-col items-center justify-center rounded-r-md ring-1 ring-inset ring-neutral-800 bg-neutral-950 text-white font-semibold text-xs hover:bg-neutral-900"
-                        >
-                            <span
-                                class="text-[10px] flex justify-center items-center py-0.5 text-neutral-400 font-normal tracking-widest border-b border-neutral-800 w-full"
-                            >
-                                BUY
-                            </span>
-                            <span class="text-red-500 px-3 py-1">
-                                {"No"}
-                            </span>
-                        </button> -->
                     </div>
                 </div>
-                <!-- <p
-                    class="w-full text-sm lg:text-md overflow-hidden line-clamp-3 whitespace-pre-wrap text-neutral-700 dark:text-neutral-400"
-                > -->
                 <p
-                    class="w-full text-sm lg:text-md break-words overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-400"
+                    class="w-full break-words text-sm lg:text-md overflow-hidden line-clamp-3 whitespace-pre-wrap text-neutral-700 dark:text-neutral-400"
                 >
-                    <!-- {Array.from(book?.entries() ?? new Map()).map((e) => )} -->
+                    {book?.size}
                 </p>
                 <div class="w-full flex flex-nowrap justify-start items-center">
                     <div class="flex flex-nowrap pl-4 p-1">

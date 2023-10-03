@@ -9,11 +9,11 @@
     import Links from "./links.svelte";
     import MobileBanner from "./mobile_banner.svelte";
     import MobileNavigation from "./mobile_navigation.svelte";
+    import Cookies from "js-cookie";
+    import ThemeToggle from "$lib/elements/theme_toggle.svelte";
 </script>
 
-<div
-    class="flex w-full min-h-full bg-gray-100 dark:bg-black"
->
+<div class="flex w-full min-h-full bg-gray-100 dark:bg-black">
     <!-- left column -->
     <header
         class="sticky top-0 hidden md:block md:w-1/12 lg:w-1/4 xl:w-3/10 max-h-screen bg-transparent"
@@ -22,7 +22,7 @@
             <!-- desktop navigation -->
             <a
                 href="/"
-                class="flex justify-center p-2.5 xl:pl-0 gap-1 lg:justify-start items-center h-16 border-b border-gray-200 dark:border-neutral-900										"
+                class="flex justify-center p-2.5 xl:pl-0 gap-1 lg:justify-start items-center h-16 border-b border-gray-200 dark:border-neutral-900"
             >
                 <div class="w-10 h-10 flex justify-center items-center">
                     <Logo size={32} />
@@ -39,6 +39,7 @@
             >
                 <Navigation />
                 <div class="mt-auto" />
+                <ThemeToggle />
                 <Links />
             </div>
             <div class="pr-8 py-4 pl-4 text-xs overflow-clip" />
@@ -49,7 +50,7 @@
     <!-- center column -->
     <div
         class={`h-auto w-full max-w-full md:w-6/12 lg:w-5/12 xl:w-4/10 bg-white dark:bg-black`}
-    >       
+    >
         <MobileBanner />
 
         <!-- main header -->
@@ -66,7 +67,7 @@
         <!-- main footer -->
         {#if $$slots["main-footer"]}
             <div
-                class="sticky bottom-16 md:bottom-0 h-16 w-full overflow-visible shadow-2xl border-r border-l border-gray-200 dark:border-neutral-900										"
+                class="sticky bottom-16 md:bottom-0 h-16 w-full overflow-visible shadow-2xl border-r border-l border-gray-200 dark:border-neutral-900"
             >
                 <slot name="main-footer" />
             </div>

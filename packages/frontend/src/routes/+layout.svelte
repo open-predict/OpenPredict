@@ -14,19 +14,6 @@
   import "@fontsource-variable/inter";
   import ToastsProvider from "$lib/toasts/toastsProvider.svelte";
 
-  if (
-    localStorage.theme === "dark" ||
-    (!("theme" in localStorage) &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches)
-  ) {
-    document.documentElement.classList.add("dark");
-  } else {
-    document.documentElement.classList.remove("dark");
-  }
-  // localStorage.theme = "light";
-  localStorage.theme = "dark";
-  // localStorage.removeItem("theme"); // to respect os preferences
-
   NProgress.configure({
     minimum: 0.16,
     showSpinner: false,
@@ -48,6 +35,32 @@
     window.global = window;
   }
 </script>
+
+<svelte:head>
+  <script lang="ts">
+		const theme = document.cookie
+			.split("; ")
+			.find((row) => row.startsWith("theme="))
+			?.split("=")[1];
+		switch (theme) {
+			case "dark":
+				document.documentElement.classList.add("dark");
+				break;
+			
+			case "light":
+				document.documentElement.classList.remove("dark");
+				break;
+		
+			default:
+				if(window.matchMedia("(prefers-color-scheme: dark)").matches){
+					document.documentElement.classList.add("dark");
+				} else {
+					document.documentElement.classList.remove("dark");
+				}
+				break;
+		}
+	</script>
+</svelte:head>
 
 <Web3Provider />
 <ToastsProvider />
