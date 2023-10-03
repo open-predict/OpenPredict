@@ -1,14 +1,14 @@
 import * as helia from "helia"
 import * as pb from './oppb.js'
 import base58 from 'bs58'
-import {extMarketChaindata, marketFulldata, marketMetadataSchemaV0, pmMarketData, profileChaindata} from '../types/market.js'
+import { extMarketChaindata, marketFulldata, marketMetadataSchemaV0, pmMarketData, profileChaindata } from '../types/market.js'
 import './globals.js'
 import * as multiformats from "multiformats"
-import {json as hJson, JSON as hJsonI} from "@helia/json"
-import {FsBlockstore} from 'blockstore-fs'
-import {FsDatastore} from 'datastore-fs'
-import {Mutex} from 'async-mutex'
-import {searchPmMarkets} from "./polymarket.js"
+import { json as hJson, JSON as hJsonI } from "@helia/json"
+import { FsBlockstore } from 'blockstore-fs'
+import { FsDatastore } from 'datastore-fs'
+import { Mutex } from 'async-mutex'
+import { searchPmMarkets } from "./polymarket.js"
 
 declare global {
   var _helia: any
@@ -35,14 +35,26 @@ export async function getHelia() {
   return globalThis.helia!;
 }
 
-export async function marketByAddress(amm_address: string): Promise<[marketFulldata, Map<string, {
-  username: string | null,
-}>] | null> {
+export async function marketByAddress(amm_address: string): Promise<{
+  market?: [marketFulldata, Map<string, { username: string | null }>] | null
+  pmMarket?: [pmMarketData, Map<string, {
+    asks: [number, number][];
+    bids: [number, number][];
+  }>] | null
+}> {
+  if (amm_address.startsWith("0x")) {
+    const data = globalThis.pmChainCache.markets.get(amm_address);
+    if (!data) {
+      return { pmMarket: null }
+    }
+    // TODO: filter so  that you only return relevant assetBooks
+    return { pmMarket: [data, globalThis.pmChainCache.assetBooks] }
+  }
   const data = chainCache.markets.get(amm_address)
   if (!data) {
-    return null
+    return { market: null }
   };
-  var users = new Map<string, {username: string | null}>
+  var users = new Map<string, { username: string | null }>
   users.set(data.data.OperatorKey.toBase58(), {
     username: globalThis.chainCache.usernames.get(data.data.OperatorKey.toBase58()) ?? null
   })
@@ -56,10 +68,12 @@ export async function marketByAddress(amm_address: string): Promise<[marketFulld
   const mfcid = multiformats.CID.decode(data.data.IPFS_Cid)
   const result = await helia.get(mfcid)
   const metadata = await marketMetadataSchemaV0.safeParseAsync(result);
-  return [{
-    data: data,
-    metadata: metadata.success ? metadata.data : null,
-  }, users]
+  return {
+    market: [{
+      data: data,
+      metadata: metadata.success ? metadata.data : null,
+    }, users]
+  }
 }
 
 export async function profileByUsername(username: string): Promise<profileChaindata | undefined> {

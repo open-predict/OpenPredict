@@ -684,8 +684,9 @@ export const appRouter = router({
     } else {
       return {
         resp: {
-          market: resp[0],
-          users: resp[1],
+          pmMarket: resp.pmMarket,
+          market: resp.market ? resp.market[0] : null,
+          users: resp.market ? resp.market[1] :  null,
         }
       }
     }
