@@ -19,42 +19,42 @@ export type TProfilePageData = {
 
 export async function load({ data: server_data, params }) {
 
-	const trpc = browser
-		? (await import("$lib/trpc.js")).trpcc 
-		: (await import("$lib/btrpc.js")).btrpc;
+	// const trpc = browser
+	// 	? (await import("$lib/trpc.js")).trpcc 
+	// 	: (await import("$lib/btrpc.js")).btrpc;
 
-	try {
+	// try {
 
-		const{ publicKey } = server_data
+	// 	const{ publicKey } = server_data
 
-		if (publicKey && publicKey.length < 32) {
-			redirect(300, "/profile")
-		}
+	// 	if (publicKey && publicKey.length < 32) {
+	// 		redirect(300, "/profile")
+	// 	}
 
-		const profileRes = !publicKey ? undefined : await trpc.getUser.query({
-			userId: [publicKey],
-		});
+	// 	const profileRes = !publicKey ? undefined : await trpc.getUser.query({
+	// 		userId: [publicKey],
+	// 	});
 
-		const profile = (publicKey && profileRes !== undefined) ? profileRes.get(publicKey) : undefined;
+	// 	const profile = (publicKey && profileRes !== undefined) ? profileRes.get(publicKey) : undefined;
 
-		const positions = !!publicKey ? await trpc.getMarketAccounts.query({
-			userId: publicKey,
-		}) : undefined;
+	// 	const positions = !!publicKey ? await trpc.getMarketAccounts.query({
+	// 		userId: publicKey,
+	// 	}) : undefined;
 
-		const markets = !!publicKey ? await trpc.getUserMarkets.query({
-			userId: publicKey,
-		}) : undefined;
+	// 	const markets = !!publicKey ? await trpc.getUserMarkets.query({
+	// 		userId: publicKey,
+	// 	}) : undefined;
 
-		const data: TProfilePageData = {
-			id: publicKey ?? null,
-			profile: profile,
-			positions: positions,
-			markets: markets
-		};
+	// 	const data: TProfilePageData = {
+	// 		id: publicKey ?? null,
+	// 		profile: profile,
+	// 		positions: positions,
+	// 		markets: markets
+	// 	};
 
-		return SuperJSON.serialize(data);
-	} catch (e) {
-		console.error(e);
-		return SuperJSON.serialize({ id: null })
-	}
+	// 	return SuperJSON.serialize(data);
+	// } catch (e) {
+	// 	console.error(e);
+	return SuperJSON.serialize({ id: null })
+	// }
 }

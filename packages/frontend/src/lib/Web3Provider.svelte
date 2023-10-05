@@ -12,7 +12,7 @@
     PUBLIC_POLYGON_RPC_URL,
   } from "$env/static/public";
   import { onMount } from "svelte";
-  import { trpcc } from "./trpc";
+  // import { trpcc } from "./trpc";
   import createConnection from "./createConnection";
   import { Errors, TxStatus, delay } from "./utils";
   import log from "$lib/log";
@@ -177,34 +177,35 @@
         return false;
       }
 
-      async function signProcess(publicKey: PublicKey) {
-        modalStore.openModal(Modal.backend_auth);
-        const challengeRes = await trpcc.getLoginChallenge.mutate({});
-        if (!challengeRes) throw new Error("no challenge in response");
-        await delay(1000);
-        const challenge = Buffer.from(challengeRes.challenge, "hex");
-        let signedMessage = await web3Sol.signMessage(challenge);
-        const loginResponse = await trpcc.login2.mutate({
-          message: [].slice.call(challenge, 0),
-          key: publicKey.toBase58(),
-          signature: Array.prototype.slice.call(signedMessage, 0),
-        });
-        modalStore.closeModal(Modal.backend_auth);
-        if (loginResponse.error !== null) {
-          throw loginResponse.error;
-        }
-        web3Store.updateAuthedWithBackend(true);
-      }
+      // async function signProcess(publicKey: PublicKey) {
+      //   modalStore.openModal(Modal.backend_auth);
+      //   const challengeRes = await trpcc.getLoginChallenge.mutate({});
+      //   if (!challengeRes) throw new Error("no challenge in response");
+      //   await delay(1000);
+      //   const challenge = Buffer.from(challengeRes.challenge, "hex");
+      //   let signedMessage = await web3Sol.signMessage(challenge);
+      //   const loginResponse = await trpcc.login2.mutate({
+      //     message: [].slice.call(challenge, 0),
+      //     key: publicKey.toBase58(),
+      //     signature: Array.prototype.slice.call(signedMessage, 0),
+      //   });
+      //   modalStore.closeModal(Modal.backend_auth);
+      //   if (loginResponse.error !== null) {
+      //     throw loginResponse.error;
+      //   }
+      //   web3Store.updateAuthedWithBackend(true);
+      // }
 
-      if ($web3Store?.authedWithBackend) {
-        const done = await request();
-        if (done) return true;
-        await signProcess(publicKey);
-        return await request();
-      } else {
-        await signProcess(publicKey);
-        return await request();
-      }
+      // if ($web3Store?.authedWithBackend) {
+      //   const done = await request();
+      //   if (done) return true;
+      //   await signProcess(publicKey);
+      //   return await request();
+      // } else {
+      //   await signProcess(publicKey);
+      //   return await request();
+      // }
+      return true;
     } catch (e) {
       modalStore.closeModal(Modal.backend_auth);
       log("error", FILE, e);
@@ -284,21 +285,23 @@
 
       onStatus(TxStatus.SENDING);
 
-      const { error, tx_id } = await trpcc.sendOpenPredictTransaction.query({
-        transaction: base58.encode(
-          signedTx.serialize({
-            requireAllSignatures: false,
-          })
-        ),
-      });
+      // const { error, tx_id } = await trpcc.sendOpenPredictTransaction.query({
+      //   transaction: base58.encode(
+      //     signedTx.serialize({
+      //       requireAllSignatures: false,
+      //     })
+      //   ),
+      // });
 
-      if (error || !tx_id) {
-        onError(new Error("Unable to send transaction: " + error!));
-        return;
-      }
+      // if (error || !tx_id) {
+      //   onError(new Error("Unable to send transaction: " + error!));
+      //   return;
+      // }
 
       onStatus(TxStatus.COMPLETE);
-      onComplete(1, tx_id);
+      // onComplete(1, tx_id);
+      onComplete(1, "fake_tx_hash")
+
     } catch (e: any) {
       log("error", FILE, e);
       if (e instanceof Error) {

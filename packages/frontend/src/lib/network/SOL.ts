@@ -5,7 +5,7 @@ import { Web3 } from "./web3"
 import { PUBLIC_FEE_PAYER_KEY, PUBLIC_SOLANA_RPC_URL, PUBLIC_USDC_MINT_ADDR } from "$env/static/public";
 import { SolanaWallet } from "@web3auth/solana-provider";
 import * as web3spl from "@solana/spl-token";
-import { trpcc } from "$lib/trpc";
+// import { trpcc } from "$lib/trpc";
 
 const usdcMintAddr = new PublicKey(PUBLIC_USDC_MINT_ADDR);
 const payerKey = new PublicKey(PUBLIC_FEE_PAYER_KEY);
@@ -77,18 +77,18 @@ export class SOL extends Web3 {
       );
       const account = await web3spl.getAccount(this.connection, accountPubKey);
     } catch (err: unknown) {
-      if (err instanceof web3spl.TokenAccountNotFoundError) {
-        const res = await trpcc.makeUsdcWallet.query({
-          user: pubKey.toBase58(),
-        });
-        if (res.error || !res.address) {
-          console.error("Unable to create USDC wallet", res.error);
-        } else {
-          return res.address as unknown as string
-        }
-      } else {
+      // if (err instanceof web3spl.TokenAccountNotFoundError) {
+      //   const res = await trpcc.makeUsdcWallet.query({
+      //     user: pubKey.toBase58(),
+      //   });
+      //   if (res.error || !res.address) {
+      //     console.error("Unable to create USDC wallet", res.error);
+      //   } else {
+      //     return res.address as unknown as string
+      //   }
+      // } else {
         console.error("Unable to create USDC wallet", err);
-      }
+      // }
     }
   }
 

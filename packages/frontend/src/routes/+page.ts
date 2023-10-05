@@ -1,55 +1,24 @@
-import SuperJSON from 'superjson';
-import type { marketFulldata, pmMarketData } from '@am/backend/types/market';
-import type { TUser } from '@am/backend/types/user.js';
-import { browser } from '$app/environment';
+import { searchMarkets, type TMarketWrapper } from '$lib/api';
+import { superjson } from '$lib/superjson';
 
-export type TBook = {
-  asks: [number, number][];
-  bids: [number, number][];
-}
-
-export type TBooks = Map<string, TBook>;
-
-export type TPageData = {
-  searchResponse: {
-    opMarkets: {
-      markets: marketFulldata[];
-      users: Map<string, TUser | null>;
-    },
-    pmMarkets: {
-      markets: pmMarketData[]
-      books: TBooks
-    }
-  }
-}
+export type TPageData = TMarketWrapper[]
 
 export async function load() {
 
-  const trpc = browser 
-    ? (await import("$lib/trpc.js")).trpcc 
-    : (await import("$lib/btrpc.js")).btrpc;
+  // const trpc = browser
+  //   ? (await import("$lib/trpc.js")).trpcc
+  //   : (await import("$lib/btrpc.js")).btrpc;
 
-  var data: TPageData = {
-    searchResponse: {
-      opMarkets: {
-        markets: [],
-        users: new Map(),
-      },
-      pmMarkets: {
-        markets: [],
-        books: new Map()
-      }
-    }
-  }
+  // try {
+  //   data.searchResponse = (await trpc.searchMarkets.query({
+  //     term: "",
+  //     limit: 10,
+  //   }))
+  // } catch (err) {
+  //   console.log("Couldn't search markets: ", err)
+  // }
 
-  try {
-    data.searchResponse = (await trpc.searchMarkets.query({
-      term: "",
-      limit: 10,
-    }))
-  } catch (err) {
-    console.log("Couldn't search markets: ", err)
-  }
-
-  return SuperJSON.serialize(data);
+  const response = await searchMarkets();
+  const data: TPageData = response;
+  return superjson.serialize(data);
 }

@@ -10,7 +10,7 @@
   import { web3Store } from "$lib/web3Store";
   import { USDC_PER_DOLLAR, usdFormatter } from "$lib/utils";
   import { PUBLIC_SOLANA_RPC_URL } from "$env/static/public";
-  import { trpcc } from "$lib/trpc";
+  // import { trpcc } from "$lib/trpc";
   import LoadingOverlay from "$lib/components/loading_overlay.svelte";
   // $: sol = $web3Store?.sol ? $web3Store.sol.toFixed(6) : 0;
   let microUsdc: number = 0;

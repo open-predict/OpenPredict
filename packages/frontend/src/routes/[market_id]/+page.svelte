@@ -4,7 +4,6 @@
     import { web3Workspace } from "$lib/web3Workspace";
     import { web3Store } from "$lib/web3Store";
     import { PublicKey } from "@solana/web3.js";
-    import { trpcc } from "$lib/trpc.js";
     import { Dialog, DialogOverlay } from "@rgossiaux/svelte-headlessui";
     import MarketCardLarge from "$lib/components/market_card_large.svelte";
     import SuperJSON from "superjson";
@@ -18,31 +17,17 @@
     import AccountSummary from "$lib/components/account_summary.svelte";
     import type { marketFulldata } from "@am/backend/types/market.js";
     import MainHeader from "$lib/components/header.svelte";
-    import PolymarketCard from "$lib/components/polymarket_card.svelte";
+    import PmMarketCard from "$lib/components/pm_market_card.svelte";
+    import OpMarketCard from "$lib/components/op_market_card.svelte";
+    import { superjson } from "$lib/superjson.js";
+    import PmMarketView from "$lib/components/pm_market_view.svelte";
+    import OpMarketView from "$lib/components/op_market_view.svelte";
 
     export let data;
 
-    let { id, pmMarket, market } =
-        SuperJSON.deserialize<TMarketIdPageData>(data);
+    let { id, pmMarket, opMarket } = superjson.deserialize<TMarketIdPageData>(data);
 
-    $: chance = market?.marketData
-        ? getChance(
-              market.marketData.data.data.Yes,
-              market.marketData.data.data.No
-          )
-        : 0.64;
-
-    console.log(pmMarket);
-
-    $: title =
-        market?.marketData?.metadata?.title ??
-        pmMarket?.data.question ??
-        "No title found";
-
-    $: description =
-        market?.marketData?.metadata?.description ??
-        pmMarket?.data.description ??
-        "No description found.";
+    $: title = opMarket?.metadata?.title ?? pmMarket?.data.question;
 
     enum Tabs {
         Comments = "comments",
@@ -60,19 +45,19 @@
     let comment = "";
 
     async function postComment() {
-        if ($web3Store.solanaAddress) {
-            const posted = await $web3Workspace.makeAuthenticatedRequest(() =>
-                trpcc.comment
-                    .mutate({
-                        ammAddress: id,
-                        content: comment,
-                    })
-                    .then((res) => !res?.error)
-                    .catch(() => false)
-            );
-            if (!posted) {
-                alert("comment not posted");
-            } else {
+        if ($web3Store?.solanaAddress) {
+            // const posted = await $web3Workspace.makeAuthenticatedRequest(() =>
+            //     trpcc.comment
+            //         .mutate({
+            //             ammAddress: id,
+            //             content: comment,
+            //         })
+            //         .then((res) => !res?.error)
+            //         .catch(() => false)
+            // );
+            // if (!posted) {
+            //     alert("comment not posted");
+            // } else {
                 alert("TODO: re-implement fe update");
                 // if (market) {
                 //     market.data.CommentCount = market.data.CommentCount + 1;
@@ -84,7 +69,7 @@
                 // });
                 // commentsRes = commentsRes; // svelte reactivity
                 // comment = "";
-            }
+            // }
         }
     }
 
@@ -101,9 +86,6 @@
 
     // $: createdAt = market?.data?.PriceHistory[0]?.At as Date | undefined;
 
-    const dateFormatter = new Intl.DateTimeFormat("en-US", {
-        dateStyle: "short",
-    });
 </script>
 
 <ColumnLayout>
@@ -114,7 +96,7 @@
             <p
                 class="text-black dark:text-white max-w-[14rem] overflow-hidden overflow-ellipsis"
             >
-                {title}
+                <!-- {title} -->
             </p>
         </div>
         <button
@@ -140,12 +122,12 @@
             </div>
         {/if}
     </div> -->
-    <div slot="main" class="min-h-full flex flex-col bg-neutral-950">
+    <div slot="main" class="min-h-full flex flex-col">
         {#if pmMarket}
-            <PolymarketCard market={pmMarket.data} book={pmMarket.book} />
+            <PmMarketView market={pmMarket} updateMarket={(m) => {}} />
         {/if}
-        {#if market && market.marketData && market.users}
-            <MarketCardLarge market={market.marketData} {updateMarket} />
+        {#if opMarket}
+            <OpMarketView market={opMarket} updateMarket={(m) => {}} />
         {/if}
         <!-- <div class="border-y">
             <nav class="flex space-x-8 -mb-px px-8">
@@ -261,7 +243,7 @@
         {/if} -->
     </div>
     <div slot="right" class="flex flex-col gap-2.5">
-        {#if market}
+        {#if opMarket}
             {#if $web3Store?.solanaAddress}
                 <div class="bg-white ring-1 rounded-3xl ring-gray-200">
                     <AccountSummary />

@@ -128,10 +128,10 @@ export type marketTradeChaindata = {
   slot: number,
   blockTime: number,
 
-  microUSDC: BigInt,
+  microUSDC: bigint,
   direction: Boolean,
-  expectedShares: BigInt,
-  drift: BigInt,
+  expectedShares: bigint,
+  drift: bigint,
 }
 
 export type profileChaindata = {

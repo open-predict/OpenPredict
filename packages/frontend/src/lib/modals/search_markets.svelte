@@ -5,7 +5,7 @@
     import IconPackageOff from "@tabler/icons-svelte/dist/svelte/icons/IconPackageOff.svelte";
     import { Modal, modalStore } from "$lib/modals/modalStore";
     import { Spinner } from "flowbite-svelte";
-    import { trpcc } from "$lib/trpc";
+    // import { trpcc } from "$lib/trpc";
     import { goto } from "$app/navigation";
     import { draftsStore } from "$lib/marketDraftStore";
     import debounce from "lodash/debounce.js";
@@ -19,10 +19,10 @@
 
     $: searchDebounce(searchTerm);
 
-    $: result = trpcc.searchMarkets.query({
-        term: debouncedSearchTerm,
-        limit: 20,
-    }).then(v => v.opMarkets);
+    // $: result = trpcc.searchMarkets.query({
+    //     term: debouncedSearchTerm,
+    //     limit: 20,
+    // }).then(v => v.opMarkets);
 </script>
 
 <Dialog
@@ -46,7 +46,7 @@
             bind:value={searchTerm}
             class="h-16 w-full bg-transparent outline-none pl-14 pr-4 pt-1 text-gray-900 placeholder:text-gray-400 text-md"
         />
-        <div class="overflow-y-auto flex-1 divide-y divide-gray-200">
+        <!-- <div class="overflow-y-auto flex-1 divide-y divide-gray-200">
             {#await result}
                 <div
                     class="p-2 py-10 gap-1 flex items-center justify-center text-gray-400 text-sm bg-gray-100"
@@ -92,7 +92,7 @@
                     <p>{"Error: " + err}</p>
                 </div>
             {/await}
-        </div>
+        </div> -->
         <div class="p-2">
             <button
                 on:click={() => goto("/drafts/" + draftsStore.createDraft())}

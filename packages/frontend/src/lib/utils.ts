@@ -44,7 +44,7 @@ export const solFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 9,
 });
 
-export const shortDateFormatter = new Intl.DateTimeFormat("en-US", {
+export const dateFormatter = new Intl.DateTimeFormat("en-US", {
   timeStyle: "short",
   dateStyle: "short",
 });

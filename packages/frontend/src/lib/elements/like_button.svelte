@@ -1,26 +1,49 @@
 <script lang="ts">
-    import { web3Workspace } from "$lib/web3Workspace";
     import { web3Store } from "$lib/web3Store";
     import type { marketFulldata } from "@am/backend/types/market";
     import IconHeart from "@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte";
     import { Modal, modalStore } from "$lib/modals/modalStore";
-    import { trpcc } from "../trpc";
-    import { PublicKey } from "@solana/web3.js";
-    export let market: marketFulldata | undefined;
-    export let updateMarket: (market: marketFulldata) => void;
+    import type { TPmMarket } from "$lib/types";
+    import { api } from "$lib/api";
+    import { clone } from "lodash";
+    export let opMarket: marketFulldata | undefined = undefined;
+    export let pmMarket: TPmMarket | undefined = undefined;
+    export let updateMarket: (market?: marketFulldata | TPmMarket) => void;
 
-    const liked = false;
-    // $: liked = $web3Store?.solanaAddress
-    //     ? market.data.Likes.has($web3Store.solanaAddress)
-    //     : undefined;
+    function checkIds(
+        ids: (string | undefined | null)[],
+        opMarket?: marketFulldata,
+        pmMarket?: TPmMarket
+    ): boolean {
+        let liked = false;
+        for (const id of ids) {
+            if (
+                id &&
+                ((opMarket && opMarket.data.Likes.has(id)) ||
+                    (pmMarket && pmMarket.subgraph.likes.includes(id)))
+            ) {
+                liked = true;
+            }
+        }
+        return liked;
+    }
+
+    $: liked = checkIds(
+        [$web3Store?.polygonAddress, $web3Store?.solanaAddress],
+        opMarket,
+        pmMarket
+    );
+    $: likes = opMarket
+        ? opMarket.data.Likes.size
+        : pmMarket
+        ? pmMarket.subgraph.likes.length
+        : 0;
 
     async function like() {
-        //     const newState = !liked;
-
-        //     if (!$web3Store.solanaAddress) {
-        //         modalStore.openModal(Modal.login);
-        //         return;
-        //     }
+        if (!$web3Store?.solanaAddress) {
+            modalStore.openModal(Modal.login);
+            return;
+        }
 
         //     const done = await $web3Workspace.makeAuthenticatedRequest(() =>
         //         trpcc.like
@@ -38,13 +61,31 @@
         //         alert("Unable to like or unlike this market.");
         //         return;
         //     }
-        //     if (newState) {
-        //         market.data.Likes.add($web3Store.solanaAddress);
-        //     } else {
-        //         market.data.Likes.delete($web3Store.solanaAddress);
-        //     }
-        if (false) {
-            updateMarket(market as marketFulldata);
+
+        const likeResponse = await api.recordLike($web3Store.solanaAddress);
+        if (!likeResponse) alert("Unable to like market, please try again.");
+
+        const newState = !liked;
+
+        if (opMarket) {
+            const newMarket = clone(opMarket);
+            if (newState) {
+                newMarket.data.Likes.add($web3Store.solanaAddress);
+            } else {
+                newMarket.data.Likes.delete($web3Store.solanaAddress);
+            }
+            updateMarket(newMarket);
+        } else if (pmMarket) {
+            const newMarket = clone(pmMarket);
+            if (newState) {
+                newMarket.subgraph.likes.push($web3Store.solanaAddress);
+            } else {
+                const newLikes = newMarket.subgraph.likes.filter(
+                    (l) => l !== $web3Store.solanaAddress
+                );
+                newMarket.subgraph.likes = newLikes;
+            }
+            updateMarket(newMarket);
         }
     }
 </script>
@@ -64,5 +105,5 @@
         }`}
         size={20}
     />
-    {market?.data.Likes.size ?? 0}
+    {likes}
 </button>

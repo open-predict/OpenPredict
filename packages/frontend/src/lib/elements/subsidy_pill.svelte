@@ -1,0 +1,34 @@
+<script lang="ts">
+    import IconSubsidy from "@tabler/icons-svelte/dist/svelte/icons/IconMoneybag.svelte";
+    import type { marketFulldata } from "@am/backend/types/market";
+    import Pill from "$lib/elements/pill.svelte";
+    import { USDC_PER_DOLLAR, usdFormatter } from "$lib/utils";
+    import type { TPmMarket } from "$lib/types";
+
+    export let opMarket: marketFulldata | undefined = undefined;
+    export let pmMarket: TPmMarket | undefined = undefined;
+
+    function getOpSubsidy(market: marketFulldata) {
+        return market.data.data.Subsidy / BigInt(USDC_PER_DOLLAR);
+    }
+
+    function getPmSubsidy(market: TPmMarket) {
+        return null;
+    }
+
+    $: subsidy = opMarket
+        ? getOpSubsidy(opMarket)
+        : pmMarket
+        ? getPmSubsidy(pmMarket)
+        : null;
+    $: subsidyDisplay = subsidy ? usdFormatter.format(subsidy) : null;
+</script>
+
+{#if subsidyDisplay}
+    <Pill>
+        <IconSubsidy size={14} class="text-yellow-300" />
+        <span>
+            {`${subsidyDisplay}`}
+        </span>
+    </Pill>
+{/if}

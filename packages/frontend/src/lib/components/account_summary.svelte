@@ -9,9 +9,10 @@
   import IconCoins from "@tabler/icons-svelte/dist/svelte/icons/IconCoins.svelte";
   import IconLoader from "@tabler/icons-svelte/dist/svelte/icons/IconLoader.svelte";
   import { web3Workspace } from "$lib/web3Workspace";
-  import { trpcc } from "$lib/trpc";
+  // import { trpcc } from "$lib/trpc";
   import { onMount } from "svelte";
   import { PublicKey } from "@solana/web3.js";
+    import { getMarketAccounts } from "$lib/api";
 
   let loading = false;
 
@@ -23,20 +24,21 @@
   }> {
     let ret = { active: 0, redeemable: 0 };
     if (!$web3Store.solanaAddress) return ret;
-    const positions = await trpcc.getMarketAccounts.query({
-      userId: $web3Store.solanaAddress,
-    });
-    positions.forEach((p) => {
-      const us = getUserShares(
-        p.market.data,
-        new PublicKey($web3Store.solanaAddress as string)
-      );
-      if (p.market.data.data.Resolved) {
-        ret.redeemable = ret.redeemable + us.valueCents;
-      } else {
-        ret.active = ret.active + us.valueCents;
-      }
-    });
+    // const positions = await trpcc.getMarketAccounts.query({
+    //   userId: $web3Store.solanaAddress,
+    // });
+    const positions = await getMarketAccounts($web3Store.solanaAddress);
+    // positions.forEach((p) => {
+    //   const us = getUserShares(
+    //     p.market.data,
+    //     new PublicKey($web3Store.solanaAddress as string)
+    //   );
+    //   if (p.market.data.data.Resolved) {
+    //     ret.redeemable = ret.redeemable + us.valueCents;
+    //   } else {
+    //     ret.active = ret.active + us.valueCents;
+    //   }
+    // });
     return ret;
   }
 

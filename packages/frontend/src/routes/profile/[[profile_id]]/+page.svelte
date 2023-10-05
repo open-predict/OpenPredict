@@ -14,7 +14,7 @@
         getChance,
         USDC_PER_DOLLAR,
     } from "$lib/utils";
-    import { trpcc } from "$lib/trpc.js";
+    // import { trpcc } from "$lib/trpc.js";
     import SuperJSON from "superjson";
     import MarketCardSmall from "$lib/components/market_card_small.svelte";
     import { Modal, modalStore } from "$lib/modals/modalStore.js";
@@ -65,9 +65,9 @@
 
     async function checkUsername(un: string): Promise<void> {
         if(!un) return;
-        usernameTaken = await trpcc.checkUsername.query({
-            name: un
-        })
+        // usernameTaken = await trpcc.checkUsername.query({
+        //     name: un
+        // })
     }
 
     async function refreshProfile() {
@@ -85,21 +85,21 @@
             if(browser) goto("/")
             return;
         }
-        const profileRes = await trpcc.getUser.query({
-            userId: [id],
-        });
+        // const profileRes = await trpcc.getUser.query({
+        //     userId: [id],
+        // });
 
-        profile = await profileRes.get(id);
-        name = profile?.metadata.name ?? "";
-        description = profile?.metadata.description ?? "";
-        username = profile?.username ?? "";
+        // profile = await profileRes.get(id);
+        // name = profile?.metadata.name ?? "";
+        // description = profile?.metadata.description ?? "";
+        // username = profile?.username ?? "";
 
-        positions = await trpcc.getMarketAccounts.query({
-            userId: id,
-        });
-        markets = await trpcc.getUserMarkets.query({
-            userId: id,
-        });
+        // positions = await trpcc.getMarketAccounts.query({
+        //     userId: id,
+        // });
+        // markets = await trpcc.getUserMarkets.query({
+        //     userId: id,
+        // });
     }
     
     async function saveProfile(initUsername: boolean = false) {
@@ -118,51 +118,51 @@
 
         loadingMessage = "Saving with IPFS...";
 
-        const ipfsResponse = await trpcc.storeUserProfileIpfs.mutate({
-            version: 0,
-            links: [],
-            description: description,
-            name: name,
-        });
+        // const ipfsResponse = await trpcc.storeUserProfileIpfs.mutate({
+        //     version: 0,
+        //     links: [],
+        //     description: description,
+        //     name: name,
+        // });
 
         loadingMessage = "Preparing instructions...";
 
-        const instructions = await createProfileInstruction(
-            new PublicKey(solanaAddress),
-            initUsername ? username : (profile?.username as string),
-            new PublicKey(PUBLIC_MAIN_PROGRAM_ID),
-            ipfsResponse.cid
-        );
+        // const instructions = await createProfileInstruction(
+        //     new PublicKey(solanaAddress),
+        //     initUsername ? username : (profile?.username as string),
+        //     new PublicKey(PUBLIC_MAIN_PROGRAM_ID),
+        //     ipfsResponse.cid
+        // );
 
-        await $web3Workspace.handleTransaction(
-            [instructions],
-            (s) => {
-                switch (s) {
-                    case TxStatus.SIGNING:
-                        loadingMessage = "Signing transaction...";
-                        break;
-                    case TxStatus.SENDING:
-                        loadingMessage = "Sending transaction...";
-                        break;
-                    case TxStatus.CONFIRMING:
-                        loadingMessage = "Confirming transaction...";
-                }
-            },
-            async (h, s) => {
-                await refreshProfile();
-                loadingMessage = "";
-                completedMessage = "Profile saved!";
-            },
-            (e) => {
-                loadingMessage = "";
-                if (e instanceof Error) {
-                    errorMessage = e.message;
-                } else {
-                    errorMessage =
-                        "Couldn't save your profile. Please try again.";
-                }
-            }
-        );
+        // await $web3Workspace.handleTransaction(
+        //     [instructions],
+        //     (s) => {
+        //         switch (s) {
+        //             case TxStatus.SIGNING:
+        //                 loadingMessage = "Signing transaction...";
+        //                 break;
+        //             case TxStatus.SENDING:
+        //                 loadingMessage = "Sending transaction...";
+        //                 break;
+        //             case TxStatus.CONFIRMING:
+        //                 loadingMessage = "Confirming transaction...";
+        //         }
+        //     },
+        //     async (h, s) => {
+        //         await refreshProfile();
+        //         loadingMessage = "";
+        //         completedMessage = "Profile saved!";
+        //     },
+        //     (e) => {
+        //         loadingMessage = "";
+        //         if (e instanceof Error) {
+        //             errorMessage = e.message;
+        //         } else {
+        //             errorMessage =
+        //                 "Couldn't save your profile. Please try again.";
+        //         }
+        //     }
+        // );
     }
 </script>
 

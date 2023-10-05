@@ -22,7 +22,7 @@ export type TWeb3Store = {
     solanaBalance?: bigint,
     polygonBalance?: bigint,
     polyClobApiKeys?: ApiKeyCreds;
-}
+} | undefined;
 
 export const web3StoreLsKey = 'wallet_state';
 const FILE = "web3Store";

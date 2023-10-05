@@ -1,15 +1,12 @@
 <script lang="ts">
-    import { shortDateFormatter } from "$lib/utils";
     import type { marketPricePoint } from "@am/backend/types/market";
     import {
         line,
         curveLinear,
         Delaunay,
         Voronoi,
-        pointer,
         range,
         area,
-        bisector,
         scaleLinear,
         scaleUtc,
         type ScaleTime,
@@ -17,6 +14,7 @@
     } from "d3";
 
     import { PriceHistoryTerm, resample } from "./utils";
+    import { dateFormatter } from "$lib/utils";
 
     export let priceData: marketPricePoint[] = [];
     export let term: PriceHistoryTerm = PriceHistoryTerm.ALL;
@@ -260,7 +258,7 @@
                                 : undefined}
                             class="fill-gray-700 text-sm font-mono w-14"
                         >
-                            {`${shortDateFormatter.format(
+                            {`${dateFormatter.format(
                                 points[dotInfo[1]].x
                             )}`}
                         </text>

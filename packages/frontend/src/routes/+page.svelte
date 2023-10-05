@@ -1,43 +1,29 @@
 <script lang="ts">
+	import type { TPageData } from "./+page";
 	import ColumnLayout from "$lib/components/column_layout.svelte";
-	import MarketCardMedium from "$lib/components/market_card_medium.svelte";
-	import { PublicKey } from "@solana/web3.js";
+	import MarketCardMedium from "$lib/components/op_market_card.svelte";
 	import AccountSummary from "$lib/components/account_summary.svelte";
 	import { web3Store } from "$lib/web3Store";
-	import type { TBook, TBooks, TPageData } from "./+page";
-	import type { marketFulldata, pmTokenData } from "@am/backend/types/market";
-	import SuperJSON, { stringify } from "superjson";
 	import MainHeader from "$lib/components/header.svelte";
 	import SearchButton from "$lib/elements/search_button.svelte";
-	import PolymarketCard from "$lib/components/polymarket_card.svelte";
+	import PolymarketCard from "$lib/components/pm_market_card.svelte";
 	import NoMarkets from "$lib/components/no_markets.svelte";
+	import { superjson } from "$lib/superjson";
+	import OpMarketCard from "$lib/components/op_market_card.svelte";
+	import PmMarketCard from "$lib/components/pm_market_card.svelte";
+	import type { TPmMarket } from "$lib/types";
+	import type { marketFulldata } from "@am/backend/types/market";
+
 	export let data;
+	const markets = superjson.deserialize<TPageData>(data);
+	markets.sort((a, b) => Number(a.volume - b.volume));
 
-	const { searchResponse } = SuperJSON.deserialize<TPageData>(data);
-	let markets = searchResponse.opMarkets.markets;
-	let users = searchResponse.opMarkets.users;
-	let pmMarkets = searchResponse.pmMarkets.markets.filter(
-		(m) => m.active && m.accepting_orders
-	);
-
-	let pmBook = searchResponse.pmMarkets.books;
-
-	function updateMarket(i: number, m: any) {
-		markets[i] = m;
-		markets = markets;
-	}
-
-	let count = 0;
-
-	function getBooks(book: TBooks, tokens: pmTokenData[], i: number): TBooks {
-		const booker = tokens.reduce((result, token) => {
-			if (book.has(token.token_id)) {
-				count++;
-				result.set(token.token_id, book.get(token.token_id) as TBook);
-			}
-			return result;
-		}, new Map<string, TBook>());
-		return booker;
+	function updateMarket(
+		id: string,
+		market: TPmMarket | marketFulldata | undefined
+	) {
+		// markets[i] = m;
+		// markets = markets;
 	}
 </script>
 
@@ -55,34 +41,20 @@
 		class="divide-y w-full max-w-full divide-gray-200 dark:divide-neutral-900"
 	>
 		<!-- <IntroCard /> -->
-		{#each pmMarkets.reverse() as market, i}
-			{#if getBooks(pmBook, market.tokens, i).size > 0}
-				<PolymarketCard
-					{market}
-					book={getBooks(pmBook, market.tokens, i)}
+		{#each markets as market}
+			{#if market.opMarket}
+				<OpMarketCard
+					market={market.opMarket}
+					updateMarket={(m) => updateMarket(market.id, m)}
+				/>
+			{:else if market.pmMarket}
+				<PmMarketCard
+					market={market.pmMarket}
+					updateMarket={(m) => updateMarket(market.id, m)}
 				/>
 			{/if}
 		{/each}
-		{#each markets as market, i}
-			<div class="bg-white">
-				<a
-					href={`/${new PublicKey(
-						market.data.data.AmmAddress
-					).toBase58()}`}
-				>
-					<MarketCardMedium
-						{market}
-						creator={users.get(
-							new PublicKey(
-								market.data.data.OperatorKey
-							).toBase58()
-						) ?? undefined}
-						updateMarket={(m) => updateMarket(i, m)}
-					/>
-				</a>
-			</div>
-		{/each}
-		{#if markets.length === 0 && pmMarkets.length === 0}
+		{#if markets.length === 0}
 			<NoMarkets />
 			<div />
 		{/if}
