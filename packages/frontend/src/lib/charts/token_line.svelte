@@ -44,20 +44,20 @@
               data: resamplePmPriceHistory(e[1].priceHistory, term),
           }))
         : undefined;
-    $: xScaledDotInfo = dotInfo ? xScale(points[0][dotInfo[1]].x) : undefined;
+    $: xScaledDotInfo = dotInfo ? xScale(tokenPoints[0][dotInfo[1]].x) : undefined;
 
     let dotInfo: [number, number, any] | null,
         lines: {
             area: string | null;
             line: string | null;
         }[],
-        points: { x: Date; y: number }[][] = [],
+        tokenPoints: { x: Date; y: number }[][] = [],
         xDomain: Date[],
         yDomain: number[],
         xScale: ScaleTime<number, number, never>,
         yScale: ScaleLinear<number, number, never>,
-        pointsScaled: ArrayLike<any>,
-        voronoiGrid: Voronoi<Delaunay.Point>,
+        tokenPointsScaled: ArrayLike<any>[],
+        voronoiGrid: Voronoi<Delaunay.Point>[],
         xTicks: Date[],
         xTicksFormatted: string[],
         yTicks: number[],
@@ -67,7 +67,8 @@
         try {
             if (!tokenData) return;
             lines = [];
-            points = [];
+            tokenPoints = [];
+            tokenPointsScaled = [];
             let i = 0;
             for (const { id, data } of tokenData) {
                 if (data.length === 0) return;
@@ -94,14 +95,14 @@
                 const gaps = (d: any, i: any) =>
                     xVals[i] instanceof Date && !isNaN(yVals[i]);
 
-                points.push(
+                tokenPoints.push(
                     data.map((el) => ({
                         x: el.date,
                         y: el.price,
                     }))
                 );
 
-                const cleanData = points[i].map(gaps);
+                const cleanData = tokenPoints[i].map(gaps);
                 const chartLine = line()
                     .defined((i: any) => cleanData[i])
                     .curve(curve)
@@ -120,12 +121,17 @@
                 const newArea = chartArea(I);
                 lines.push({ line: newLine, area: newArea });
 
-                pointsScaled = points[i].map((el) => [
-                    xScale(el.x),
-                    yScale(el.y),
-                ]);
-                const delaunayGrid = Delaunay.from(pointsScaled);
-                voronoiGrid = delaunayGrid.voronoi([0, 0, width, height]);
+                for (const points of tokenPoints) {
+                    const pointsScaled: ArrayLike<any> = points.map((el) => [
+                        xScale(el.x),
+                        yScale(el.y),
+                    ]);
+                    tokenPointsScaled.push(pointsScaled);
+                    const delaunayGrid = Delaunay.from(pointsScaled);
+                    voronoiGrid.push(
+                        delaunayGrid.voronoi([0, 0, width, height])
+                    );
+                }
 
                 xTicks = xScale.ticks(xScalefactor);
 
@@ -159,7 +165,7 @@
                 <g class="chartlines" pointer-events="none">
                     {#if dotInfo}
                         <path
-                            class={points[i][dotInfo[1]].y > 49.9
+                            class={tokenPoints[i][dotInfo[1]].y > 49.9
                                 ? "stroke-emerald-400"
                                 : "stroke-red-600"}
                             fill="none"
@@ -170,30 +176,30 @@
                         />
                         <g>
                             <rect
-                                x={xScale(points[i][dotInfo[1]].x) - 20}
-                                y={yScale(points[i][dotInfo[1]].y) - 30}
+                                x={xScale(tokenPoints[i][dotInfo[1]].x) - 20}
+                                y={yScale(tokenPoints[i][dotInfo[1]].y) - 30}
                                 width="40"
                                 height="22"
                                 rx="10"
                                 class="fill-indigo-800"
                             />
                             <text
-                                x={xScale(points[i][dotInfo[1]].x) - 8}
-                                y={yScale(points[i][dotInfo[1]].y) - 13}
+                                x={xScale(tokenPoints[i][dotInfo[1]].x) - 8}
+                                y={yScale(tokenPoints[i][dotInfo[1]].y) - 13}
                                 font-size="14"
                                 fill="white"
                             >
-                                {points[i][dotInfo[1]].y}
+                                {tokenPoints[i][dotInfo[1]].y}
                             </text>
                         </g>
                         <circle
                             r={6}
-                            class={points[i][dotInfo[1]].y > 49.9
+                            class={tokenPoints[i][dotInfo[1]].y > 49.9
                                 ? "fill-emerald-400 stroke-neutral-950"
                                 : "fill-red-600 stroke-neutral-950"}
                             stroke-width={5}
-                            cx={xScale(points[i][dotInfo[1]].x)}
-                            cy={yScale(points[i][dotInfo[1]].y)}
+                            cx={xScale(tokenPoints[i][dotInfo[1]].x)}
+                            cy={yScale(tokenPoints[i][dotInfo[1]].y)}
                         />
                     {:else}
                         <path
@@ -254,7 +260,7 @@
                                 : undefined}
                             class="fill-gray-700 text-sm font-mono w-14"
                         >
-                            {`${dateFormatter.format(points[0][dotInfo[1]].x)}`}
+                            {`${dateFormatter.format(tokenPoints[0][dotInfo[1]].x)}`}
                         </text>
                     </g>
                 {/if}
@@ -270,15 +276,17 @@
                     </g>
                 {/each}
             </g>
-            {#each pointsScaled as point, i}
-                <path
-                    stroke="none"
-                    fill-opacity="0"
-                    class="voronoi-cell"
-                    d={voronoiGrid.renderCell(i)}
-                    on:mouseover={(e) => handleFocusMouse(e, i, point)}
-                    on:focus={(e) => handleFocusMouse(e, i, point)}
-                />
+            {#each tokenPointsScaled as pointsScaled, i}
+                {#each pointsScaled as point, j}
+                    <path
+                        stroke="none"
+                        fill-opacity="0"
+                        class="voronoi-cell"
+                        d={voronoiGrid[i].renderCell(j)}
+                        on:mouseover={(e) => handleFocusMouse(e, j, point)}
+                        on:focus={(e) => handleFocusMouse(e, j, point)}
+                    />
+                {/each}
             {/each}
         </svg>
     {/if}
@@ -298,16 +306,6 @@
         </button>
     {/each}
 </nav>
-
-<!-- {#if dotInfo}
-    <div
-        class="absolute bg-black rounded-full p-1 text-white flex justify-center items-center text-[10px] font-mono pointer-events-none shadow-md"
-        style="left:{dotInfo[0].clientX}px; top:{dotInfo[2].clientY +5}px;"
-    >
-        {points[dotInfo[1]].y}{yFormat}
-        {dotInfo[0].clientX}
-    </div>
-{/if} -->
 
 <style>
     svg {

@@ -13,6 +13,7 @@
 	import { api } from "$lib/api";
 	import { onMount, tick } from "svelte";
 	import type { pmMarketFulldata } from "$lib/types";
+    import MobileMenuButton from "$lib/elements/mobile_menu_button.svelte";
 
 	export let data;
 	$: markets = superjson.deserialize<TPageData>(data);
@@ -76,7 +77,10 @@
 
 <ColumnLayout>
 	<MainHeader slot="main-header">
-		<SearchButton />
+		<SearchButton slot="center" />
+		<div slot="right" class="md:hidden">
+			<MobileMenuButton />
+		</div>
 	</MainHeader>
 	<div
 		slot="main"

@@ -47,7 +47,6 @@
             if (target) observer.unobserve(target);
         }
     });
-
 </script>
 
 <div id="scroll_top_indicator" />
@@ -61,8 +60,8 @@
             <Logo slot="fallback" />
         </BackButton>
     </div>
-    <slot />
-    <div class="w-1/5 flex justify-end items-center md:hidden">
-        <MobileMenuButton />
+    <slot name="center" />
+    <div class={`w-1/5 flex justify-end items-center md:w-auto`}>
+        <slot name="right" />
     </div>
 </div>

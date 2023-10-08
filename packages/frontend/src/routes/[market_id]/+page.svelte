@@ -24,6 +24,8 @@
     import OpMarketView from "$lib/components/op_market_view.svelte";
     import { api, type TMarketWrapper } from "$lib/api.js";
     import { onMount } from "svelte";
+    import ShareButton from "$lib/elements/share_button.svelte";
+    import LikeButton from "$lib/elements/like_button.svelte";
 
     export let data;
 
@@ -109,7 +111,7 @@
 
 <ColumnLayout>
     <MainHeader slot="main-header">
-        <div
+        <!-- <div
             class="text-sm w-full flex flex-col justify-center items-center line-clamp-1 overflow-ellipsis"
         >
             <p
@@ -117,13 +119,11 @@
             >
                 {title}
             </p>
+        </div> -->
+        <div slot="right" class="flex">
+            <ShareButton {pmMarket} {opMarket} updateMarket={(m) => {}} />
+            <LikeButton {pmMarket} {opMarket} updateMarket={(m) => {}} />
         </div>
-        <button
-            class="action_icon"
-            on:click={() => navigator.clipboard.writeText(window.location.href)}
-        >
-            <IconLink stroke={1.5} size={20} />
-        </button>
     </MainHeader>
     <!-- <div
         slot="main-footer"

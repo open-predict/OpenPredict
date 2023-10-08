@@ -20,6 +20,8 @@
     import { tokenize } from "protobufjs";
     import type { pmMarketFulldata, pmTokenOrderdata } from "$lib/types";
     import TokenChart from "$lib/charts/token_chart.svelte";
+    import { image } from "d3";
+    import { Avatar } from "flowbite-svelte";
     export let market: pmMarketFulldata;
     export let updateMarket: (
         market?: marketFulldata | pmMarketFulldata
@@ -85,49 +87,53 @@
         >
             {market.data.question}
         </h2>
-        <div class="flex-grow flex ml-auto justify-end items-center">
+        <!-- <div class="flex-grow flex ml-auto justify-end items-center">
             <ShareButton pmMarket={market} {updateMarket} />
             <LikeButton pmMarket={market} {updateMarket} />
-        </div>
+        </div> -->
     </div>
-    <div class="w-full flex justify-between items-center flex-nowrap gap-2">
-        <div class="w-full flex justify-start gap-2 items-center">
-            <VolumePill pmMarket={market} />
-            <SubsidyPill pmMarket={market} />
-            <Pill>
-                <IconLiquidity size={14} class="text-indigo-500" />
-                {`$298`}
-            </Pill>
-            <Pill>
-                <IconUser size={14} class="text-sky-500" />
-                {`${Array.from(market.tokeOrderdata.values()).reduce(
-                    (acc, val) => {
-                        acc += val.positions.length;
-                        return acc;
-                    },
-                    0
-                )}`}
-            </Pill>
-            <div class="ml-auto" />
-            <Pill>
-                <IconCal size={14} class="text-red-500" />
-                {`${new Date(market.data.end_date_iso).toLocaleDateString(
-                    "en-us",
-                    {
-                        year: "numeric",
-                        month: "numeric",
-                        day: "numeric",
-                    }
-                )}`}
-            </Pill>
-        </div>
+    <div class="w-full flex items-center flex-nowrap gap-2">
+        <Pill>
+            <div
+                class="w-4 h-4 rounded-full ring-neutral-400 bg-blue-700 ring-1 ring-inset stroke-white p-1"
+            >
+                <PolymarketLogo />
+            </div>
+            <span>
+                {"Polymarket"}
+            </span>
+        </Pill>
+        
+        <VolumePill pmMarket={market} />
+        <SubsidyPill pmMarket={market} />
+        <Pill>
+            <IconLiquidity size={14} class="text-indigo-500" />
+            {`$298`}
+        </Pill>
+        <Pill>
+            <IconUser size={14} class="text-sky-500" />
+            {`${Array.from(market.tokeOrderdata.values()).reduce((acc, val) => {
+                acc += val.positions.length;
+                return acc;
+            }, 0)}`}
+        </Pill>
+        <Pill>
+            <IconCal size={14} class="text-red-500" />
+            {`${new Date(market.data.end_date_iso).toLocaleDateString("en-us", {
+                year: "numeric",
+                month: "numeric",
+                day: "numeric",
+            })}`}
+        </Pill>
+        <div class="ml-auto" />
     </div>
-    <div
-        class="my-2 rounded-lg bg-neutral-950"
-    >
-        <TokenChart pmTokenOrderdata={market.tokeOrderdata} />
+    <div class="my-2">
+        <TokenChart
+            pmTokenOrderdata={market.tokeOrderdata}
+            tokenMetadata={market.data.tokens}
+        />
     </div>
-    <div class="w-full flex items-start justify-start my-2">
+    <!-- <div class="w-full flex items-start justify-start my-2">
         <div
             class="flex w-full align-top gap-4 justify-start items-start flex-nowrap"
         >
@@ -135,8 +141,8 @@
                 <h2 class="text-md lg:text-3xl font-bold text-white">68%</h2>
             </div>
         </div>
-    </div>
-    <div class="flex flex-col gap-2 mb-8">
+    </div> -->
+    <div class="flex flex-col gap-2 mb-8 mt-4">
         <h4 class="text-xl font-medium text-neutral-200">Description</h4>
         <div class="w-full border-t border-neutral-900 mb-2" />
         <p
@@ -274,11 +280,9 @@
         </p>
     </div>
     <div class="flex flex-col gap-2 mb-8">
-        <div class="flex  justify-between items-end">
+        <div class="flex justify-between items-end">
             <h4 class="text-xl font-medium text-neutral-200">Holders</h4>
-            <span class="text-neutral-400 text-sm">
-                View trades
-            </span>
+            <span class="text-neutral-400 text-sm"> View trades </span>
         </div>
         <div class="w-full border-t border-neutral-900 mb-2" />
         <p
@@ -288,7 +292,7 @@
         </p>
     </div>
     <div class="flex flex-col gap-2 mb-8">
-        <div class="flex  justify-between items-end">
+        <div class="flex justify-between items-end">
             <h4 class="text-xl font-medium text-neutral-200">Comments</h4>
         </div>
         <div class="w-full border-t border-neutral-900 mb-2" />
