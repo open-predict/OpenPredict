@@ -3,10 +3,10 @@
     import type { marketFulldata } from "@am/backend/types/market";
     import Pill from "$lib/elements/pill.svelte";
     import { USDC_PER_DOLLAR, usdFormatter } from "$lib/utils";
-    import type { TPmMarket } from "$lib/types";
+    import type { pmMarketFulldata } from "$lib/types";
 
     export let opMarket: marketFulldata | undefined = undefined;
-    export let pmMarket: TPmMarket | undefined = undefined;
+    export let pmMarket: pmMarketFulldata | undefined = undefined;
 
     function getOpVolume(m: marketFulldata) {
         let volume: bigint = 0n;
@@ -16,8 +16,8 @@
         return volume / BigInt(USDC_PER_DOLLAR);
     }
 
-    function getPmVolume(m: TPmMarket) {
-        return m.subgraph.volume
+    function getPmVolume(m: pmMarketFulldata) {
+        return m.meta.volume
     }
 
     $: volume = opMarket
@@ -26,7 +26,7 @@
         ? getPmVolume(pmMarket)
         : null;
 
-    $: volumeDisplay = volume ? usdFormatter.format(volume) : null;
+    $: volumeDisplay = volume ? usdFormatter.format(Number(volume)) : null;
 </script>
 
 {#if volume}

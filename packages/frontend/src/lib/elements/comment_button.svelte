@@ -1,24 +1,24 @@
 <script lang="ts">
-    import type { TPmMarket } from "$lib/types";
+    import type { pmMarketFulldata } from "$lib/types";
     import { web3Store } from "$lib/web3Store";
     import type { marketFulldata } from "@am/backend/types/market";
     import { PublicKey } from "@solana/web3.js";
     import IconComment from "@tabler/icons-svelte/dist/svelte/icons/IconMessageCircle2.svelte";
 
     export let opMarket: marketFulldata | undefined = undefined;
-    export let pmMarket: TPmMarket | undefined = undefined;
+    export let pmMarket: pmMarketFulldata | undefined = undefined;
 
     function checkIds(
         ids: (string | undefined | null)[],
         opMarket?: marketFulldata,
-        pmMarket?: TPmMarket
+        pmMarket?: pmMarketFulldata
     ): boolean {
         let commented = false;
         for (const id of ids) {
             if (
                 id &&
                 pmMarket &&
-                pmMarket.subgraph.comments.filter((c) => c.userKey === id).length > 0
+                pmMarket.data.comments.filter((c) => c.userKey === id).length > 0
             ) {
                 commented = true;
             }
@@ -29,7 +29,7 @@
     $: commentCount = opMarket
         ? opMarket.data.CommentCount
         : pmMarket
-        ? pmMarket.subgraph.comments.length
+        ? pmMarket.data.comments.length
         : 0;
 
     $: id = opMarket

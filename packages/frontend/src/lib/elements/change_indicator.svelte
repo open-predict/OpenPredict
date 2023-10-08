@@ -1,11 +1,11 @@
 <script lang="ts">
     import IconDown from "@tabler/icons-svelte/dist/svelte/icons/IconTriangleFilled.svelte";
     import type { marketFulldata } from "@am/backend/types/market";
-    import type { TPmMarket } from "$lib/types";
+    import type { pmMarketFulldata } from "$lib/types";
     import { getChance } from "$lib/utils";
     import { faker } from "@faker-js/faker";
     export let opMarket: marketFulldata | undefined = undefined;
-    export let pmMarket: TPmMarket | undefined = undefined;
+    export let pmMarket: pmMarketFulldata | undefined = undefined;
     export let size: 0 | 1 = 0;
 
     function getOpChange(market: marketFulldata): null | number {
@@ -22,7 +22,7 @@
         );
     }
 
-    function getPmChange(market: TPmMarket): null | number {
+    function getPmChange(market: pmMarketFulldata): null | number {
         // const yesToken = market.data.tokens.find(t => t.outcome === "Yes");
         // const noToken = market.data.tokens.find(t => t.outcome === "No");
         return faker.datatype.number({min: -5, max: 5})/100

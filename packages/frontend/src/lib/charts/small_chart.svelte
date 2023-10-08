@@ -15,7 +15,7 @@
         type ScaleLinear,
     } from "d3";
 
-    import { resample, PriceHistoryTerm } from "./utils";
+    import { resampleOpMarketPricePoints as resample, PriceHistoryTerm } from "./utils";
     import log from "$lib/log";
 
     export let priceData: marketPricePoint[];

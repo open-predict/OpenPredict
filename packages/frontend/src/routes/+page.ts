@@ -2,6 +2,7 @@ import { searchMarkets, type TMarketWrapper } from '$lib/api';
 import { superjson } from '$lib/superjson';
 
 export type TPageData = TMarketWrapper[]
+export const ssr = true;
 
 export async function load() {
 
@@ -20,5 +21,6 @@ export async function load() {
 
   const response = await searchMarkets();
   const data: TPageData = response;
+  data.sort((a, b) => Number(b.volume - a.volume))
   return superjson.serialize(data);
 }

@@ -1,5 +1,5 @@
 import type { marketFulldata, marketPricePoint, marketTradeChaindata, marketUserChaindata, pmTokenData } from '@am/backend/types/market';
-import type { TBook, TBooks, TComments, TPmMarket, TUsers } from '$lib/types';
+import type { TComments, TUsers, pmFilledOrders, pmMarketFulldata, pmTokenOrderdata } from '$lib/types';
 import { faker } from '@faker-js/faker';
 import { PublicKey } from '@solana/web3.js';
 import { USDC_PER_DOLLAR } from './utils';
@@ -92,7 +92,7 @@ const comments = Array.from(Array(faker.datatype.number({ min: 0, max: 20 }))).m
     })
 })
 
-const book: TBooks = Array.from(Array(2)).map(() => {
+const book = () => {
     const spread = faker.datatype.number({ min: 0, max: 15, precision: 2 });
     const midpoint = faker.datatype.number({ min: 0, max: 100, precision: 2 });
     const bids: [number, number][] = Array.from(Array(faker.datatype.number({ min: 2, max: 50 }))).map(() => {
@@ -104,17 +104,38 @@ const book: TBooks = Array.from(Array(2)).map(() => {
         return [price, faker.datatype.number({ min: 1, max: 100000 })]
     })
     return { bids, asks }
-}).reduce((acc, value) => {
-    acc.set(faker.finance.ethereumAddress(), value)
-    return acc;
-}, new Map())
+}
 
-const pmMarkets: TPmMarket[] = Array.from(Array(5)).map(() => {
+const orders: () => pmFilledOrders[] = () => {
+    return Array.from(Array(faker.datatype.number({ min: 0, max: 20 })).map(() => {
+        const before = new Date(lastPriceHistoryDate.getTime() + (1 * 24 * 60 * 60 * 1000))
+        return {
+            id: faker.finance.ethereumAddress(),
+            maker: Array.from(users.keys())[0],
+            price: faker.datatype.number({ min: 1, max: 99, precision: 2 }),
+            side: faker.datatype.boolean() ? "buy" : "sell",
+            size: faker.datatype.bigInt({ min: 10000n, max: 1000000n }),
+            taker: Array.from(users.keys())[0],
+            ts: faker.date.between(before, new Date()).getTime(),
+        }
+    }))
+}
+
+const pmMarkets: pmMarketFulldata[] = Array.from(Array(5)).map(() => {
     const active = faker.datatype.boolean();
+    const tokenData: pmTokenData[] = Array.from(Array(2)).map((_, i) => {
+        return {
+            token_id: faker.finance.ethereumAddress(),
+            outcome: i === 0 ? "Yes" : "No",
+            winner: active ? undefined : faker.datatype.boolean()
+        }
+    });
     const address = faker.finance.ethereumAddress();
     const image = faker.image.imageUrl();
-    return {
-        book,
+    const m: pmMarketFulldata = {
+        meta: {
+            volume: faker.datatype.bigInt({ min: 0n, max: 10000000n }),
+        },
         data: {
             "accepting_orders": active,
             "active": active,
@@ -129,20 +150,34 @@ const pmMarkets: TPmMarket[] = Array.from(Array(5)).map(() => {
             "parent_categories": [faker.word.noun()],
             "question": faker.lorem.lines(1),
             "question_id": address,
-            "tokens": Array.from(book).map((token, i) => ({
-                token_id: token[0],
-                outcome: i === 0 ? "Yes" : "No",
-                winner: active ? undefined : faker.datatype.boolean()
-            }))
-        },
-        subgraph: {
+            "tokens": tokenData,
             comments: comments,
-            positions: UserAccounts,
-            trades: Trades,
             likes: Array.from(UserAccounts.keys()),
-            volume: faker.datatype.bigInt({ min: 0n, max: 10000000n })
-        }
+        },
+        tokeOrderdata: tokenData.map((t, i) => {
+            const tokenPriceHistory = Array.from(PriceHistory.entries()).map(php => ({
+                t: php[1].At.getTime(),
+                price: faker.datatype.number({ min: 1, max: 49, precision: 2 })
+            }))
+            const td: pmTokenOrderdata = {
+                book: book(),
+                filledOrders: orders(),
+                positions: Array.from(UserAccounts.entries()).map(e => ({
+                    user: e[0],
+                    position: e[1].Shares,
+                })),
+                priceHistory: i ? Array.from(PriceHistory.entries()).map((php, i) => ({
+                    t: php[1].At.getTime(),
+                    price: 99 - tokenPriceHistory[i].price
+                })) : tokenPriceHistory
+            }
+            return td;
+        }).reduce((acc, value, i) => {
+            acc.set(tokenData[i].token_id, value)
+            return acc;
+        }, new Map()),
     }
+    return m;
 })
 
 export type TMarketWrapper = {
@@ -152,7 +187,7 @@ export type TMarketWrapper = {
     comments: number,
     likes: string[],
     opMarket?: marketFulldata,
-    pmMarket?: TPmMarket
+    pmMarket?: pmMarketFulldata
 }
 
 export async function searchMarkets(): Promise<TMarketWrapper[]> {
@@ -173,10 +208,10 @@ export async function searchMarkets(): Promise<TMarketWrapper[]> {
     pmMarkets.forEach(market => {
         markets.push({
             id: market.data.condition_id,
-            volume: market.subgraph.volume,
-            comments: market.subgraph.comments.length,
-            traders: Array.from(market.subgraph.positions.keys()),
-            likes: market.subgraph.likes,
+            volume: BigInt(Number(market.meta.volume)),
+            comments: market.data.comments.length,
+            traders: Array.from(market.tokeOrderdata.values()).reduce((acc: string[], val) => {acc = [...acc, ...val.positions.map(p => p.user)] ; return acc}, []),
+            likes: market.data.likes,
             pmMarket: market
         })
     })
@@ -194,14 +229,14 @@ export async function getComments(id: string): Promise<TComments> {
     })
 }
 
-export async function getMarket(id: string): Promise<{ pmMarket?: TPmMarket, opMarket?: marketFulldata }> {
+export async function getMarket(id: string): Promise<{ pmMarket?: pmMarketFulldata, opMarket?: marketFulldata }> {
     if (id.startsWith("0x")) {
         return {
-            pmMarket: pmMarkets[0]
+            pmMarket: pmMarkets.find(m => m.data.condition_id === id) ?? pmMarkets[0]
         }
     } else if (id.length >= 32 && id.length <= 44) {
         return {
-            opMarket: opMarkets[0]
+            opMarket: opMarkets.find(m => new PublicKey(m.data.data.AmmAddress).toBase58() === id) ?? opMarkets[0]
         }
     } else {
         return {};
@@ -210,7 +245,7 @@ export async function getMarket(id: string): Promise<{ pmMarket?: TPmMarket, opM
 
 export async function getMarketAccounts(id: string): Promise<{
     opMarkets: marketFulldata[],
-    pmMarkets: TPmMarket[],
+    pmMarkets: pmMarketFulldata[],
 }> {
     return ({
         pmMarkets,

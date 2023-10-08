@@ -3,16 +3,16 @@
     import type { marketFulldata } from "@am/backend/types/market";
     import Pill from "$lib/elements/pill.svelte";
     import { USDC_PER_DOLLAR, usdFormatter } from "$lib/utils";
-    import type { TPmMarket } from "$lib/types";
+    import type { pmMarketFulldata } from "$lib/types";
 
     export let opMarket: marketFulldata | undefined = undefined;
-    export let pmMarket: TPmMarket | undefined = undefined;
+    export let pmMarket: pmMarketFulldata | undefined = undefined;
 
     function getOpSubsidy(market: marketFulldata) {
         return market.data.data.Subsidy / BigInt(USDC_PER_DOLLAR);
     }
 
-    function getPmSubsidy(market: TPmMarket) {
+    function getPmSubsidy(market: pmMarketFulldata) {
         return null;
     }
 

@@ -3,24 +3,24 @@
     import type { marketFulldata } from "@am/backend/types/market";
     import IconHeart from "@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte";
     import { Modal, modalStore } from "$lib/modals/modalStore";
-    import type { TPmMarket } from "$lib/types";
     import { api } from "$lib/api";
     import { clone } from "lodash";
+    import type { pmMarketFulldata } from "$lib/types";
     export let opMarket: marketFulldata | undefined = undefined;
-    export let pmMarket: TPmMarket | undefined = undefined;
-    export let updateMarket: (market?: marketFulldata | TPmMarket) => void;
+    export let pmMarket: pmMarketFulldata | undefined = undefined;
+    export let updateMarket: (market?: marketFulldata | pmMarketFulldata) => void;
 
     function checkIds(
         ids: (string | undefined | null)[],
         opMarket?: marketFulldata,
-        pmMarket?: TPmMarket
+        pmMarket?: pmMarketFulldata
     ): boolean {
         let liked = false;
         for (const id of ids) {
             if (
                 id &&
                 ((opMarket && opMarket.data.Likes.has(id)) ||
-                    (pmMarket && pmMarket.subgraph.likes.includes(id)))
+                    (pmMarket && pmMarket.data.likes.includes(id)))
             ) {
                 liked = true;
             }
@@ -36,7 +36,7 @@
     $: likes = opMarket
         ? opMarket.data.Likes.size
         : pmMarket
-        ? pmMarket.subgraph.likes.length
+        ? pmMarket.data.likes.length
         : 0;
 
     async function like() {
@@ -78,12 +78,12 @@
         } else if (pmMarket) {
             const newMarket = clone(pmMarket);
             if (newState) {
-                newMarket.subgraph.likes.push($web3Store.solanaAddress);
+                newMarket.data.likes.push($web3Store.solanaAddress);
             } else {
-                const newLikes = newMarket.subgraph.likes.filter(
-                    (l) => l !== $web3Store.solanaAddress
+                const newLikes = newMarket.data.likes.filter(
+                    (l) => l !== $web3Store?.solanaAddress
                 );
-                newMarket.subgraph.likes = newLikes;
+                newMarket.data.likes = newLikes;
             }
             updateMarket(newMarket);
         }

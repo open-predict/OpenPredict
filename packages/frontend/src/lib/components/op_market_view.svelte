@@ -10,7 +10,6 @@
     import LikeButton from "$lib/elements/like_button.svelte";
     import ShareButton from "$lib/elements/share_button.svelte";
     import CommentButton from "$lib/elements/comment_button.svelte";
-    import type { TPmMarket } from "$lib/types";
     import ChangeIndicator from "$lib/elements/change_indicator.svelte";
     import SubsidyPill from "$lib/elements/subsidy_pill.svelte";
     import VolumePill from "$lib/elements/volume_pill.svelte";
@@ -19,8 +18,9 @@
     import { PublicKey } from "@solana/web3.js";
     import { getChance } from "$lib/utils";
     import { api } from "$lib/api";
+    import type { pmMarketFulldata } from "$lib/types";
     export let market: marketFulldata;
-    export let updateMarket: (market?: marketFulldata | TPmMarket) => void;
+    export let updateMarket: (market?: marketFulldata | pmMarketFulldata) => void;
 
     const id = new PublicKey(market.data.data.AmmAddress).toBase58();
     $: chanceDisplay =

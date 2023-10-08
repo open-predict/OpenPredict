@@ -13,12 +13,13 @@
         type ScaleLinear,
     } from "d3";
 
-    import { PriceHistoryTerm, resampleOpMarketPricePoints as resample } from "./utils";
+    import { PriceHistoryTerm, resamplePmPriceHistory } from "./utils";
     import { dateFormatter } from "$lib/utils";
+    import type { pmTokenOrderdata } from "$lib/types";
 
-    export let priceData: marketPricePoint[] = [];
+    export let pmTokenOrderdata: Map<string, pmTokenOrderdata> | undefined =
+        undefined;
     export let term: PriceHistoryTerm = PriceHistoryTerm.ALL;
-    export let onScrub: (chance: number) => void = () => {};
 
     const marginTop = 20;
     const marginRight = 30;
@@ -26,9 +27,9 @@
     const marginLeft = 6;
     const inset = 0;
     const yFormat = "%";
-    const strokeWidth = 3;
+    const strokeWidth = 2;
     const verticalGrid = true;
-    const yScalefactor = 2;
+    const yScalefactor = 6;
     const xType = scaleUtc; // type of x-scale
     const yType = scaleLinear; // type of y-scale
     const curve = curveLinear; // method of interpolation between points
@@ -37,16 +38,20 @@
     let height = 200;
 
     $: workingWidth = width - inset - marginLeft - marginRight;
-    $: data = resample(priceData, term);
-    $: lastDp = data && data.length > 0 ? data[data.length - 1] : null;
-    $: xScaledDotInfo = dotInfo ? xScale(points[dotInfo[1]].x) : undefined;
+    $: tokenData = pmTokenOrderdata
+        ? Array.from(pmTokenOrderdata.entries()).map((e) => ({
+              id: e[0],
+              data: resamplePmPriceHistory(e[1].priceHistory, term),
+          }))
+        : undefined;
+    $: xScaledDotInfo = dotInfo ? xScale(points[0][dotInfo[1]].x) : undefined;
 
     let dotInfo: [number, number, any] | null,
         lines: {
             area: string | null;
             line: string | null;
         }[],
-        points: { x: Date; y: number }[] = [],
+        points: { x: Date; y: number }[][] = [],
         xDomain: Date[],
         yDomain: number[],
         xScale: ScaleTime<number, number, never>,
@@ -60,9 +65,13 @@
 
     function createGraph() {
         try {
-            if (lastDp && onScrub) onScrub(lastDp.chance);
-            if (data && data.length > 0) {
-                const yVals = data.map((el) => el.chance);
+            if (!tokenData) return;
+            lines = [];
+            points = [];
+            let i = 0;
+            for (const { id, data } of tokenData) {
+                if (data.length === 0) return;
+                const yVals = data.map((el) => el.price);
                 const xVals = data.map((el) => el.date);
                 const xRange = [
                     marginLeft + inset,
@@ -85,12 +94,14 @@
                 const gaps = (d: any, i: any) =>
                     xVals[i] instanceof Date && !isNaN(yVals[i]);
 
-                points = data.map((el) => ({
-                    x: el.date,
-                    y: el.chance,
-                }));
+                points.push(
+                    data.map((el) => ({
+                        x: el.date,
+                        y: el.price,
+                    }))
+                );
 
-                const cleanData = points.map(gaps);
+                const cleanData = points[i].map(gaps);
                 const chartLine = line()
                     .defined((i: any) => cleanData[i])
                     .curve(curve)
@@ -107,14 +118,12 @@
                 const I: any[] = range(xVals.length);
                 const newLine = chartLine(I);
                 const newArea = chartArea(I);
-                lines = [
-                    {
-                        line: newLine,
-                        area: newArea,
-                    },
-                ];
+                lines.push({ line: newLine, area: newArea });
 
-                pointsScaled = points.map((el) => [xScale(el.x), yScale(el.y)]);
+                pointsScaled = points[i].map((el) => [
+                    xScale(el.x),
+                    yScale(el.y),
+                ]);
                 const delaunayGrid = Delaunay.from(pointsScaled);
                 voronoiGrid = delaunayGrid.voronoi([0, 0, width, height]);
 
@@ -126,42 +135,31 @@
 
                 yTicks = niceY.ticks(yScalefactor);
 
-                graphReady = true;
+                i++;
             }
+            graphReady = true;
         } catch (e) {
             console.log("error generating graph", e);
         }
     }
 
-    $: width, data, createGraph();
+    $: width, tokenData, createGraph();
 
     function handleFocusMouse(e: any, i: number, point: any) {
         dotInfo = [point, i, e];
-        if (onScrub) onScrub(points[dotInfo[1]].y);
+        // if (onScrub) onScrub(points[dotInfo[1]].y);
     }
 </script>
 
 <div class="min-h-200 min-w-full block relative" bind:clientWidth={width}>
     {#if graphReady}
-        <svg
-            {width}
-            {height}
-            viewBox="0 0 {width} {height}"
-            on:mouseout={() => {
-                dotInfo = null;
-                if (onScrub && lastDp) onScrub(lastDp.chance);
-            }}
-            on:blur={() => {
-                dotInfo = null;
-                if (onScrub && lastDp) onScrub(lastDp.chance);
-            }}
-        >
+        <svg {width} {height} viewBox="0 0 {width} {height}">
             <!-- Chart lines -->
             {#each lines as lineArea, i}
                 <g class="chartlines" pointer-events="none">
                     {#if dotInfo}
                         <path
-                            class={points[dotInfo[1]].y > 49.9
+                            class={points[i][dotInfo[1]].y > 49.9
                                 ? "stroke-emerald-400"
                                 : "stroke-red-600"}
                             fill="none"
@@ -170,29 +168,36 @@
                             stroke-linecap={"round"}
                             stroke-linejoin={"round"}
                         />
+                        <g>
+                            <rect
+                                x={xScale(points[i][dotInfo[1]].x) - 20}
+                                y={yScale(points[i][dotInfo[1]].y) - 30}
+                                width="40"
+                                height="22"
+                                rx="10"
+                                class="fill-indigo-800"
+                            />
+                            <text
+                                x={xScale(points[i][dotInfo[1]].x) - 8}
+                                y={yScale(points[i][dotInfo[1]].y) - 13}
+                                font-size="14"
+                                fill="white"
+                            >
+                                {points[i][dotInfo[1]].y}
+                            </text>
+                        </g>
                         <circle
-                            r={5}
-                            class={points[dotInfo[1]].y > 49.9
-                                ? "fill-emerald-300 stroke-emerald-400"
-                                : "fill-red-400 stroke-red-500"}
-                            stroke-width={2}
-                            cx={xScale(points[dotInfo[1]].x)}
-                            cy={yScale(points[dotInfo[1]].y - 1)}
-                        />
-
-                        <!-- Area -->
-                        <path
-                            d={lineArea.area}
-                            class={points[dotInfo[1]].y > 49.9
-                                ? "fill-emerald-300/10"
-                                : "fill-red-600/10"}
-                            stroke="none"
+                            r={6}
+                            class={points[i][dotInfo[1]].y > 49.9
+                                ? "fill-emerald-400 stroke-neutral-950"
+                                : "fill-red-600 stroke-neutral-950"}
+                            stroke-width={5}
+                            cx={xScale(points[i][dotInfo[1]].x)}
+                            cy={yScale(points[i][dotInfo[1]].y)}
                         />
                     {:else}
                         <path
-                            class={lastDp && lastDp.chance > 49.9
-                                ? "stroke-emerald-400"
-                                : "stroke-red-600"}
+                            class={"stroke-indigo-400"}
                             fill="none"
                             d={lineArea.line}
                             stroke-opacity={1}
@@ -200,71 +205,6 @@
                             stroke-linecap={"round"}
                             stroke-linejoin={"round"}
                         />
-
-                        <!-- Area -->
-                        <path
-                            d={lineArea.area}
-                            class={lastDp && lastDp.chance > 49.9
-                                ? "fill-emerald-300/10"
-                                : "fill-red-600/10"}
-                            stroke="none"
-                        />
-                    {/if}
-                </g>
-            {/each}
-
-            {#each lines as lineArea, i}
-                <g class="chartlines" pointer-events="none">
-                    {#if dotInfo}
-                        <path
-                            class={points[dotInfo[1]].y > 49.9
-                                ? "stroke-emerald-400"
-                                : "stroke-red-600"}
-                            fill="none"
-                            d={lineArea.line}
-                            stroke-width={strokeWidth}
-                            stroke-linecap={"round"}
-                            stroke-linejoin={"round"}
-                        />
-                        <circle
-                            r={5}
-                            class={points[dotInfo[1]].y > 49.9
-                                ? "fill-emerald-300 stroke-emerald-400"
-                                : "fill-red-400 stroke-red-500"}
-                            stroke-width={2}
-                            cx={xScale(points[dotInfo[1]].x)}
-                            cy={yScale(points[dotInfo[1]].y)}
-                        />
-
-                        <!-- Area -->
-                        <!-- <path
-                            d={lineArea.area}
-                            class={points[dotInfo[1]].y > 49.9
-                                ? "fill-emerald-300/10"
-                                : "fill-red-600/10"}
-                            stroke="none"
-                        /> -->
-                    {:else}
-                        <path
-                            class={lastDp && lastDp.chance > 49.9
-                                ? "stroke-emerald-400"
-                                : "stroke-red-600"}
-                            fill="none"
-                            d={lineArea.line}
-                            stroke-opacity={1}
-                            stroke-width={strokeWidth}
-                            stroke-linecap={"round"}
-                            stroke-linejoin={"round"}
-                        />
-
-                        <!-- Area -->
-                        <!-- <path
-                            d={lineArea.area}
-                            class={lastDp && lastDp.chance > 49.9
-                                ? "fill-emerald-300/10"
-                                : "fill-red-600/10"}
-                            stroke="none"
-                        /> -->
                     {/if}
                 </g>
             {/each}
@@ -278,7 +218,7 @@
                 {#each yTicks as tick, i}
                     <g class="tick" transform="translate(0, {yScale(tick)})">
                         <line
-                            class="tick-grid"
+                            class="stroke-neutral-800"
                             x1={inset}
                             x2={width - marginLeft - marginRight}
                         />
@@ -314,9 +254,7 @@
                                 : undefined}
                             class="fill-gray-700 text-sm font-mono w-14"
                         >
-                            {`${dateFormatter.format(
-                                points[dotInfo[1]].x
-                            )}`}
+                            {`${dateFormatter.format(points[0][dotInfo[1]].x)}`}
                         </text>
                     </g>
                 {/if}
@@ -349,8 +287,12 @@
 <nav class="flex justify-between">
     {#each Object.values(PriceHistoryTerm) as v}
         <button
-            on:click={() => term = v}
-            class={`px-4 py-1.5 rounded-md hover:bg-gray-100 text-xs ${term === v ? "text-gray-700 bg-gray-200 font-semibold" : "text-gray-600"}`}
+            on:click={() => (term = v)}
+            class={`px-4 py-1.5 rounded-md hover:bg-gray-100 text-xs ${
+                term === v
+                    ? "text-gray-700 bg-gray-200 font-semibold"
+                    : "text-gray-600"
+            }`}
         >
             {v}
         </button>
@@ -379,12 +321,6 @@
     }
     .tick {
         opacity: 1;
-    }
-    .tick-grid {
-        stroke: gray;
-        stroke-opacity: 0.5;
-        stroke-dasharray: 4;
-        color: black;
     }
     .tick text {
         text-anchor: middle;

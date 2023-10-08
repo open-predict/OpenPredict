@@ -10,15 +10,65 @@
     import LikeButton from "$lib/elements/like_button.svelte";
     import ShareButton from "$lib/elements/share_button.svelte";
     import CommentButton from "$lib/elements/comment_button.svelte";
-    import type { TPmMarket } from "$lib/types";
     import ChangeIndicator from "$lib/elements/change_indicator.svelte";
     import SubsidyPill from "$lib/elements/subsidy_pill.svelte";
     import VolumePill from "$lib/elements/volume_pill.svelte";
     import type { marketFulldata } from "@am/backend/types/market";
     import InteractiveChart from "$lib/charts/interactive_chart.svelte";
     import { usdFormatter } from "$lib/utils";
-    export let market: TPmMarket;
-    export let updateMarket: (market?: marketFulldata | TPmMarket) => void;
+    import { afterUpdate, onMount, tick } from "svelte";
+    import { tokenize } from "protobufjs";
+    import type { pmMarketFulldata, pmTokenOrderdata } from "$lib/types";
+    import TokenChart from "$lib/charts/token_chart.svelte";
+    export let market: pmMarketFulldata;
+    export let updateMarket: (
+        market?: marketFulldata | pmMarketFulldata
+    ) => void;
+
+    let selectedToken: { token: pmTokenOrderdata; id: string } | undefined;
+
+    async function selectToken(token: string) {
+        selectedToken = {
+            id: token,
+            token: market.tokeOrderdata.get(token) as pmTokenOrderdata,
+        };
+        await tick();
+        const book = window.document.getElementById("order_book");
+        const midpoint = window.document.getElementById("midpoint");
+        if (book && midpoint) {
+            const centeringOffset =
+                book.clientHeight * 0.5 - midpoint.clientHeight * 0.5;
+            book.scrollTop =
+                midpoint.getBoundingClientRect().top -
+                book.getBoundingClientRect().top +
+                book.scrollTop -
+                centeringOffset;
+        }
+    }
+
+    $: spread = selectedToken
+        ? Math.abs(
+              50 -
+                  selectedToken.token.book.bids.sort(
+                      (a, b) => b[0] - a[0]
+                  )[0][0] +
+                  (50 -
+                      selectedToken.token.book.asks.sort(
+                          (a, b) => a[0] - b[0]
+                      )[0][0])
+          )
+        : null;
+    $: midpoint =
+        selectedToken && spread
+            ? selectedToken.token.book.asks.sort((a, b) => a[0] - b[0])[0][0] +
+              spread / 2
+            : null;
+
+    onMount(async () => {
+        if (market.data.tokens[0]) {
+            selectToken(market.data.tokens[0].token_id);
+        }
+    });
 </script>
 
 <div class="w-full max-w-full p-4 flex flex-col gap-4">
@@ -50,7 +100,13 @@
             </Pill>
             <Pill>
                 <IconUser size={14} class="text-sky-500" />
-                {`${market.subgraph.positions.size}`}
+                {`${Array.from(market.tokeOrderdata.values()).reduce(
+                    (acc, val) => {
+                        acc += val.positions.length;
+                        return acc;
+                    },
+                    0
+                )}`}
             </Pill>
             <div class="ml-auto" />
             <Pill>
@@ -67,8 +123,10 @@
         </div>
     </div>
     <div
-        class="h-72 my-2 rounded-lg bg-neutral-950 dotted_background opacity-50"
-    />
+        class="my-2 rounded-lg bg-neutral-950"
+    >
+        <TokenChart pmTokenOrderdata={market.tokeOrderdata} />
+    </div>
     <div class="w-full flex items-start justify-start my-2">
         <div
             class="flex w-full align-top gap-4 justify-start items-start flex-nowrap"
@@ -94,42 +152,49 @@
             <div
                 class="flex justify-start items-center border-b border-neutral-900 px-4 gap-4"
             >
-                <button
-                    class="h-12 text-white border-b-2 border-neutral-400 font-semibold text-sm"
-                >
-                    Trade Yes
-                </button>
-                <button class="h-12 text-neutral-100 font-semibold text-sm">
-                    Trade No
-                </button>
+                {#each market.data.tokens as token}
+                    <button
+                        on:click={() => selectToken(token.token_id)}
+                        class={`h-12 border-b-2 font-semibold text-sm ${
+                            token.token_id === selectedToken?.id
+                                ? "text-white border-neutral-400"
+                                : "text-neutral-300 border-transparent"
+                        }`}
+                    >
+                        {`Trade ${token.outcome}`}
+                    </button>
+                {/each}
             </div>
-            {#each Array.from(market.book.values()) as book}
+            {#if selectedToken}
                 <div
-                    class="flex flex-col divide-y divide-neutral-900 text-sm text-neutral-500 h-72 overflow-y-scroll"
+                    id="order_book"
+                    class="flex flex-col divide-y divide-neutral-800 text-sm text-neutral-400 h-72 overflow-y-scroll"
                 >
                     <div class="flex flex-col">
-                        {#each book.asks.sort((a, b) => b[0] - a[0]) as ask}
-                            <div class="flex h-10">
+                        {#each selectedToken.token.book.asks.sort((a, b) => b[0] - a[0]) as ask}
+                            <div
+                                class="flex h-10 relative hover:bg-neutral-500/5"
+                            >
                                 <div
-                                    class="w-2/5 flex justify-start items-center"
+                                    class="absolute h-full w-full left-0 flex justify-start"
                                 >
                                     <div
+                                        class="absolute h-full bg-neutral-400/5"
                                         style={`width: ${ask[0]}%`}
-                                        class="bg-red-400/10 h-full"
                                     />
                                 </div>
                                 <div
-                                    class="w-1/5 px-4 py-2 flex justify-end items-center"
+                                    class="w-1/3 px-4 py-2 flex justify-center items-center"
                                 >
                                     {usdFormatter.format(ask[0] / 100)}
                                 </div>
                                 <div
-                                    class="w-1/5 px-4 py-2 flex justify-end items-center"
+                                    class="w-1/3 px-4 py-2 flex justify-center items-center"
                                 >
                                     {usdFormatter.format(ask[1] / 100)}
                                 </div>
                                 <div
-                                    class="w-1/5 px-4 py-2 flex justify-end items-center"
+                                    class="w-1/3 px-4 py-2 flex justify-center items-center"
                                 >
                                     {usdFormatter.format(
                                         (ask[0] * ask[1]) / 100
@@ -138,43 +203,55 @@
                             </div>
                         {/each}
                     </div>
-                    <div class="flex h-10">
+                    <div
+                        class="flex h-10 relative text-neutral-200"
+                        id="midpoint"
+                    >
                         <div
-                            class="w-2/5 px-4 py-2 flex justify-start items-center"
+                            class="absolute h-full bg-neutral-400/10"
+                            style={`width: ${spread}%; left: ${
+                                selectedToken.token.book.asks.sort(
+                                    (a, b) => a[0] - b[0]
+                                )[0][0]
+                            }%`}
+                        />
+                        <div
+                            class="w-1/3 px-4 py-2 flex justify-center items-center"
                         >
-                            Last $2.00
+                            Midpoint {midpoint
+                                ? usdFormatter.format(midpoint / 100)
+                                : "N/A"}
                         </div>
                         <div
-                            class="w-1/5 px-4 py-2 flex justify-start items-center"
+                            class="w-1/3 px-4 py-2 flex justify-center items-center"
                         >
-                            Spread $0.20
+                            Spread {spread
+                                ? usdFormatter.format(spread / 100)
+                                : "N/A"}
                         </div>
-                        <div class="w-1/5" />
-                        <div class="w-1/5" />
+                        <div class="w-1/3" />
                     </div>
                     <div class="flex flex-col">
-                        {#each book.bids.sort((a, b) => b[0] - a[0]) as bid}
-                            <div class="flex h-10">
+                        {#each selectedToken.token.book.bids.sort((a, b) => b[0] - a[0]) as bid}
+                            <div
+                                class="flex h-10 relative hover:bg-neutral-500/5"
+                            >
                                 <div
-                                    class="w-2/5 flex justify-start items-center"
-                                >
-                                    <div
-                                        style={`width: ${100 - bid[0]}%`}
-                                        class="bg-green-400/10 h-full"
-                                    />
-                                </div>
+                                    class="absolute h-full bg-neutral-400/5 right-0"
+                                    style={`width: ${bid[0]}%`}
+                                />
                                 <div
-                                    class="w-1/5 px-4 py-2 flex justify-end items-center"
+                                    class="w-1/3 px-4 py-2 flex justify-center items-center"
                                 >
                                     {usdFormatter.format(bid[0] / 100)}
                                 </div>
                                 <div
-                                    class="w-1/5 px-4 py-2 flex justify-end items-center"
+                                    class="w-1/3 px-4 py-2 flex justify-center items-center"
                                 >
                                     {usdFormatter.format(bid[1] / 100)}
                                 </div>
                                 <div
-                                    class="w-1/5 px-4 py-2 flex justify-end items-center"
+                                    class="w-1/3 px-4 py-2 flex justify-center items-center"
                                 >
                                     {usdFormatter.format(
                                         (bid[0] * bid[1]) / 100
@@ -184,7 +261,7 @@
                         {/each}
                     </div>
                 </div>
-            {/each}
+            {/if}
         </div>
     </div>
     <div class="flex flex-col gap-2 mb-8">
@@ -194,6 +271,31 @@
             class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
         >
             {"This market has not yet been resolved."}
+        </p>
+    </div>
+    <div class="flex flex-col gap-2 mb-8">
+        <div class="flex  justify-between items-end">
+            <h4 class="text-xl font-medium text-neutral-200">Holders</h4>
+            <span class="text-neutral-400 text-sm">
+                View trades
+            </span>
+        </div>
+        <div class="w-full border-t border-neutral-900 mb-2" />
+        <p
+            class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
+        >
+            {"This market has not yet been resolved."}
+        </p>
+    </div>
+    <div class="flex flex-col gap-2 mb-8">
+        <div class="flex  justify-between items-end">
+            <h4 class="text-xl font-medium text-neutral-200">Comments</h4>
+        </div>
+        <div class="w-full border-t border-neutral-900 mb-2" />
+        <p
+            class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
+        >
+            {"No comments"}
         </p>
     </div>
 </div>

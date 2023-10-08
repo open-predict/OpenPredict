@@ -46,7 +46,7 @@
 
     <!-- center column -->
     <div
-        class={`h-auto w-full max-w-full md:w-6/12 lg:w-5/12 xl:w-4/10 bg-white dark:bg-black`}
+        class={`sticky bottom-0 min-h-screen self-end w-full md:w-6/12 lg:w-5/12 xl:w-4/10 bg-white dark:bg-black`}
     >
         <MobileBanner />
 
@@ -55,8 +55,8 @@
 
         <!-- main content -->
         <div
-            class="w-full max-w-full border-r border-l border-gray-200 dark:border-neutral-900 pb-16"
-            style="min-height: calc(100% - 4rem)"
+            class="max-w-full min-h-full border-r border-l border-gray-200 dark:border-neutral-900 pb-16"
+            style="min-height: calc(100vh - 4rem)"
         >
             <slot name="main" />
         </div>
@@ -75,19 +75,19 @@
 
     <!-- right column -->
     <div
-        class="sticky top-0 hidden md:block md:w-5/12 lg:w-1/4 xl:w-3/10 max-h-screen"
+        class="hidden md:block md:w-5/12 lg:w-1/4 xl:w-3/10"
     >
-        <div class="max-w-xs">
+        <div class="sticky top-0 max-w-xs">
             <div
-                class="h-16 flex justify-end items-center gap-2.5 border-b border-gray-200 dark:border-neutral-900"
+                class="sticky top-0 h-16 flex justify-end items-center gap-2.5 border-b border-gray-200 dark:border-neutral-900 bg-black/80 backdrop-blur-2xl z-10"
             >
                 <WalletWidget />
                 <UserButton />
             </div>
-            <div class="flex flex-col p-4 xl:pr-0 gap-2.5">
+            <div class="flex flex-col p-4 xl:pr-0 gap-4">
                 {#if $web3Store?.solanaAddress === null}
                     <div
-                        class="ring-1 rounded-2xl p-6 pt-10 mb-4 bg-white ring-neutral-200 dark:bg-neutral-950 dark:ring-neutral-900"
+                        class="rounded-xl p-6 pt-10 bg-white dark:bg-neutral-950"
                     >
                         <Login />
                     </div>

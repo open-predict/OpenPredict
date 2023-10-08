@@ -1,11 +1,11 @@
 import type { marketFulldata } from '@am/backend/types/market.js';
-import type { TComments, TPmMarket, TUsers } from '$lib/types.js';
+import type { TComments, TUsers, pmMarketFulldata } from '$lib/types.js';
 import { getComments, getMarket, users } from '$lib/api.js';
 import { superjson } from '$lib/superjson.js';
 
 export type TMarketIdPageData = {
   id: string,
-  pmMarket?: TPmMarket,
+  pmMarket?: pmMarketFulldata,
   opMarket?: marketFulldata,
   users: TUsers,
   comments: TComments

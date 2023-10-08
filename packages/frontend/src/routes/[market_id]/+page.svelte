@@ -22,10 +22,13 @@
     import { superjson } from "$lib/superjson.js";
     import PmMarketView from "$lib/components/pm_market_view.svelte";
     import OpMarketView from "$lib/components/op_market_view.svelte";
+    import { api, type TMarketWrapper } from "$lib/api.js";
+    import { onMount } from "svelte";
 
     export let data;
 
-    let { id, pmMarket, opMarket } = superjson.deserialize<TMarketIdPageData>(data);
+    $: ({ pmMarket, opMarket, id } =
+        superjson.deserialize<TMarketIdPageData>(data));
 
     $: title = opMarket?.metadata?.title ?? pmMarket?.data.question;
 
@@ -58,24 +61,24 @@
             // if (!posted) {
             //     alert("comment not posted");
             // } else {
-                alert("TODO: re-implement fe update");
-                // if (market) {
-                //     market.data.CommentCount = market.data.CommentCount + 1;
-                // }
-                // commentsRes.comments.unshift({
-                //     createdAt: new Date(Date.now() - 1000),
-                //     userKey: $web3Store.solanaAddress,
-                //     content: comment,
-                // });
-                // commentsRes = commentsRes; // svelte reactivity
-                // comment = "";
+            alert("TODO: re-implement fe update");
+            // if (market) {
+            //     market.data.CommentCount = market.data.CommentCount + 1;
+            // }
+            // commentsRes.comments.unshift({
+            //     createdAt: new Date(Date.now() - 1000),
+            //     userKey: $web3Store.solanaAddress,
+            //     content: comment,
+            // });
+            // commentsRes = commentsRes; // svelte reactivity
+            // comment = "";
             // }
         }
     }
 
     function updateMarket(m: marketFulldata) {
         // market = m;
-        alert("Impement market updating")
+        alert("Impement market updating");
     }
 
     // $: creator =
@@ -86,6 +89,22 @@
 
     // $: createdAt = market?.data?.PriceHistory[0]?.At as Date | undefined;
 
+    let relatedMarkets: TMarketWrapper[] = [];
+
+    onMount(async () => {
+        relatedMarkets = await api.getRelatedMarkets();
+        const bottomIndicator =
+            window.document.getElementById("bottom_indicator");
+        if (bottomIndicator) {
+            const bottomObserver = new IntersectionObserver(async (entries) => {
+                if (entries[entries.length - 1].isIntersecting) {
+                    const newRelatedMarkets = await api.getRelatedMarkets();
+                    relatedMarkets = [...relatedMarkets, ...newRelatedMarkets];
+                }
+            });
+            bottomObserver.observe(bottomIndicator);
+        }
+    });
 </script>
 
 <ColumnLayout>
@@ -96,7 +115,7 @@
             <p
                 class="text-black dark:text-white max-w-[14rem] overflow-hidden overflow-ellipsis"
             >
-                <!-- {title} -->
+                {title}
             </p>
         </div>
         <button
@@ -242,7 +261,7 @@
             </div>
         {/if} -->
     </div>
-    <div slot="right" class="flex flex-col gap-2.5">
+    <div slot="right" class="flex flex-col gap-4">
         {#if opMarket}
             {#if $web3Store?.solanaAddress}
                 <div class="bg-white ring-1 rounded-3xl ring-gray-200">
@@ -283,5 +302,21 @@
                 </div>
             {/if}
         {/if}
+        {#each relatedMarkets.reverse() as market}
+            {#if market.opMarket}
+                <OpMarketCard
+                    small
+                    market={market.opMarket}
+                    updateMarket={(m) => {}}
+                />
+            {:else if market.pmMarket}
+                <PmMarketCard
+                    small
+                    market={market.pmMarket}
+                    updateMarket={(m) => {}}
+                />
+            {/if}
+        {/each}
+        <div id="bottom_indicator" class="opacity-0" />
     </div>
 </ColumnLayout>
