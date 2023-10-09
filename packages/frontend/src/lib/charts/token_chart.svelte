@@ -1,8 +1,4 @@
 <script lang="ts">
-    import IconChart from "@tabler/icons-svelte/dist/svelte/icons/IconChartLine.svelte";
-    import IconOrderbook from "@tabler/icons-svelte/dist/svelte/icons/IconVocabulary.svelte";
-    import IconExchange from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsExchange2.svelte";
-
     import type {
         marketPricePoint,
         pmTokenData,
@@ -43,7 +39,7 @@
     const curve = curveLinear; // method of interpolation between points
 
     let width = 600;
-    let height = 300;
+    let height = 275;
 
     const acceptableColors = [
         "indigo",
@@ -66,7 +62,7 @@
                           ? colors.red[400]
                           : Object.entries(colors).filter(([name, value]) =>
                                 acceptableColors.includes(name)
-                            )[i][1]["400"],
+                            )[i][1]["500"],
               }))
               .reduce(
                   (
@@ -264,17 +260,18 @@
 </script>
 
 <div
-    class="min-h-200 min-w-full block relative bg-neutral-950 rounded-lg overflow-hidden"
+    class="min-h-200 min-w-full block relative"
     bind:clientWidth={width}
 >
-    <div class="flex items-center overflow-hidden p-2 pl-4">
+    <div class="flex items-center overflow-hidden p-3 gap-1">
         {#if tokens}
             {#each Object.entries(tokens) as token}
                 <button
-                    class="text-xs flex items-center gap-2 py-0.5 px-2.5 text-neutral-200 ring-neutral-800 bg-transparent rounded-xl"
+                    class="text-xs flex items-center font-medium h-7 gap-2 w-20 bg-neutral-900/70 py-0.5 pl-2.5 text-neutral-200 ring-neutral-800 rounded-md"
                 >
                     <div class={`h-1.5 w-1.5 rounded-full`} style={`background-color: ${token[1].color};`} />
                     {token[1].outcome}
+                    {(dotInfo?.tokenPoints[token[0]].y ?? tokenPoints[token[0]][tokenPoints[token[0]].length - 1].y ?? "--") + "¢"}
                 </button>
             {/each}
         {/if}
@@ -284,7 +281,7 @@
             {#each Object.values(PriceHistoryTerm) as v}
                 <button
                     on:click={() => (term = v)}
-                    class={`py-2 px-2 text-xs font-semibold ${
+                    class={`h-8 w-7 text-xs font-semibold ${
                         term === v ? "text-white" : "text-neutral-500"
                     }`}
                 >
@@ -422,34 +419,6 @@
             {/each}
         </svg>
     {/if}
-    <div
-        class="h-10 flex items-center justify-between border-t border-neutral-900 overflow-hidden bg-neutral-900/40 font-semibold text-xs divide-x divide-neutral-800"
-    >
-    <div class="px-2 w-full flex justify-center">
-        <button
-            class="flex gap-1 items-center justify-center w-full h-full rounded-lg text-white"
-        >
-                <IconChart size={18} />
-                Chart
-            </button>
-        </div>
-        <div class="px-2 w-full flex justify-center">
-            <button
-                class="flex gap-1 items-center justify-center w-full h-full rounded-lg text-neutral-400"
-                >
-                <IconOrderbook size={17} />
-                Orderbook
-            </button>
-        </div>
-        <div class="px-2 w-full flex justify-center">
-            <button
-                class="flex gap-1 items-center justify-center w-full h-full rounded-lg text-neutral-400"
-            >
-                <IconExchange size={18} />
-                Trades
-            </button>
-        </div>
-    </div>
 </div>
 
 <style>

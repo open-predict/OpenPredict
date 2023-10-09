@@ -3,6 +3,9 @@
     import IconUser from "@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte";
     import IconTrade from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsUpDown.svelte";
     import IconLiquidity from "@tabler/icons-svelte/dist/svelte/icons/IconDroplet.svelte";
+    import IconChart from "@tabler/icons-svelte/dist/svelte/icons/IconChartLine.svelte";
+    import IconOrderbook from "@tabler/icons-svelte/dist/svelte/icons/IconVocabulary.svelte";
+    import IconExchange from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsExchange2.svelte";
     import { faker } from "@faker-js/faker";
     import ImageChecker from "$lib/elements/image_checker.svelte";
     import Pill from "$lib/elements/pill.svelte";
@@ -22,6 +25,7 @@
     import TokenChart from "$lib/charts/token_chart.svelte";
     import { image } from "d3";
     import { Avatar } from "flowbite-svelte";
+    import Orderbook from "./orderbook.svelte";
     export let market: pmMarketFulldata;
     export let updateMarket: (
         market?: marketFulldata | pmMarketFulldata
@@ -71,6 +75,8 @@
             selectToken(market.data.tokens[0].token_id);
         }
     });
+
+    let selectedView: "trades" | "chart" | "orderbook" = "chart";
 </script>
 
 <div class="w-full max-w-full p-4 flex flex-col gap-4">
@@ -103,7 +109,6 @@
                 {"Polymarket"}
             </span>
         </Pill>
-        
         <VolumePill pmMarket={market} />
         <SubsidyPill pmMarket={market} />
         <Pill>
@@ -127,11 +132,64 @@
         </Pill>
         <div class="ml-auto" />
     </div>
-    <div class="my-2">
-        <TokenChart
-            pmTokenOrderdata={market.tokeOrderdata}
-            tokenMetadata={market.data.tokens}
-        />
+    <div
+        class="relative bg-neutral-950/90 rounded-lg min-h-[200px] max-h-[400px] h-250 overflow-y-scroll scrollbar_hide"
+    >
+        {#if selectedView === "chart"}
+            <TokenChart
+                pmTokenOrderdata={market.tokeOrderdata}
+                tokenMetadata={market.data.tokens}
+            />
+        {:else if selectedView === "orderbook"}
+            <Orderbook {market} {updateMarket} />
+        {:else}
+            <div class="spotted_background" />
+        {/if}
+        <div
+            class="h-10 sticky bottom-0 border-t border-neutral-900 bg-neutral-950"
+        >
+            <div class="w-full flex items-center justify-between h-full bg-neutral-900/40 font-semibold text-xs divide-x divide-neutral-800">
+                <div class="px-2 w-full flex justify-center">
+                    <button
+                        on:click={() => (selectedView = "chart")}
+                        class={`flex gap-1 items-center justify-center w-full h-full rounded-lg ${
+                            selectedView === "chart"
+                                ? "text-white"
+                                : "text-neutral-400"
+                        }`}
+                    >
+                        <IconChart size={18} />
+                        Chart
+                    </button>
+                </div>
+                <div class="px-2 w-full flex justify-center">
+                    <button
+                        on:click={() => (selectedView = "orderbook")}
+                        class={`flex gap-1 items-center justify-center w-full h-full rounded-lg ${
+                            selectedView === "orderbook"
+                                ? "text-white"
+                                : "text-neutral-400"
+                        }`}
+                    >
+                        <IconOrderbook size={17} />
+                        Orderbook
+                    </button>
+                </div>
+                <div class="px-2 w-full flex justify-center">
+                    <button
+                        on:click={() => (selectedView = "trades")}
+                        class={`flex gap-1 items-center justify-center w-full h-full rounded-lg ${
+                            selectedView === "trades"
+                                ? "text-white"
+                                : "text-neutral-400"
+                        }`}
+                    >
+                        <IconExchange size={18} />
+                        Trades
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
     <!-- <div class="w-full flex items-start justify-start my-2">
         <div
@@ -150,125 +208,6 @@
         >
             {market.data.description.replaceAll("\n", "\n\n")}
         </p>
-    </div>
-    <div class="flex flex-col gap-2 mb-8">
-        <h4 class="text-xl font-medium text-neutral-200">Orderbook</h4>
-        <div class="w-full border-t border-neutral-900 mb-2" />
-        <div class="flex flex-col bg-neutral-950 rounded-xl overflow-hidden">
-            <div
-                class="flex justify-start items-center border-b border-neutral-900 px-4 gap-4"
-            >
-                {#each market.data.tokens as token}
-                    <button
-                        on:click={() => selectToken(token.token_id)}
-                        class={`h-12 border-b-2 font-semibold text-sm ${
-                            token.token_id === selectedToken?.id
-                                ? "text-white border-neutral-400"
-                                : "text-neutral-300 border-transparent"
-                        }`}
-                    >
-                        {`Trade ${token.outcome}`}
-                    </button>
-                {/each}
-            </div>
-            {#if selectedToken}
-                <div
-                    id="order_book"
-                    class="flex flex-col divide-y divide-neutral-800 text-sm text-neutral-400 h-72 overflow-y-scroll"
-                >
-                    <div class="flex flex-col">
-                        {#each selectedToken.token.book.asks.sort((a, b) => b[0] - a[0]) as ask}
-                            <div
-                                class="flex h-10 relative hover:bg-neutral-500/5"
-                            >
-                                <div
-                                    class="absolute h-full w-full left-0 flex justify-start"
-                                >
-                                    <div
-                                        class="absolute h-full bg-neutral-400/5"
-                                        style={`width: ${ask[0]}%`}
-                                    />
-                                </div>
-                                <div
-                                    class="w-1/3 px-4 py-2 flex justify-center items-center"
-                                >
-                                    {usdFormatter.format(ask[0] / 100)}
-                                </div>
-                                <div
-                                    class="w-1/3 px-4 py-2 flex justify-center items-center"
-                                >
-                                    {usdFormatter.format(ask[1] / 100)}
-                                </div>
-                                <div
-                                    class="w-1/3 px-4 py-2 flex justify-center items-center"
-                                >
-                                    {usdFormatter.format(
-                                        (ask[0] * ask[1]) / 100
-                                    )}
-                                </div>
-                            </div>
-                        {/each}
-                    </div>
-                    <div
-                        class="flex h-10 relative text-neutral-200"
-                        id="midpoint"
-                    >
-                        <div
-                            class="absolute h-full bg-neutral-400/10"
-                            style={`width: ${spread}%; left: ${
-                                selectedToken.token.book.asks.sort(
-                                    (a, b) => a[0] - b[0]
-                                )[0][0]
-                            }%`}
-                        />
-                        <div
-                            class="w-1/3 px-4 py-2 flex justify-center items-center"
-                        >
-                            Midpoint {midpoint
-                                ? usdFormatter.format(midpoint / 100)
-                                : "N/A"}
-                        </div>
-                        <div
-                            class="w-1/3 px-4 py-2 flex justify-center items-center"
-                        >
-                            Spread {spread
-                                ? usdFormatter.format(spread / 100)
-                                : "N/A"}
-                        </div>
-                        <div class="w-1/3" />
-                    </div>
-                    <div class="flex flex-col">
-                        {#each selectedToken.token.book.bids.sort((a, b) => b[0] - a[0]) as bid}
-                            <div
-                                class="flex h-10 relative hover:bg-neutral-500/5"
-                            >
-                                <div
-                                    class="absolute h-full bg-neutral-400/5 right-0"
-                                    style={`width: ${bid[0]}%`}
-                                />
-                                <div
-                                    class="w-1/3 px-4 py-2 flex justify-center items-center"
-                                >
-                                    {usdFormatter.format(bid[0] / 100)}
-                                </div>
-                                <div
-                                    class="w-1/3 px-4 py-2 flex justify-center items-center"
-                                >
-                                    {usdFormatter.format(bid[1] / 100)}
-                                </div>
-                                <div
-                                    class="w-1/3 px-4 py-2 flex justify-center items-center"
-                                >
-                                    {usdFormatter.format(
-                                        (bid[0] * bid[1]) / 100
-                                    )}
-                                </div>
-                            </div>
-                        {/each}
-                    </div>
-                </div>
-            {/if}
-        </div>
     </div>
     <div class="flex flex-col gap-2 mb-8">
         <h4 class="text-xl font-medium text-neutral-200">Resolution</h4>
