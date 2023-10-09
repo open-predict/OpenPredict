@@ -106,10 +106,13 @@
         </Pill>
         <Pill>
             <IconUser size={14} class="text-sky-500" />
-            {`${Array.from(market.tokenOrderdata.values()).reduce((acc, val) => {
-                acc += val.positions.length;
-                return acc;
-            }, 0)}`}
+            {`${Array.from(market.tokenOrderdata.values()).reduce(
+                (acc, val) => {
+                    acc += val.positions.length;
+                    return acc;
+                },
+                0
+            )}`}
         </Pill>
         <Pill>
             <IconCal size={14} class="text-red-500" />
@@ -137,46 +140,42 @@
         <div
             class="h-10 sticky bottom-0 border-t border-neutral-900 bg-neutral-950"
         >
-            <div class="w-full flex items-center justify-between h-full bg-neutral-900/40 font-semibold text-xs divide-x divide-neutral-800">
-                <div class="px-2 w-full flex justify-center">
-                    <button
-                        on:click={() => (selectedView = "chart")}
-                        class={`flex gap-1 items-center justify-center w-full h-full rounded-lg ${
-                            selectedView === "chart"
-                                ? "text-white"
-                                : "text-neutral-400"
-                        }`}
-                    >
-                        <IconChart size={18} />
-                        Chart
-                    </button>
-                </div>
-                <div class="px-2 w-full flex justify-center">
-                    <button
-                        on:click={() => (selectedView = "orderbook")}
-                        class={`flex gap-1 items-center justify-center w-full h-full rounded-lg ${
-                            selectedView === "orderbook"
-                                ? "text-white"
-                                : "text-neutral-400"
-                        }`}
-                    >
-                        <IconOrderbook size={17} />
-                        Orderbook
-                    </button>
-                </div>
-                <div class="px-2 w-full flex justify-center">
-                    <button
-                        on:click={() => (selectedView = "trades")}
-                        class={`flex gap-1 items-center justify-center w-full h-full rounded-lg ${
-                            selectedView === "trades"
-                                ? "text-white"
-                                : "text-neutral-400"
-                        }`}
-                    >
-                        <IconExchange size={18} />
-                        Trades
-                    </button>
-                </div>
+            <div
+                class="w-full flex items-center justify-between h-full bg-neutral-900/40 font-semibold text-xs divide-x divide-neutral-800"
+            >
+                <button
+                    on:click={() => (selectedView = "chart")}
+                    class={`flex gap-1 items-center justify-center w-full h-full ${
+                        selectedView === "chart"
+                            ? "text-white"
+                            : "text-neutral-400"
+                    }`}
+                >
+                    <IconChart size={18} />
+                    Chart
+                </button>
+                <button
+                    on:click={() => (selectedView = "orderbook")}
+                    class={`flex gap-1 items-center justify-center w-full h-full ${
+                        selectedView === "orderbook"
+                            ? "text-white"
+                            : "text-neutral-400"
+                    }`}
+                >
+                    <IconOrderbook size={17} />
+                    Orderbook
+                </button>
+                <button
+                    on:click={() => (selectedView = "trades")}
+                    class={`flex gap-1 items-center justify-center w-full h-full ${
+                        selectedView === "trades"
+                            ? "text-white"
+                            : "text-neutral-400"
+                    }`}
+                >
+                    <IconExchange size={18} />
+                    Trades
+                </button>
             </div>
         </div>
     </div>
