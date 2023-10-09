@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { marketFulldata } from "@am/backend/types/market";
     import Svend3rChart from "$lib/charts/interactive_chart.svelte";
-    import { getChance } from "$lib/utils";
+    import { getChance } from "$lib/web3_utils";
     import ProfileButton from "./profile_button.svelte";
     import { PublicKey } from "@solana/web3.js";
     import MarketActions from "./market_actions.svelte";

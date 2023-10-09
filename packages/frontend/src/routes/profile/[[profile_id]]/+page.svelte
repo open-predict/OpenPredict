@@ -9,11 +9,13 @@
         autoresizeTextarea,
         generateProfileImage,
         readableAddress,
-        createProfileInstruction,
         TxStatus,
+    } from "$lib/utils";
+    import {
+        createProfileInstruction,
         getChance,
         USDC_PER_DOLLAR,
-    } from "$lib/utils";
+    } from "$lib/web3_utils.js";
     // import { trpcc } from "$lib/trpc.js";
     import SuperJSON from "superjson";
     import MarketCardSmall from "$lib/components/market_card_small.svelte";
@@ -56,15 +58,14 @@
     $: ({ solanaAddress } = $web3Workspace);
     $: $page.url.pathname, refreshProfile();
 
-
     const usernameDebounce = debounce((n: string) => {
-        checkUsername(n)
+        checkUsername(n);
     }, 100);
 
     $: usernameDebounce(username);
 
     async function checkUsername(un: string): Promise<void> {
-        if(!un) return;
+        if (!un) return;
         // usernameTaken = await trpcc.checkUsername.query({
         //     name: un
         // })
@@ -82,7 +83,7 @@
             profile = null;
             positions = undefined;
             markets = undefined;
-            if(browser) goto("/")
+            if (browser) goto("/");
             return;
         }
         // const profileRes = await trpcc.getUser.query({
@@ -101,7 +102,7 @@
         //     userId: id,
         // });
     }
-    
+
     async function saveProfile(initUsername: boolean = false) {
         if (!solanaAddress) return;
 
@@ -169,15 +170,14 @@
 <ColumnLayout>
     <MainHeader slot="main-header" fadeHeader />
     <div slot="main" class="flex flex-col bg-white">
-        <div class="h-40 w-full object-cover -mt-16 bg-gradient-to-br from-sky-100 to-indigo-200" />
+        <div
+            class="h-40 w-full object-cover -mt-16 bg-gradient-to-br from-sky-100 to-indigo-200"
+        />
         <div
             class="rounded-full -mt-16 ring-4 ring-white bg-gray-500 h-32 w-32 ml-8 overflow-hidden"
         >
             {#if id}
-                <img
-                    src={generateProfileImage(id)}
-                    alt="profile"
-                />
+                <img src={generateProfileImage(id)} alt="profile" />
             {/if}
         </div>
         <div class="p-4 -mt-16 h-16 w-2/3 ml-auto flex flex-col items-end">

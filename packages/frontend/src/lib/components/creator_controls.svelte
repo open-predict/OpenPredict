@@ -5,12 +5,11 @@
     } from "$env/static/public";
     import { web3Workspace } from "$lib/web3Workspace";
     import {
-        TxStatus,
         USDC_PER_DOLLAR,
         resolveMarketInstruction,
         subsidizeMarketInstruction,
-        usdFormatter,
-    } from "$lib/utils";
+    } from "$lib/web3_utils";
+    import { TxStatus, usdFormatter } from "$lib/utils";
     import { web3Store } from "$lib/web3Store";
     import type { marketFulldata } from "@am/backend/types/market";
     import { PublicKey } from "@solana/web3.js";

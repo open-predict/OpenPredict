@@ -16,7 +16,7 @@ export type TLikes = string[];
 
 export type pmMarketFulldata = {
     data: pmMarketData,
-    tokeOrderdata: Map<string, pmTokenOrderdata>,
+    tokenOrderdata: Map<string, pmTokenOrderdata>,
     meta: pmMarketSummarydata,
 }
 

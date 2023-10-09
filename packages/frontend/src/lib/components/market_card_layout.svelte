@@ -12,11 +12,11 @@
 >
     <a href={`/${href}`} class="group/link max-w-full">
         <div class="w-full max-w-full py-1.5 lg:p-2 xl:p-4">
-            <div class="w-full flex flex-col justify-start items-start gap-4">
+            <div class="w-full flex flex-col justify-start gap-4">
                 <div
                     class="w-full flex justify-between items-center flex-nowrap gap-2"
                 >
-                    <div class="relative w-9/10 max-w-9/10 overflow-hidden">
+                    <div class="relative w-9/10 max-w-9/10 grow overflow-hidden">
                         <div
                             class="absolute h-full w-20 bg-gradient-to-r from-transparent to-neutral-950 right-0"
                         />
@@ -40,10 +40,10 @@
                     </div>
                 {/if}
                 <div
-                    class="flex w-full align-top gap-4 justify-start items-start flex-nowrap"
+                    class="flex w-full min-w-full align-top gap-4 justify-between items-start flex-nowrap"
                 >
                     <h2
-                        class={`font-semibold text-white flex-grow group-hover:underline group-visited/link:text-indigo-300 ${
+                        class={`font-semibold w-full text-white group-hover:underline group-visited/link:text-indigo-300 ${
                             small ? "text-sm" : "text-lg lg:text-xl"
                         }`}
                     >

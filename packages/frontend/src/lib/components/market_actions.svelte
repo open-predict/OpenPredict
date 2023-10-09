@@ -3,13 +3,8 @@
     import Trade from "$lib/modals/trade.svelte";
     import { web3Workspace } from "$lib/web3Workspace";
     import { web3Store } from "$lib/web3Store";
-    import {
-        TxStatus,
-        getUserShares,
-        redeemSharesInstruction,
-        usdFormatter,
-    } from "$lib/utils";
-    import { Modal, modalStore } from "$lib/modals/modalStore";
+    import { TxStatus, usdFormatter } from "$lib/utils";
+    import { getUserShares, redeemSharesInstruction } from "$lib/web3_utils";
     import {
         Dialog,
         DialogDescription,
@@ -40,7 +35,12 @@
     let tradeYes = true;
     let redeemSharesModal = false;
 
-    $: userShares = getUserShares(market.data, $web3Store?.solanaAddress ? new PublicKey($web3Store.solanaAddress) : null);
+    $: userShares = getUserShares(
+        market.data,
+        $web3Store?.solanaAddress
+            ? new PublicKey($web3Store.solanaAddress)
+            : null
+    );
     $: console.log("userShares changed", userShares);
     $: canRedeem =
         isResolved && userShares.shares && resolved === userShares.shares > 0;
@@ -50,7 +50,7 @@
             const publicKey = $web3Store?.solanaAddress;
 
             if (!publicKey) {
-                errorMessage = "Missing user's public key."
+                errorMessage = "Missing user's public key.";
                 return false;
             }
 
@@ -134,7 +134,7 @@
     <button
         disabled={!!loadingMessage}
         on:click|stopPropagation|preventDefault={(e) => {
-            redeemSharesModal = true
+            redeemSharesModal = true;
         }}
         class={reactiveBtn}
     >
@@ -238,7 +238,7 @@
 {#if redeemSharesModal}
     <Dialog
         open={redeemSharesModal}
-        on:close={() => redeemSharesModal = false}
+        on:close={() => (redeemSharesModal = false)}
         class="modal_root"
     >
         <DialogOverlay class="modal_overlay" />
@@ -251,7 +251,8 @@
                     loadingMessage = "";
                     completedMessage = "";
                     if (!errorMessage) {
-                        redeemSharesModal = false                    }
+                        redeemSharesModal = false;
+                    }
                     errorMessage = "";
                 }}
             />

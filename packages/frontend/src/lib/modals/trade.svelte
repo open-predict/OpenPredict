@@ -13,18 +13,20 @@
   import IconMinus from "@tabler/icons-svelte/dist/svelte/icons/IconMinus.svelte";
   import IconSwitch from "@tabler/icons-svelte/dist/svelte/icons/IconSwitchVertical.svelte";
   import { onMount } from "svelte";
-  import { USDC_PER_DOLLAR } from "$lib/utils";
+  import { USDC_PER_DOLLAR } from "$lib/web3_utils";
   import { browser } from "$app/environment";
   import {
     getBuyShareAmount,
     getChance,
     getSellUsdcLimit,
     getUserShares,
-    usdFormatter,
     buySharesInstruction,
+  } from "$lib/web3_utils";
+  import {
+    usdFormatter,
     Errors,
     TxStatus,
-  } from "$lib/utils";
+  } from "$lib/utils"
   import confetti from "canvas-confetti";
   import { web3Store } from "$lib/web3Store";
   import LoadingOverlay from "$lib/components/loading_overlay.svelte";

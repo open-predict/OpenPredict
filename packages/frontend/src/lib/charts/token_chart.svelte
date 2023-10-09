@@ -16,7 +16,7 @@
         type ScaleLinear,
     } from "d3";
 
-    import { PriceHistoryTerm, resamplePmPriceHistory } from "./utils";
+    import { PriceHistoryTerm, resamplePmPriceHistory } from "$lib/charts/utils";
     import { dateFormatter } from "$lib/utils";
     import type { pmTokenOrderdata } from "$lib/types";
     import colors from "tailwindcss/colors";
@@ -76,8 +76,6 @@
               )
         : undefined;
 
-    $: tokens, console.log("tokens", tokens);
-
     $: tokenData = pmTokenOrderdata
         ? Array.from(pmTokenOrderdata.entries())
               .map((e, i) => {
@@ -100,7 +98,6 @@
                       >,
                       val
                   ) => {
-                      console.log(val);
                       acc[val.id] = val;
                       return acc;
                   },
@@ -213,7 +210,6 @@
             yTicks = niceY.ticks(yScalefactor);
 
             xTicks = xScale.ticks(xScalefactor);
-            console.log("xTicks", xTicks, xScalefactor);
             xTicksFormatted = xTicks.map(
                 (el) => `${el.getUTCMonth() + 1}/${el.getDate()}`
             );

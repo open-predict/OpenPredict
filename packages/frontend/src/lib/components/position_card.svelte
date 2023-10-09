@@ -3,12 +3,11 @@
     import ProfileButton from "./profile_button.svelte";
     import type { TUser } from "@am/backend/types/user";
     import type { marketUserChaindata } from "@am/backend/types/market";
-    import { USDC_PER_DOLLAR } from "$lib/utils";
+    import { USDC_PER_DOLLAR } from "$lib/web3_utils";
 
     export let publicKey: PublicKey;
     export let profile: undefined | TUser = undefined;
     export let marketUserChaindata: marketUserChaindata;
-    console.log(marketUserChaindata);
 </script>
 
 <div class="flex p-8 justify-between">

@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { getUserShares, readableAddress, usdFormatter } from "$lib/utils";
+  import { readableAddress, usdFormatter } from "$lib/utils";
+  import { getUserShares } from "$lib/web3_utils";
   import { web3Store } from "$lib/web3Store";
   import CopyButton from "../elements/copy_button.svelte";
   import { Modal, modalStore } from "$lib/modals/modalStore";
@@ -23,7 +24,7 @@
     redeemable: number;
   }> {
     let ret = { active: 0, redeemable: 0 };
-    if (!$web3Store.solanaAddress) return ret;
+    if (!$web3Store?.solanaAddress) return ret;
     // const positions = await trpcc.getMarketAccounts.query({
     //   userId: $web3Store.solanaAddress,
     // });

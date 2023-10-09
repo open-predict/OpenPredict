@@ -8,7 +8,6 @@
   } from "@rgossiaux/svelte-headlessui";
   import { web3Workspace } from "$lib/web3Workspace";
   import { web3Store } from "$lib/web3Store";
-  import { USDC_PER_DOLLAR, usdFormatter } from "$lib/utils";
   import { PUBLIC_SOLANA_RPC_URL } from "$env/static/public";
   // import { trpcc } from "$lib/trpc";
   import LoadingOverlay from "$lib/components/loading_overlay.svelte";

@@ -2,7 +2,8 @@
     import IconSubsidy from "@tabler/icons-svelte/dist/svelte/icons/IconMoneybag.svelte";
     import type { marketFulldata } from "@am/backend/types/market";
     import Pill from "$lib/elements/pill.svelte";
-    import { USDC_PER_DOLLAR, usdFormatter } from "$lib/utils";
+    import { usdFormatter } from "$lib/utils";
+    import { USDC_PER_DOLLAR } from "$lib/web3_utils"
     import type { pmMarketFulldata } from "$lib/types";
 
     export let opMarket: marketFulldata | undefined = undefined;

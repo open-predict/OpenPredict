@@ -16,7 +16,7 @@
     import type { marketFulldata } from "@am/backend/types/market";
     import InteractiveChart from "$lib/charts/interactive_chart.svelte";
     import { PublicKey } from "@solana/web3.js";
-    import { getChance } from "$lib/utils";
+    import { getChance } from "$lib/web3_utils";
     import { api } from "$lib/api";
     import type { pmMarketFulldata } from "$lib/types";
     export let market: marketFulldata;

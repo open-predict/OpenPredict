@@ -10,22 +10,36 @@
 
     let selectedToken: { token: pmTokenOrderdata; id: string } | undefined;
 
+    function getScrollParent(node: HTMLElement | null) {
+        if (node === null) {
+            return null;
+        }
+        if (node.scrollHeight > node.clientHeight) {
+            return node;
+        } else {
+            return getScrollParent(node.parentElement);
+        }
+    }
+
     async function selectToken(token: string) {
         selectedToken = {
             id: token,
-            token: market.tokeOrderdata.get(token) as pmTokenOrderdata,
+            token: market.tokenOrderdata.get(token) as pmTokenOrderdata,
         };
         await tick();
-        const book = window.document.getElementById("order_book");
         const midpoint = window.document.getElementById("midpoint");
-        if (book && midpoint) {
-            const centeringOffset =
-                book.clientHeight * 0.5 - midpoint.clientHeight * 0.5;
-            book.scrollTop =
-                midpoint.getBoundingClientRect().top -
-                book.getBoundingClientRect().top +
-                book.scrollTop -
-                centeringOffset;
+        if (midpoint) {
+            const scrollable = getScrollParent(midpoint);
+            if (scrollable) {
+                const stickyItems = 32;
+                const centeringOffset =
+                    scrollable.clientHeight * 0.5 - midpoint.clientHeight * 0.5;
+                scrollable.scrollTop =
+                    midpoint.getBoundingClientRect().top -
+                    scrollable.getBoundingClientRect().top +
+                    scrollable.scrollTop -
+                    centeringOffset - stickyItems;
+            }
         }
     }
 
@@ -91,7 +105,6 @@
               }, [])
         : [];
     $: bidTotal = bidRows.length > 0 ? bidRows[bidRows.length - 1].t : 1;
-
 </script>
 
 <div

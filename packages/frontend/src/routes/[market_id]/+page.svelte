@@ -9,8 +9,6 @@
     import SuperJSON from "superjson";
     import MarketActions from "$lib/components/market_actions.svelte";
     import type { TMarketIdPageData } from "./+page.js";
-    import ProfileButton from "$lib/components/profile_button.svelte";
-    import { autoresizeTextarea, getChance, timeAgo } from "$lib/utils.js";
     import PositionCard from "$lib/components/position_card.svelte";
     import CreatorControls from "$lib/components/creator_controls.svelte";
     import { browser } from "$app/environment";

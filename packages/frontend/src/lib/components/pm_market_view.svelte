@@ -1,31 +1,20 @@
 <script lang="ts">
     import IconCal from "@tabler/icons-svelte/dist/svelte/icons/IconCalendar.svelte";
     import IconUser from "@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte";
-    import IconTrade from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsUpDown.svelte";
     import IconLiquidity from "@tabler/icons-svelte/dist/svelte/icons/IconDroplet.svelte";
     import IconChart from "@tabler/icons-svelte/dist/svelte/icons/IconChartLine.svelte";
     import IconOrderbook from "@tabler/icons-svelte/dist/svelte/icons/IconVocabulary.svelte";
     import IconExchange from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsExchange2.svelte";
-    import { faker } from "@faker-js/faker";
-    import ImageChecker from "$lib/elements/image_checker.svelte";
     import Pill from "$lib/elements/pill.svelte";
     import PolymarketLogo from "$lib/elements/polymarket_logo.svelte";
-    import LikeButton from "$lib/elements/like_button.svelte";
-    import ShareButton from "$lib/elements/share_button.svelte";
-    import CommentButton from "$lib/elements/comment_button.svelte";
-    import ChangeIndicator from "$lib/elements/change_indicator.svelte";
     import SubsidyPill from "$lib/elements/subsidy_pill.svelte";
     import VolumePill from "$lib/elements/volume_pill.svelte";
     import type { marketFulldata } from "@am/backend/types/market";
-    import InteractiveChart from "$lib/charts/interactive_chart.svelte";
-    import { usdFormatter } from "$lib/utils";
-    import { afterUpdate, onMount, tick } from "svelte";
-    import { tokenize } from "protobufjs";
+    import { onMount, tick } from "svelte";
     import type { pmMarketFulldata, pmTokenOrderdata } from "$lib/types";
     import TokenChart from "$lib/charts/token_chart.svelte";
-    import { image } from "d3";
-    import { Avatar } from "flowbite-svelte";
     import Orderbook from "./orderbook.svelte";
+    import FilledOrders from "./filled_orders.svelte";
     export let market: pmMarketFulldata;
     export let updateMarket: (
         market?: marketFulldata | pmMarketFulldata
@@ -36,7 +25,7 @@
     async function selectToken(token: string) {
         selectedToken = {
             id: token,
-            token: market.tokeOrderdata.get(token) as pmTokenOrderdata,
+            token: market.tokenOrderdata.get(token) as pmTokenOrderdata,
         };
         await tick();
         const book = window.document.getElementById("order_book");
@@ -117,7 +106,7 @@
         </Pill>
         <Pill>
             <IconUser size={14} class="text-sky-500" />
-            {`${Array.from(market.tokeOrderdata.values()).reduce((acc, val) => {
+            {`${Array.from(market.tokenOrderdata.values()).reduce((acc, val) => {
                 acc += val.positions.length;
                 return acc;
             }, 0)}`}
@@ -133,17 +122,17 @@
         <div class="ml-auto" />
     </div>
     <div
-        class="relative bg-neutral-950/90 rounded-lg min-h-[200px] max-h-[400px] h-250 overflow-y-scroll scrollbar_hide"
+        class="relative bg-neutral-950/90 rounded-lg min-h-[200px] max-h-[400px] h-275 overflow-y-scroll scrollbar_hide"
     >
         {#if selectedView === "chart"}
             <TokenChart
-                pmTokenOrderdata={market.tokeOrderdata}
+                pmTokenOrderdata={market.tokenOrderdata}
                 tokenMetadata={market.data.tokens}
             />
         {:else if selectedView === "orderbook"}
             <Orderbook {market} {updateMarket} />
         {:else}
-            <div class="spotted_background" />
+            <FilledOrders {market} {updateMarket} />
         {/if}
         <div
             class="h-10 sticky bottom-0 border-t border-neutral-900 bg-neutral-950"

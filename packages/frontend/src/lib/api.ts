@@ -2,7 +2,7 @@ import type { marketFulldata, marketPricePoint, marketTradeChaindata, marketUser
 import type { TComments, TUsers, pmFilledOrders, pmMarketFulldata, pmTokenOrderdata } from '$lib/types';
 import { faker } from '@faker-js/faker';
 import { PublicKey } from '@solana/web3.js';
-import { USDC_PER_DOLLAR } from './utils';
+import { USDC_PER_DOLLAR } from '$lib/web3_utils';
 import type { TUser } from '@am/backend/types/user';
 
 const solanaAddress = "D2BB5wDLzzRxP5RbiiXhip6Bg8tNf5P6bcVi7G1NxGKT";
@@ -106,20 +106,19 @@ const book = () => {
     return { bids, asks }
 }
 
-const orders: () => pmFilledOrders[] = () => {
-    return Array.from(Array(faker.datatype.number({ min: 0, max: 20 })).map(() => {
-        const before = new Date(lastPriceHistoryDate.getTime() + (1 * 24 * 60 * 60 * 1000))
-        return {
-            id: faker.finance.ethereumAddress(),
-            maker: Array.from(users.keys())[0],
-            price: faker.datatype.number({ min: 1, max: 99, precision: 2 }),
-            side: faker.datatype.boolean() ? "buy" : "sell",
-            size: faker.datatype.bigInt({ min: 10000n, max: 1000000n }),
-            taker: Array.from(users.keys())[0],
-            ts: faker.date.between(before, new Date()).getTime(),
-        }
-    }))
-}
+const orders: pmFilledOrders[] = Array.from(Array(faker.datatype.number({ min: 0, max: 20 }))).map(() => {
+    const before = new Date(lastPriceHistoryDate.getTime() - (1 * 24 * 60 * 60 * 1000))
+    const order = {
+        id: faker.finance.ethereumAddress(),
+        maker: Array.from(users.keys())[0],
+        price: faker.datatype.number({ min: 1, max: 99, precision: 2 }),
+        side: faker.datatype.boolean() ? "buy" : "sell" as "buy" | "sell",
+        size: faker.datatype.bigInt({ min: 10000n, max: 1000000n }),
+        taker: Array.from(users.keys())[0],
+        ts: faker.date.between(before, new Date()).getTime(),
+    }
+    return order;
+})
 
 const pmMarkets: pmMarketFulldata[] = Array.from(Array(5)).map(() => {
     const active = faker.datatype.boolean();
@@ -154,14 +153,14 @@ const pmMarkets: pmMarketFulldata[] = Array.from(Array(5)).map(() => {
             comments: comments,
             likes: Array.from(UserAccounts.keys()),
         },
-        tokeOrderdata: tokenData.map((t, i) => {
+        tokenOrderdata: tokenData.map((t, i) => {
             const tokenPriceHistory = Array.from(PriceHistory.entries()).map(php => ({
                 t: php[1].At.getTime(),
                 price: faker.datatype.number({ min: 1, max: 49, precision: 2 })
             }))
             const td: pmTokenOrderdata = {
                 book: book(),
-                filledOrders: orders(),
+                filledOrders: orders,
                 positions: Array.from(UserAccounts.entries()).map(e => ({
                     user: e[0],
                     position: e[1].Shares,
@@ -210,7 +209,7 @@ export async function searchMarkets(): Promise<TMarketWrapper[]> {
             id: market.data.condition_id,
             volume: BigInt(Number(market.meta.volume)),
             comments: market.data.comments.length,
-            traders: Array.from(market.tokeOrderdata.values()).reduce((acc: string[], val) => {acc = [...acc, ...val.positions.map(p => p.user)] ; return acc}, []),
+            traders: Array.from(market.tokenOrderdata.values()).reduce((acc: string[], val) => { acc = [...acc, ...val.positions.map(p => p.user)]; return acc }, []),
             likes: market.data.likes,
             pmMarket: market
         })

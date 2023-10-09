@@ -11,10 +11,10 @@
   import {
     autoresizeTextarea,
     usdFormatter,
-    USDC_PER_DOLLAR,
     TxStatus,
     solFormatter,
   } from "$lib/utils";
+  import {USDC_PER_DOLLAR} from "$lib/web3_utils"
   import {
     LAMPORTS_PER_SOL,
     PublicKey,

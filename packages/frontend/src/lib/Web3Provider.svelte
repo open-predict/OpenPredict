@@ -14,7 +14,7 @@
   import { onMount } from "svelte";
   // import { trpcc } from "./trpc";
   import createConnection from "./createConnection";
-  import { Errors, TxStatus, delay } from "./utils";
+  import { Errors, TxStatus, delay } from "$lib/utils";
   import log from "$lib/log";
   import { web3Store, type TAddressKey } from "./web3Store";
   import { Network, Web3 } from "./network";
