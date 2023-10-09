@@ -15,6 +15,7 @@
     import { api } from "$lib/api";
     import MarketCardLayout from "./market_card_layout.svelte";
     import type { pmMarketFulldata } from "$lib/types";
+    import UserPill from "./user_pill.svelte";
     export let market: marketFulldata;
     export let updateMarket: (market?: marketFulldata | pmMarketFulldata) => void;
     export let small = false;
@@ -24,31 +25,12 @@
         (getChance(market.data.data.Yes, market.data.data.No) * 100).toFixed(
             0
         ) + "%";
-    $: getCreatorResponse = api.getUser(id);
+    // $: getCreatorResponse = api.getUser(id);
 </script>
 
 <MarketCardLayout href={id} {small}>
     <div class="contents" slot="pills">
-        <Pill>
-            {#await getCreatorResponse}
-                <div />
-            {:then creator}
-                <div
-                    class="w-4 h-4 rounded-full ring-1 ring-inset ring-neutral-400 overflow-hidden p-0.5"
-                >
-                    <img
-                        class=""
-                        src={creator?.metadata.image}
-                        alt="user avatar"
-                    />
-                </div>
-                <span>
-                    {creator?.metadata.name ??
-                        creator?.username ??
-                        market.data.data.OperatorKey}
-                </span>
-            {/await}
-        </Pill>
+       <UserPill id={id} />
         <VolumePill opMarket={market} />
         <SubsidyPill opMarket={market} />
     </div>

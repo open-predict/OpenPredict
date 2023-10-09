@@ -18,6 +18,7 @@
     import { USDC_PER_DOLLAR } from "$lib/web3_utils";
     import { faker } from "@faker-js/faker";
     import { usdFormatter } from "$lib/utils";
+    import UserPill from "./user_pill.svelte";
     export let market: pmMarketFulldata;
     export let updateMarket: (
         market?: marketFulldata | pmMarketFulldata
@@ -234,22 +235,11 @@
                     <div class="flex flex-col divide-y divide-neutral-900">
                         {#each tokenOrderdata[1].positions.slice(0, 5) as position}
                         <div class="flex justify-between text-neutral-200 items-center py-2">
-                            <Pill>
-                                <div
-                                    class="w-4 h-4 rounded-full ring-1 ring-inset ring-neutral-400 overflow-hidden p-0.5"
-                                >
-                                    <img
-                                        class=""
-                                        src={faker.image.avatar()}
-                                        alt="user avatar"
-                                    />
-                                </div>
-                                <span>
-                                    {faker.internet.userName()}
-                                </span>
-                            </Pill>
-                            <p class={`text-sm ${tokens[tokenOrderdata[0]].outcome === "Yes" ? "text-green-400" : tokens[tokenOrderdata[0]].outcome === "No" ? "text-red-400" : "text-indigo-400"}`}>
-                                {usdFormatter.format(Number(position.position)/(USDC_PER_DOLLAR*1000))}
+                            <div class="max-w-1/2 overflow-hidden">
+                                <UserPill id={position.user} />
+                        </div>
+                            <p class={`text-sm ${tokens[tokenOrderdata[0]].outcome === "Yes" ? "text-green-400" : tokens[tokenOrderdata[0]].outcome === "No" ? "text-red-500" : "text-indigo-400"}`}>
+                                {usdFormatter.format(Number(position.position)/(USDC_PER_DOLLAR*10000))}
                             </p>
                         </div>
                         {/each}

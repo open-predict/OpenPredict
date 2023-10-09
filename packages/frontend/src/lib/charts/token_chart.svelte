@@ -44,7 +44,6 @@
     const acceptableColors = [
         "indigo",
         "sky",
-        "green",
         "blue",
         "orange",
         "yellow",
@@ -263,7 +262,7 @@
         {#if tokens}
             {#each Object.entries(tokens) as token}
                 <button
-                    class="text-xs flex items-center font-medium h-7 gap-2 w-20 bg-neutral-900/70 py-0.5 pl-2.5 text-neutral-200 ring-neutral-800 rounded-md"
+                    class="text-xs flex items-center font-medium h-7 gap-2 min-w-[5rem] bg-neutral-900/70 py-0.5 pl-2.5 pr-2.5 text-neutral-200 ring-neutral-800 rounded-md"
                 >
                     <div class={`h-1.5 w-1.5 rounded-full`} style={`background-color: ${token[1].color};`} />
                     {token[1].outcome}

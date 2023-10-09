@@ -134,7 +134,7 @@ const pmMarkets: pmMarketFulldata[] = Array.from(Array(5)).map(() => {
     const tokenData: pmTokenData[] = Array.from(Array(2)).map((_, i) => {
         return {
             token_id: faker.finance.ethereumAddress(),
-            outcome: i === 0 ? "Yes" : "No",
+            outcome: i === 0 ? "Yes" : i === 1 ? "No" : "Other",
             winner: active ? undefined : faker.datatype.boolean()
         }
     });
