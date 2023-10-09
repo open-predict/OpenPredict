@@ -9,12 +9,15 @@
     import PolymarketLogo from "$lib/elements/polymarket_logo.svelte";
     import SubsidyPill from "$lib/elements/subsidy_pill.svelte";
     import VolumePill from "$lib/elements/volume_pill.svelte";
-    import type { marketFulldata } from "@am/backend/types/market";
+    import type { marketFulldata, pmTokenData } from "@am/backend/types/market";
     import { onMount, tick } from "svelte";
     import type { pmMarketFulldata, pmTokenOrderdata } from "$lib/types";
     import TokenChart from "$lib/charts/token_chart.svelte";
     import Orderbook from "./orderbook.svelte";
     import FilledOrders from "./filled_orders.svelte";
+    import { USDC_PER_DOLLAR } from "$lib/web3_utils";
+    import { faker } from "@faker-js/faker";
+    import { usdFormatter } from "$lib/utils";
     export let market: pmMarketFulldata;
     export let updateMarket: (
         market?: marketFulldata | pmMarketFulldata
@@ -40,6 +43,14 @@
                 centeringOffset;
         }
     }
+
+    $: tokens = market.data.tokens.reduce(
+        (acc: Record<string, pmTokenData>, val) => {
+            acc[val.token_id] = val;
+            return acc;
+        },
+        {}
+    );
 
     $: spread = selectedToken
         ? Math.abs(
@@ -209,14 +220,43 @@
     <div class="flex flex-col gap-2 mb-8">
         <div class="flex justify-between items-end">
             <h4 class="text-xl font-medium text-neutral-200">Holders</h4>
-            <span class="text-neutral-400 text-sm"> View trades </span>
         </div>
         <div class="w-full border-t border-neutral-900 mb-2" />
-        <p
-            class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
-        >
-            {"This market has not yet been resolved."}
-        </p>
+        <div class="w-full grid grid-cols-2 gap-8">
+            {#each Array.from(market.tokenOrderdata.entries()) as tokenOrderdata}
+                <div class="w-full flex flex-col gap-2">
+                    <div class="flex justify-between flex-nowrap items-center">
+                        <h4 class="text-md font-semibold text-neutral-200">
+                            {`${tokens[tokenOrderdata[0]].outcome} holders`}
+                        </h4>
+                        <span class="text-neutral-400 text-xs">POSITION</span>
+                    </div>
+                    <div class="flex flex-col divide-y divide-neutral-900">
+                        {#each tokenOrderdata[1].positions.slice(0, 5) as position}
+                        <div class="flex justify-between text-neutral-200 items-center py-2">
+                            <Pill>
+                                <div
+                                    class="w-4 h-4 rounded-full ring-1 ring-inset ring-neutral-400 overflow-hidden p-0.5"
+                                >
+                                    <img
+                                        class=""
+                                        src={faker.image.avatar()}
+                                        alt="user avatar"
+                                    />
+                                </div>
+                                <span>
+                                    {faker.internet.userName()}
+                                </span>
+                            </Pill>
+                            <p class={`text-sm ${tokens[tokenOrderdata[0]].outcome === "Yes" ? "text-green-400" : tokens[tokenOrderdata[0]].outcome === "No" ? "text-red-400" : "text-indigo-400"}`}>
+                                {usdFormatter.format(Number(position.position)/(USDC_PER_DOLLAR*1000))}
+                            </p>
+                        </div>
+                        {/each}
+                    </div>
+                </div>
+            {/each}
+        </div>
     </div>
     <div class="flex flex-col gap-2 mb-8">
         <div class="flex justify-between items-end">

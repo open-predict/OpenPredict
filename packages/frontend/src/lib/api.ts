@@ -5,6 +5,15 @@ import { PublicKey } from '@solana/web3.js';
 import { USDC_PER_DOLLAR } from '$lib/web3_utils';
 import type { TUser } from '@am/backend/types/user';
 
+function randomizeString(input: string): string {
+    const characters = input.split('');
+    for (let i = characters.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [characters[i], characters[j]] = [characters[j], characters[i]];
+    }
+    return characters.join('');
+}
+
 const solanaAddress = "D2BB5wDLzzRxP5RbiiXhip6Bg8tNf5P6bcVi7G1NxGKT";
 
 export const users: TUsers = Array.from(Array(8)).map(() => ({
@@ -17,7 +26,7 @@ export const users: TUsers = Array.from(Array(8)).map(() => ({
         links: []
     }
 })).reduce((acc, value) => {
-    acc.set(solanaAddress, value)
+    acc.set(randomizeString(solanaAddress), value)
     return acc;
 }, new Map())
 
