@@ -31,7 +31,7 @@
     ) => void;
 
     let orderType: "limit" | "market" = "limit";
-    
+
     $: tokens = market.data.tokens.reduce(
         (acc: Record<string, pmTokenData>, val) => {
             acc[val.token_id] = val;
@@ -166,7 +166,7 @@
             </div>
         </div>
     </div>
-    <div class="flex flex-col gap-2 mb-8 mt-4 bg-black pb-3">
+    <div class="flex flex-col gap-2 mb-8 mt-4">
         <div class="flex justify-between items-center">
             <h4 class="text-xl font-medium text-neutral-200">Trade</h4>
             <Toggle
@@ -193,9 +193,16 @@
                 <span class="text-neutral-400 text-xs">POSITION</span>
             </div>
         </div> -->
-        <PmTrade market={market} {updateMarket} onClose={() => {}} direction />
-        
+        <PmTrade {market} {updateMarket} onClose={() => {}} direction />
     </div>
+
+    <div class="flex flex-col gap-2 mb-8 mt-4">
+        <div class="flex justify-between items-center">
+            <h4 class="text-xl font-medium text-neutral-200">Your trades & positions</h4>
+        </div>
+        <div class="w-full border-t border-neutral-900 mb-2" />
+    </div>
+
     <div class="flex flex-col gap-2 mb-8 mt-4">
         <h4 class="text-xl font-medium text-neutral-200">Description</h4>
         <div class="w-full border-t border-neutral-900 mb-2" />

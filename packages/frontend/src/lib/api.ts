@@ -115,8 +115,8 @@ const book = () => {
     return { bids, asks }
 }
 
-const orders: pmFilledOrders[] = Array.from(Array(faker.datatype.number({ min: 0, max: 20 }))).map(() => {
-    const before = new Date(lastPriceHistoryDate.getTime() - (1 * 24 * 60 * 60 * 1000))
+const orders: pmFilledOrders[] = Array.from(Array(faker.datatype.number({ min: 0, max: 20 }))).map((_, i) => {
+    const before = new Date(Date.now() - (i * 24 * 60 * 60 * 1000))
     const order = {
         id: faker.finance.ethereumAddress(),
         maker: Array.from(users.keys())[0],
@@ -165,7 +165,7 @@ const pmMarkets: pmMarketFulldata[] = Array.from(Array(5)).map(() => {
         tokenOrderdata: tokenData.map((t, i) => {
             const tokenPriceHistory = Array.from(PriceHistory.entries()).map(php => ({
                 t: php[1].At.getTime(),
-                price: faker.datatype.number({ min: 1, max: 49, precision: 2 })
+                price: faker.datatype.number({ min: 0.99, max: 49.99, precision: 2 })
             }))
             const td: pmTokenOrderdata = {
                 book: book(),
@@ -176,7 +176,7 @@ const pmMarkets: pmMarketFulldata[] = Array.from(Array(5)).map(() => {
                 })),
                 priceHistory: i ? Array.from(PriceHistory.entries()).map((php, i) => ({
                     t: php[1].At.getTime(),
-                    price: 99 - tokenPriceHistory[i].price
+                    price: 50 - tokenPriceHistory[i].price
                 })) : tokenPriceHistory
             }
             return td;
