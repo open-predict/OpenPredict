@@ -1,7 +1,7 @@
 <script lang="ts">
     import { web3Store } from "$lib/web3Store";
     import type { marketFulldata } from "@am/backend/types/market";
-    import IconHeart from "@tabler/icons-svelte/dist/svelte/icons/IconHeart.svelte";
+    import IconStar from "@tabler/icons-svelte/dist/svelte/icons/IconStar.svelte";
     import { Modal, modalStore } from "$lib/modals/modalStore";
     import { api } from "$lib/api";
     import { clone } from "lodash";
@@ -97,11 +97,11 @@
     }}
     class={`flex group/like items-center justify-center text-sm gap-1.5 py-1.5 px-2.5 rounded-lg text-neutral-400 hover:bg-neutral-900`}
 >
-    <IconHeart
+    <IconStar
         class={`${
             liked
-                ? "group-hover/like:rotate-12 stroke-rose-400 fill-rose-400/25 group-hover/like:fill-rose-400/25 group-hover/like:stroke-rose-400/50"
-                : "group-hover/like:-rotate-12 stroke-neutral-600 fill-transparent group-hover/like:fill-rose-400/25 group-hover/like:stroke-rose-400/50"
+                ? "group-hover/like:rotate-12 stroke-yellow-400 fill-yellow-400/25 group-hover/like:fill-yellow-400/25 group-hover/like:stroke-yellow-400/50"
+                : "group-hover/like:-rotate-12 stroke-neutral-600 fill-transparent group-hover/like:fill-yellow-400/25 group-hover/like:stroke-yellow-400/50"
         }`}
         size={20}
     />

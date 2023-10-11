@@ -2,6 +2,8 @@
     import IconCal from "@tabler/icons-svelte/dist/svelte/icons/IconCalendar.svelte";
     import IconMenu from "@tabler/icons-svelte/dist/svelte/icons/IconDotsVertical.svelte";
     import IconTrade from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsUpDown.svelte";
+    import IconLink from "@tabler/icons-svelte/dist/svelte/icons/IconExternalLink.svelte";
+    import IconCopy from "@tabler/icons-svelte/dist/svelte/icons/IconCopy.svelte";
     import { faker } from "@faker-js/faker";
     import ImageChecker from "$lib/elements/image_checker.svelte";
     import Pill from "$lib/elements/pill.svelte";
@@ -15,6 +17,7 @@
     import VolumePill from "$lib/elements/volume_pill.svelte";
     import type { marketFulldata } from "@am/backend/types/market";
     import MarketCardLayout from "$lib/components/market_card_layout.svelte";
+    import MoreButton from "./more_button.svelte";
     export let market: pmMarketFulldata;
     export let updateMarket: (market?: marketFulldata | pmMarketFulldata) => void;
     export let small = false;
@@ -43,9 +46,20 @@
             })}`}
         </Pill>
     </div>
-    <button slot="header_right" class="action_icon h-6 w-6">
-        <IconMenu size={14} />
-    </button>
+    <MoreButton slot="header_right">
+        <button on:click|stopPropagation|preventDefault={() => window.navigator.clipboard.writeText(`https://openpredict.org/market/${market.data.question_id}`)} class="flex items-center gap-1.5 py-1 px-2.5 text-xs bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800/50">
+            {`Copy link`}
+            <IconCopy size={12} />
+        </button>
+        <a on:click|stopPropagation|preventDefault href={`https://polygonscan.com/address/${market.data.question_id}`} class="flex items-center gap-1.5 py-1 px-2.5 text-xs bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800/50">
+            {`Market contract`}
+            <IconLink size={12} />
+        </a>
+        <a on:click|stopPropagation|preventDefault href={`https://polygonscan.com/address/${market.data.condition_id}`} class="flex items-center gap-1.5 py-1 px-2.5 text-xs bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800/50">
+            {`Resolution contract`}
+            <IconLink size={12} />
+        </a>
+    </MoreButton>
     <!-- <ImageChecker
         slot="extra_content"
         url={market.data.image}

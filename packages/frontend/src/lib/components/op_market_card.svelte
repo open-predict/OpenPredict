@@ -1,6 +1,8 @@
 <script lang="ts">
     import IconMenu from "@tabler/icons-svelte/dist/svelte/icons/IconDotsVertical.svelte";
     import IconTrade from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsUpDown.svelte";
+    import IconExternalLink from "@tabler/icons-svelte/dist/svelte/icons/IconExternalLink.svelte";
+    import IconCopy from "@tabler/icons-svelte/dist/svelte/icons/IconCopy.svelte";
     import type { marketFulldata } from "@am/backend/types/market";
     import { faker } from "@faker-js/faker";
     import Pill from "$lib/elements/pill.svelte";
@@ -16,6 +18,8 @@
     import MarketCardLayout from "./market_card_layout.svelte";
     import type { pmMarketFulldata } from "$lib/types";
     import UserPill from "./user_pill.svelte";
+    import MoreButton from "./more_button.svelte";
+    import Trade from "$lib/modals/trade.svelte";
     export let market: marketFulldata;
     export let updateMarket: (market?: marketFulldata | pmMarketFulldata) => void;
     export let small = false;
@@ -34,9 +38,17 @@
         <VolumePill opMarket={market} />
         <SubsidyPill opMarket={market} />
     </div>
-    <button slot="header_right" class="action_icon h-6 w-6">
-        <IconMenu size={14} />
-    </button>
+
+    <MoreButton slot="header_right">
+        <button on:click={() => window.navigator.clipboard.writeText(`https://openpredict.org/market/${new PublicKey(market.data.data.AmmAddress).toBase58()}`)} class="flex items-center gap-1.5 py-1 px-2.5 text-xs bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800/50">
+            {`Copy link`}
+            <IconCopy size={12} />
+        </button>
+        <a on:click|stopPropagation|preventDefault href={`https://solanabeach.io/address/${new PublicKey(market.data.data.AmmAddress).toBase58()}`} class="flex items-center gap-1.5 py-1 px-2.5 text-xs bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800/50">
+            {`Market contract`}
+            <IconExternalLink size={12} />
+        </a>
+    </MoreButton>
     <span slot="title">
         {market.metadata?.title}
     </span>

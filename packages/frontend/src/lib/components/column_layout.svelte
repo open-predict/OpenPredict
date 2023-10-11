@@ -48,7 +48,7 @@
     <div
         class={`sticky bottom-0 min-h-screen self-end w-full md:w-6/12 lg:w-5/12 xl:w-4/10 bg-white dark:bg-black`}
     >
-        <MobileBanner />
+        <!-- <MobileBanner /> -->
 
         <!-- main header -->
         <slot name="main-header" class="sticky top-0" />

@@ -39,7 +39,7 @@
     const curve = curveLinear; // method of interpolation between points
 
     let width = 600;
-    let height = 275;
+    let height = 204;
 
     const acceptableColors = [
         "indigo",
@@ -258,7 +258,7 @@
     class="min-h-200 min-w-full block relative"
     bind:clientWidth={width}
 >
-    <div class="flex items-center overflow-hidden p-3 gap-1">
+    <div class="flex items-center overflow-hidden p-3 h-14 gap-1">
         {#if tokens}
             {#each Object.entries(tokens) as token}
                 <button

@@ -5,6 +5,8 @@
     import IconChart from "@tabler/icons-svelte/dist/svelte/icons/IconChartLine.svelte";
     import IconOrderbook from "@tabler/icons-svelte/dist/svelte/icons/IconVocabulary.svelte";
     import IconExchange from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsExchange2.svelte";
+    import IconLimit from "@tabler/icons-svelte/dist/svelte/icons/IconEaseInOutControlPoints.svelte";
+    import IconMarket from "@tabler/icons-svelte/dist/svelte/icons/IconLivePhoto.svelte";
     import Pill from "$lib/elements/pill.svelte";
     import PolymarketLogo from "$lib/elements/polymarket_logo.svelte";
     import SubsidyPill from "$lib/elements/subsidy_pill.svelte";
@@ -19,32 +21,17 @@
     import { faker } from "@faker-js/faker";
     import { usdFormatter } from "$lib/utils";
     import UserPill from "./user_pill.svelte";
+    import { Modal, modalStore } from "$lib/modals/modalStore";
+    import Trade from "$lib/modals/trade.svelte";
+    import Toggle from "$lib/elements/toggle.svelte";
+    import PmTrade from "./pm_trade.svelte";
     export let market: pmMarketFulldata;
     export let updateMarket: (
         market?: marketFulldata | pmMarketFulldata
     ) => void;
 
-    let selectedToken: { token: pmTokenOrderdata; id: string } | undefined;
-
-    async function selectToken(token: string) {
-        selectedToken = {
-            id: token,
-            token: market.tokenOrderdata.get(token) as pmTokenOrderdata,
-        };
-        await tick();
-        const book = window.document.getElementById("order_book");
-        const midpoint = window.document.getElementById("midpoint");
-        if (book && midpoint) {
-            const centeringOffset =
-                book.clientHeight * 0.5 - midpoint.clientHeight * 0.5;
-            book.scrollTop =
-                midpoint.getBoundingClientRect().top -
-                book.getBoundingClientRect().top +
-                book.scrollTop -
-                centeringOffset;
-        }
-    }
-
+    let orderType: "limit" | "market" = "limit";
+    
     $: tokens = market.data.tokens.reduce(
         (acc: Record<string, pmTokenData>, val) => {
             acc[val.token_id] = val;
@@ -52,30 +39,6 @@
         },
         {}
     );
-
-    $: spread = selectedToken
-        ? Math.abs(
-              50 -
-                  selectedToken.token.book.bids.sort(
-                      (a, b) => b[0] - a[0]
-                  )[0][0] +
-                  (50 -
-                      selectedToken.token.book.asks.sort(
-                          (a, b) => a[0] - b[0]
-                      )[0][0])
-          )
-        : null;
-    $: midpoint =
-        selectedToken && spread
-            ? selectedToken.token.book.asks.sort((a, b) => a[0] - b[0])[0][0] +
-              spread / 2
-            : null;
-
-    onMount(async () => {
-        if (market.data.tokens[0]) {
-            selectToken(market.data.tokens[0].token_id);
-        }
-    });
 
     let selectedView: "trades" | "chart" | "orderbook" = "chart";
 </script>
@@ -100,44 +63,56 @@
         </div> -->
     </div>
     <div class="w-full flex items-center flex-nowrap gap-2">
-        <Pill>
+        <div class="relative w-9/10 max-w-9/10 grow overflow-hidden">
             <div
-                class="w-4 h-4 rounded-full ring-neutral-400 bg-blue-700 ring-1 ring-inset stroke-white p-1"
+                class="absolute h-full w-20 bg-gradient-to-r from-transparent to-black right-0"
+            />
+            <div
+                class="w-full flex justify-start gap-2 items-center overflow-x-scroll scrollbar_hide pr-20"
             >
-                <PolymarketLogo />
+                <Pill>
+                    <div
+                        class="w-4 h-4 rounded-full ring-neutral-400 bg-blue-700 ring-1 ring-inset stroke-white p-1"
+                    >
+                        <PolymarketLogo />
+                    </div>
+                    <span>
+                        {"Polymarket"}
+                    </span>
+                </Pill>
+                <VolumePill pmMarket={market} />
+                <SubsidyPill pmMarket={market} />
+                <Pill>
+                    <IconLiquidity size={14} class="text-indigo-500" />
+                    {`$298`}
+                </Pill>
+                <Pill>
+                    <IconUser size={14} class="text-sky-500" />
+                    {`${Array.from(market.tokenOrderdata.values()).reduce(
+                        (acc, val) => {
+                            acc += val.positions.length;
+                            return acc;
+                        },
+                        0
+                    )}`}
+                </Pill>
+                <Pill>
+                    <IconCal size={14} class="text-red-500" />
+                    {`${new Date(market.data.end_date_iso).toLocaleDateString(
+                        "en-us",
+                        {
+                            year: "numeric",
+                            month: "numeric",
+                            day: "numeric",
+                        }
+                    )}`}
+                </Pill>
+                <div class="ml-auto" />
             </div>
-            <span>
-                {"Polymarket"}
-            </span>
-        </Pill>
-        <VolumePill pmMarket={market} />
-        <SubsidyPill pmMarket={market} />
-        <Pill>
-            <IconLiquidity size={14} class="text-indigo-500" />
-            {`$298`}
-        </Pill>
-        <Pill>
-            <IconUser size={14} class="text-sky-500" />
-            {`${Array.from(market.tokenOrderdata.values()).reduce(
-                (acc, val) => {
-                    acc += val.positions.length;
-                    return acc;
-                },
-                0
-            )}`}
-        </Pill>
-        <Pill>
-            <IconCal size={14} class="text-red-500" />
-            {`${new Date(market.data.end_date_iso).toLocaleDateString("en-us", {
-                year: "numeric",
-                month: "numeric",
-                day: "numeric",
-            })}`}
-        </Pill>
-        <div class="ml-auto" />
+        </div>
     </div>
     <div
-        class="relative bg-neutral-950/90 rounded-lg min-h-[200px] max-h-[400px] h-275 overflow-y-scroll scrollbar_hide"
+        class="relative bg-neutral-950/90 rounded-lg min-h-[300px] max-h-[400px] h-[300px] overflow-y-scroll scrollbar_hide"
     >
         {#if selectedView === "chart"}
             <TokenChart
@@ -191,15 +166,36 @@
             </div>
         </div>
     </div>
-    <!-- <div class="w-full flex items-start justify-start my-2">
-        <div
-            class="flex w-full align-top gap-4 justify-start items-start flex-nowrap"
-        >
-            <div class="flex flex-col justify-start items-start">
-                <h2 class="text-md lg:text-3xl font-bold text-white">68%</h2>
-            </div>
+    <div class="flex flex-col gap-2 mb-8 mt-4 bg-black pb-3">
+        <div class="flex justify-between items-center">
+            <h4 class="text-xl font-medium text-neutral-200">Trade</h4>
+            <Toggle
+                selected={orderType === "limit" ? "left" : "right"}
+                onSelect={(s) =>
+                    (orderType = s === "left" ? "limit" : "market")}
+            >
+                <div class="contents" slot="left">
+                    <IconLimit size={12} />
+                    Limit
+                </div>
+                <div class="contents" slot="right">
+                    <IconMarket size={12} />
+                    Market
+                </div>
+            </Toggle>
         </div>
-    </div> -->
+        <div class="w-full border-t border-neutral-900 mb-2" />
+        <!-- <div class="w-full flex flex-col gap-2">
+            <div class="flex justify-between flex-nowrap items-center">
+                <h4 class="text-md font-semibold text-neutral-200">
+                    {`Buy Shares`}
+                </h4>
+                <span class="text-neutral-400 text-xs">POSITION</span>
+            </div>
+        </div> -->
+        <PmTrade market={market} {updateMarket} onClose={() => {}} direction />
+        
+    </div>
     <div class="flex flex-col gap-2 mb-8 mt-4">
         <h4 class="text-xl font-medium text-neutral-200">Description</h4>
         <div class="w-full border-t border-neutral-900 mb-2" />
@@ -234,14 +230,29 @@
                     </div>
                     <div class="flex flex-col divide-y divide-neutral-900">
                         {#each tokenOrderdata[1].positions.slice(0, 5) as position}
-                        <div class="flex justify-between text-neutral-200 items-center py-2">
-                            <div class="max-w-1/2 overflow-hidden">
-                                <UserPill id={position.user} />
-                        </div>
-                            <p class={`text-sm ${tokens[tokenOrderdata[0]].outcome === "Yes" ? "text-green-400" : tokens[tokenOrderdata[0]].outcome === "No" ? "text-red-500" : "text-indigo-400"}`}>
-                                {usdFormatter.format(Number(position.position)/(USDC_PER_DOLLAR*10000))}
-                            </p>
-                        </div>
+                            <div
+                                class="flex justify-between text-neutral-200 items-center py-2"
+                            >
+                                <div class="max-w-1/2 overflow-hidden">
+                                    <UserPill id={position.user} />
+                                </div>
+                                <p
+                                    class={`text-sm ${
+                                        tokens[tokenOrderdata[0]].outcome ===
+                                        "Yes"
+                                            ? "text-green-400"
+                                            : tokens[tokenOrderdata[0]]
+                                                  .outcome === "No"
+                                            ? "text-red-500"
+                                            : "text-indigo-400"
+                                    }`}
+                                >
+                                    {usdFormatter.format(
+                                        Number(position.position) /
+                                            (USDC_PER_DOLLAR * 10000)
+                                    )}
+                                </p>
+                            </div>
                         {/each}
                     </div>
                 </div>

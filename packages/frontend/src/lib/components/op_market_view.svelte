@@ -19,8 +19,12 @@
     import { getChance } from "$lib/web3_utils";
     import { api } from "$lib/api";
     import type { pmMarketFulldata } from "$lib/types";
+    import Trade from "$lib/modals/trade.svelte";
+    import { Dialog, DialogOverlay } from "@rgossiaux/svelte-headlessui";
     export let market: marketFulldata;
-    export let updateMarket: (market?: marketFulldata | pmMarketFulldata) => void;
+    export let updateMarket: (
+        market?: marketFulldata | pmMarketFulldata
+    ) => void;
 
     const id = new PublicKey(market.data.data.AmmAddress).toBase58();
     $: chanceDisplay =
@@ -29,7 +33,25 @@
         ) + "%";
     $: getCreatorResponse = api.getUser(id);
 
+    let tradeModal = false;
 </script>
+
+<Dialog
+    open={tradeModal}
+    on:close={() => (tradeModal = false)}
+    class="fixed inset-0 z-10 overflow-y-auto flex min-h-full items-center justify-center text-center"
+>
+    <DialogOverlay
+        class="fixed inset-0 bg-gray-300 bg-opacity-75 transition-opacity"
+    />
+
+    <Trade
+        {market}
+        direction={true}
+        onClose={() => (tradeModal = false)}
+        {updateMarket}
+    />
+</Dialog>
 
 <div class="w-full max-w-full p-4 flex flex-col gap-4">
     <!-- <ImageChecker url={market.data.image} ratio={1} resolution={400}>
@@ -64,11 +86,22 @@
             class="flex w-full align-top gap-4 justify-start items-start flex-nowrap"
         >
             <div class="ml-3 flex flex-col justify-start items-end">
-                <h2 class="text-md lg:text-2xl font-bold text-white">{chanceDisplay}</h2>
+                <h2 class="text-md lg:text-2xl font-bold text-white">
+                    {chanceDisplay}
+                </h2>
                 <ChangeIndicator opMarket={market} />
             </div>
         </div>
     </div>
+    <!-- <div class="w-full flex items-start justify-start my-2">
+        <div
+            class="flex w-full align-top gap-4 justify-start items-start flex-nowrap"
+        >
+            <div class="flex flex-col justify-start items-start">
+                <h2 class="text-md lg:text-3xl font-bold text-white">68%</h2>
+            </div>
+        </div>
+    </div> -->
     <InteractiveChart priceData={market.data.PriceHistory} />
     <p
         class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-200"
@@ -97,6 +130,7 @@
             <CommentButton opMarket={market} />
             <LikeButton opMarket={market} {updateMarket} />
             <button
+                on:click={() => tradeModal = true}
                 class="flex items-center justify-center rounded-lg text-sm gap-1 py-1.5 px-2.5 ring-1 ring-transparent shadow-lg bg-neutral-900 text-indigo-400/80 hover:text-indigo-300 hover:ring-indigo-800 hover:shadow-indigo-500/10"
             >
                 <IconTrade size={16} />

@@ -50,7 +50,7 @@
                 />
             {/await}
         </div>
-        <span>
+        <span class="group-hover/pill:underline group-hover/pill:text-neutral-200">
             {#await userResponse}
                 {"..."}
             {:then user}
