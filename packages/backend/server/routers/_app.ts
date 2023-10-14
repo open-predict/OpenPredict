@@ -1,6 +1,6 @@
 import {z} from 'zod';
 import {procedure, router} from '../trpc.js';
-import {commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata} from '../../types/market.js';
+import {commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata, pmMarketFulldata, pmUserMap} from '../../types/market.js';
 import {checkoutWithChangenowSchemaV0, makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0} from '../../types/user.js';
 import {getHelia, getMarketFulldata, marketByAddress, searchMarkets} from '../../amclient/index.js';
 import * as nodeCache from "node-cache"
@@ -655,13 +655,27 @@ export const appRouter = router({
         users.set(v, null)
       }
     }))
-    return {
-      opMarkets: {
-        markets: markets.opMarkets,
-        users: users,
-      },
-      pmMarkets: markets.pmMarkets,
-    }
+    return <{
+      markets: ({
+        pmMarket: pmMarketFulldata,
+      } | {
+        opMarket: marketFulldata,
+      })[]
+      opUsers: typeof users,
+      pmMarketUsers: pmUserMap,
+    }>{
+        markets: [...markets.opMarkets.map(v => {
+          return {
+            opMarket: v,
+          }
+        }), ...markets.pmMarkets.markets.map(v => {
+          return {
+            pmMarket: v,
+          }
+        })],
+        opUsers: users,
+        pmMarketUsers: markets.pmMarkets.users,
+      }
   }),
 
   getMarket: procedure.input(

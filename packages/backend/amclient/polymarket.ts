@@ -1,12 +1,30 @@
 import {Chain, ClobClient} from "@polymarket/clob-client";
-import {pmMarketData, pmMarketFulldata} from "../types/market.js";
+import {pmMarketData, pmMarketFulldata, pmUserMap} from "../types/market.js";
 import {WebSocket} from "ws";
 import fetch from "node-fetch";
+import {ethers} from "ethers";
+//import {Mutex} from "async-mutex";
 
-const pmclient = new ClobClient(process.env.CLOB_HOST || "https://polyclob.openpredict.org", Chain.POLYGON);
+const tempwallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey);
+const pmclient = new ClobClient(process.env.CLOB_HOST || "https://polyclob.openpredict.org", Chain.POLYGON, tempwallet);
+/*var fullpmclient: ClobClient | null;
+var mut = new Mutex();
+async function getPmClient() {
+  return await mut.runExclusive(async () => {
+    if (fullpmclient == null) {
+      fullpmclient = new ClobClient(process.env.CLOB_HOST || "https://polyclob.openpredict.org", Chain.POLYGON, tempwallet, await pmclient.createOrDeriveApiKey(0));
+    }
+    return fullpmclient!;
+  })
+}*/
 
 class PmChainCache {
   marketData: Map<string, pmMarketData> = new Map()
+
+  users: Map<string, {
+    name: string,
+    profileImage: string,
+  }> = new Map()
 
   priceHistory: Map<string, {
     ts: number,
@@ -22,9 +40,7 @@ class PmChainCache {
   }[]> = new Map()
 
   positions: Map<string, Map<string, {
-    name: string,
     position: number, //Dollars
-    profileImage: string,
   }> | null> = new Map()
 
   orderBooks: Map<string, {
@@ -119,9 +135,13 @@ class PmChainCache {
                   holder.proxyWallet != null &&
                   holder.profileImage != null
                 )
+                holders.forEach((holder: any) => {
+                  this.users.set(holder.proxyWallet, {
+                    name: holder.name,
+                    profileImage: holder.profileImage,
+                  })
+                })
                 this.positions.set(token, new Map(holders.map((v: any) => [v.proxyWallet, {
-                  profileImage: v.profileImage,
-                  name: v.name,
                   position: v.amount,
                 }])))
                 console.log("Positions: ", this.positions.get(token))
@@ -209,7 +229,10 @@ class PmChainCache {
     limit?: number,
     tradable?: boolean,
     orderBy: "volume" | "recent",
-  }): pmMarketFulldata[] {
+  }): {
+    markets: pmMarketFulldata[],
+    users: pmUserMap,
+  } {
     if (options.limit == null) {
       options.limit = 50;
     }
@@ -242,28 +265,52 @@ class PmChainCache {
           break;
       }
     }
-    return marketData.map(data => {
-      return {
-        data: data,
-        orderdata: new Map(data.tokens.map(t => t.token_id).map(t => {
-          var _filledOrders = this.filledOrders.get(t)
-          var _positions = this.positions.get(t)
-          return [t, {
-            filledOrders: _filledOrders == null ? [] : _filledOrders,
-            positions: _positions == null ? [] : [..._positions.entries()].map(([k, v]) => {
-              return {
-                proxyWallet: k,
-                ...v,
-              }
-            }),
-            book: this.orderBooks.get(t) ?? {asks: [], bids: []},
-          }]
-        })),
-        meta: {
-          volume: BigInt(0),
-        },
+    var userMap = new Map()
+    const addUser = (address: string) => {
+      if (!userMap.has(address) && this.users.has(address)) {
+        userMap.set(address, this.users.get(address)!)
       }
-    })
+    }
+    return {
+      users: userMap,
+      markets: marketData.map(data => {
+        return {
+          data: data,
+          orderdata: new Map(data.tokens.map(t => t.token_id).map(t => {
+            var _filledOrders: any[] = []
+            if (this.filledOrders.has(t)) {
+              var __filledOrders = this.filledOrders.get(t)!;
+              __filledOrders.forEach(v => {
+                addUser(v.taker);
+                addUser(v.maker);
+              })
+              _filledOrders = __filledOrders;
+            }
+
+            var _positions: any[] = []
+            if (this.positions.has(t)) {
+              var __positions = this.positions.get(t)!;
+              [...__positions.entries()].forEach(([k, v]) => {
+                addUser(k)
+                _positions.push({
+                  address: k,
+                  position: v.position,
+                })
+              })
+            }
+
+            return [t, {
+              filledOrders: _filledOrders,
+              positions: _positions,
+              book: this.orderBooks.get(t) ?? {asks: [], bids: []},
+            }]
+          })),
+          meta: {
+            volume: BigInt(0), //TODO: Get actual volume
+          },
+        }
+      })
+    }
   }
 }
 
