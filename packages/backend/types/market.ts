@@ -66,6 +66,11 @@ export type pmMarketSummarydata = {
   volume: BigInt,
 }
 
+export type pmUserMap = Map<string, {
+  name: string,
+  profileImage: string,
+}>
+
 export type pmTokenOrderdata = {
   book: {
     asks: [number, number][],
@@ -81,10 +86,8 @@ export type pmTokenOrderdata = {
   }[]
 
   positions: {
-    proxyWallet: string,
-    name: string,
+    address: string,
     position: number,
-    profileImage: string,
   }[]
 }
 
