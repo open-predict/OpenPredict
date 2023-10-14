@@ -2,7 +2,7 @@
     import type { marketFulldata } from "@am/backend/types/market";
     import { usdFormatter } from "$lib/utils";
     import { afterUpdate, onMount, tick } from "svelte";
-    import type { pmMarketFulldata, pmTokenOrderdata } from "$lib/types";
+    import type { pmMarketFulldata, pmTokenOrderdata } from "@am/backend/types/market";
     export let market: pmMarketFulldata;
     export let updateMarket: (
         market?: marketFulldata | pmMarketFulldata
@@ -24,7 +24,7 @@
     async function selectToken(token: string) {
         selectedToken = {
             id: token,
-            token: market.tokenOrderdata.get(token) as pmTokenOrderdata,
+            token: market.orderdata.get(token) as pmTokenOrderdata,
         };
         await tick();
         const midpoint = window.document.getElementById("midpoint");

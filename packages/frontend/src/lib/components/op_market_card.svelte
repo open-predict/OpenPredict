@@ -13,7 +13,7 @@
     import VolumePill from "$lib/elements/volume_pill.svelte";
     import { api } from "$lib/api";
     import MarketCardLayout from "./market_card_layout.svelte";
-    import type { pmMarketFulldata } from "$lib/types";
+    import type { pmMarketFulldata } from "@am/backend/types/market";
     import UserPill from "./user_pill.svelte";
     import MenuButton from "./menu_button.svelte";
     import Trade from "$lib/modals/trade.svelte";

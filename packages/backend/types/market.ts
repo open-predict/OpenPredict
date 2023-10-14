@@ -51,8 +51,8 @@ export const marketMetadataSchema2V0 = z.object({
   meta: marketMetadataSchemaV0,
 })
 
-
 export type TMarketMetadataSchemaV0 = z.infer<typeof marketMetadataSchemaV0>;
+export type TComment = z.infer<typeof commentSchemaV0>;
 
 //PM markets
 

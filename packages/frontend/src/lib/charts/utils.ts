@@ -1,5 +1,5 @@
 import log from "$lib/log";
-import type { pmPriceHistoryPoint } from "$lib/types";
+import type { pmPriceHistoryPoint } from "@am/backend/types/market";
 import {USDC_PER_DOLLAR, getChance} from "$lib/web3_utils";
 import type {marketPricePoint} from "@am/backend/types/market";
 import moment from "moment";

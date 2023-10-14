@@ -1,5 +1,5 @@
 import type { marketFulldata, marketPricePoint, marketTradeChaindata, marketUserChaindata, pmTokenData } from '@am/backend/types/market';
-import type { TComments, TUsers, pmFilledOrders, pmMarketFulldata, pmTokenOrderdata } from '$lib/types';
+import type { pmFilledOrders, pmMarketFulldata, pmTokenOrderdata } from '@am/backend/types/market';
 import { faker } from '@faker-js/faker';
 import { PublicKey } from '@solana/web3.js';
 import { USDC_PER_DOLLAR } from '$lib/web3_utils';
@@ -16,7 +16,7 @@ function randomizeString(input: string): string {
 
 const solanaAddress = "D2BB5wDLzzRxP5RbiiXhip6Bg8tNf5P6bcVi7G1NxGKT";
 
-export const users: TUsers = Array.from(Array(8)).map(() => ({
+export const users: Map<string, TUser> = Array.from(Array(8)).map(() => ({
     username: faker.internet.userName(),
     metadata: {
         version: 0,
@@ -159,7 +159,6 @@ const pmMarkets: pmMarketFulldata[] = Array.from(Array(5)).map(() => {
             "question": faker.lorem.lines(1),
             "question_id": address,
             "tokens": tokenData,
-            comments: comments,
             likes: Array.from(UserAccounts.keys()),
         },
         tokenOrderdata: tokenData.map((t, i) => {
@@ -218,7 +217,7 @@ export async function searchMarkets(): Promise<TMarketWrapper[]> {
             id: market.data.condition_id,
             volume: BigInt(Number(market.meta.volume)),
             comments: market.data.comments.length,
-            traders: Array.from(market.tokenOrderdata.values()).reduce((acc: string[], val) => { acc = [...acc, ...val.positions.map(p => p.user)]; return acc }, []),
+            traders: Array.from(market.orderdata.values()).reduce((acc: string[], val) => { acc = [...acc, ...val.positions.map(p => p.user)]; return acc }, []),
             likes: market.data.likes,
             pmMarket: market
         })

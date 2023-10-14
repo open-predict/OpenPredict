@@ -1,7 +1,7 @@
 <script lang="ts">
     import IconDown from "@tabler/icons-svelte/dist/svelte/icons/IconTriangleFilled.svelte";
     import type { marketFulldata } from "@am/backend/types/market";
-    import type { pmMarketFulldata } from "$lib/types";
+    import type { pmMarketFulldata } from "@am/backend/types/market";
     import { getChance } from "$lib/web3_utils";
     import { faker } from "@faker-js/faker";
     export let opMarket: marketFulldata | undefined = undefined;

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { pmMarketFulldata } from "$lib/types";
+    import type { pmMarketFulldata } from "@am/backend/types/market";
     import { web3Store } from "$lib/web3Store";
     import type { marketFulldata } from "@am/backend/types/market";
     import { PublicKey } from "@solana/web3.js";

@@ -18,7 +18,7 @@
 
     import { PriceHistoryTerm, resamplePmPriceHistory } from "$lib/charts/utils";
     import { dateFormatter } from "$lib/utils";
-    import type { pmTokenOrderdata } from "$lib/types";
+    import type { pmTokenOrderdata } from "@am/backend/types/market";
     import colors from "tailwindcss/colors";
 
     export let tokenMetadata: pmTokenData[] = [];

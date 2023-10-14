@@ -9,9 +9,7 @@
         marketFulldata,
     } from "@am/backend/types/market";
     import { PublicKey } from "@solana/web3.js";
-    import IconPlus from "@tabler/icons-svelte/dist/svelte/icons/IconPlus.svelte";
-    import IconMinus from "@tabler/icons-svelte/dist/svelte/icons/IconMinus.svelte";
-    import IconSwitch from "@tabler/icons-svelte/dist/svelte/icons/IconSwitchVertical.svelte";
+    import { IconMinus, IconPlus } from "@tabler/icons-svelte";
     import { onMount, tick } from "svelte";
     import { USDC_PER_DOLLAR } from "$lib/web3_utils";
     import { browser } from "$app/environment";
@@ -30,7 +28,7 @@
         pmMarketFulldata,
         pmTokenData,
         pmTokenOrderdata,
-    } from "$lib/types";
+    } from "@am/backend/types/market";
     import colors from "tailwindcss/colors";
     import { fade, scale, slide } from "svelte/transition";
     import "$lib/styles/range.css";
@@ -63,7 +61,7 @@
         } else {
             selectedToken = {
                 id: token,
-                token: market.tokenOrderdata.get(token) as pmTokenOrderdata,
+                token: market.orderdata.get(token) as pmTokenOrderdata,
             };
             if (content) {
                 await tick();
@@ -393,9 +391,14 @@
         <h4 class="font-semibold text-neutral-300 my-1">
             {`Positions`}
         </h4>
-        {#each Array.from(market.tokenOrderdata.entries()).slice(0, 1) as token}
+        {#each Array.from(market.orderdata.entries()).slice(0, 1) as token}
             {#each token[1].positions.slice(0, 1) as position}
-                <PmPosition {market} {updateMarket} {position} token={tokens[token[0]]} />
+                <PmPosition
+                    {market}
+                    {updateMarket}
+                    {position}
+                    token={tokens[token[0]]}
+                />
             {/each}
         {/each}
     </div>

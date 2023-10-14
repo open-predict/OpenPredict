@@ -5,7 +5,7 @@
     import { Modal, modalStore } from "$lib/modals/modalStore";
     import { api } from "$lib/api";
     import { clone } from "lodash";
-    import type { pmMarketFulldata } from "$lib/types";
+    import type { pmMarketFulldata } from "@am/backend/types/market";
     export let opMarket: marketFulldata | undefined = undefined;
     export let pmMarket: pmMarketFulldata | undefined = undefined;
     export let updateMarket: (market?: marketFulldata | pmMarketFulldata) => void;

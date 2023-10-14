@@ -1,16 +1,11 @@
 <script lang="ts">
-    import IconCal from "@tabler/icons-svelte/dist/svelte/icons/IconCalendar.svelte";
-    import IconUser from "@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte";
-    import IconLiquidity from "@tabler/icons-svelte/dist/svelte/icons/IconDroplet.svelte";
-    import IconChart from "@tabler/icons-svelte/dist/svelte/icons/IconChartLine.svelte";
-    import IconOrderbook from "@tabler/icons-svelte/dist/svelte/icons/IconVocabulary.svelte";
-    import IconExchange from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsExchange2.svelte";
+    import { IconArrowsExchange2 as IconExchange , IconVocabulary as IconOrderbook, IconChartLine as IconChart,IconDroplet as IconLiquidity, IconUser, IconCalendar as IconCal } from "@tabler/icons-svelte"
     import Pill from "$lib/elements/pill.svelte";
     import PolymarketLogo from "$lib/elements/polymarket_logo.svelte";
     import SubsidyPill from "$lib/elements/subsidy_pill.svelte";
     import VolumePill from "$lib/elements/volume_pill.svelte";
     import type { marketFulldata, pmTokenData } from "@am/backend/types/market";
-    import type { pmMarketFulldata, pmTokenOrderdata } from "$lib/types";
+    import type { pmMarketFulldata, pmTokenOrderdata } from "@am/backend/types/market";
     import TokenChart from "$lib/charts/token_chart.svelte";
     import Orderbook from "./orderbook.svelte";
     import FilledOrders from "./filled_orders.svelte";
@@ -66,7 +61,7 @@
                 </Pill>
                 <Pill>
                     <IconUser size={14} class="text-sky-500" />
-                    {`${Array.from(market.tokenOrderdata.values()).reduce(
+                    {`${Array.from(market.orderdata.values()).reduce(
                         (acc, val) => {
                             acc += val.positions.length;
                             return acc;
@@ -94,7 +89,7 @@
     >
         {#if selectedView === "chart"}
             <TokenChart
-                pmTokenOrderdata={market.tokenOrderdata}
+                pmTokenOrderdata={market.orderdata}
                 tokenMetadata={market.data.tokens}
             />
         {:else if selectedView === "orderbook"}
@@ -175,7 +170,7 @@
         </div>
         <div class="w-full border-t border-neutral-900 mb-2" />
         <div class="w-full grid grid-cols-2 gap-8">
-            {#each Array.from(market.tokenOrderdata.entries()) as tokenOrderdata}
+            {#each Array.from(market.orderdata.entries()) as tokenOrderdata}
                 <div class="w-full flex flex-col gap-2">
                     <div class="flex justify-between flex-nowrap items-center">
                         <h4 class="text-md font-semibold text-neutral-200">

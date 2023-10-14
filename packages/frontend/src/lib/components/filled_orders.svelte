@@ -6,7 +6,7 @@
         pmFilledOrders,
         pmMarketFulldata,
         pmTokenOrderdata,
-    } from "$lib/types";
+    } from "@am/backend/types/market";
     import { USDC_PER_DOLLAR } from "$lib/web3_utils";
     import Pill from "$lib/elements/pill.svelte";
     import { faker } from "@faker-js/faker";
@@ -22,8 +22,8 @@
         },
         {}
     );
-    $: allOrders = market.tokenOrderdata
-        ? Array.from(market.tokenOrderdata.entries()).reduce(
+    $: allOrders = market.orderdata
+        ? Array.from(market.orderdata.entries()).reduce(
               (acc: (pmFilledOrders & { outcome: string })[], val) => {
                   for (const order of val[1].filledOrders) {
                       acc.push({

@@ -1,9 +1,5 @@
 <script lang="ts">
-    import IconCal from "@tabler/icons-svelte/dist/svelte/icons/IconCalendar.svelte";
-    import IconMenu from "@tabler/icons-svelte/dist/svelte/icons/IconDotsVertical.svelte";
-    import IconTrade from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsUpDown.svelte";
-    import IconLink from "@tabler/icons-svelte/dist/svelte/icons/IconExternalLink.svelte";
-    import IconCopy from "@tabler/icons-svelte/dist/svelte/icons/IconCopy.svelte";
+    import {IconCopy, IconExternalLink, IconArrowsUpDown} from "@tabler/icons-svelte"
     import { faker } from "@faker-js/faker";
     import ImageChecker from "$lib/elements/image_checker.svelte";
     import Pill from "$lib/elements/pill.svelte";
@@ -11,7 +7,7 @@
     import LikeButton from "$lib/elements/like_button.svelte";
     import ShareButton from "$lib/elements/share_button.svelte";
     import CommentButton from "$lib/elements/comment_button.svelte";
-    import type { pmMarketFulldata } from "$lib/types";
+    import type { pmMarketFulldata } from "@am/backend/types/market";
     import ChangeIndicator from "$lib/elements/change_indicator.svelte";
     import SubsidyPill from "$lib/elements/subsidy_pill.svelte";
     import VolumePill from "$lib/elements/volume_pill.svelte";
@@ -53,11 +49,11 @@
         </button>
         <a on:click|stopPropagation|preventDefault href={`https://polygonscan.com/address/${market.data.question_id}`} class="flex items-center gap-1.5 py-1 px-2.5 text-xs bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800/50">
             {`Market contract`}
-            <IconLink size={12} />
+            <IconExternalLink size={12} />
         </a>
         <a on:click|stopPropagation|preventDefault href={`https://polygonscan.com/address/${market.data.condition_id}`} class="flex items-center gap-1.5 py-1 px-2.5 text-xs bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800/50">
             {`Resolution contract`}
-            <IconLink size={12} />
+            <IconExternalLink size={12} />
         </a>
     </MenuButton>
     <!-- <ImageChecker
@@ -102,7 +98,7 @@
         <button
             class="flex items-center justify-center rounded-lg text-sm gap-1 py-1.5 px-2.5 ring-1 ring-transparent shadow-lg bg-neutral-900 text-indigo-400/80 hover:text-indigo-300 hover:ring-indigo-800 hover:shadow-indigo-500/10"
         >
-            <IconTrade size={16} />
+            <IconArrowsUpDown size={16} />
             Trade
         </button>
     </div>

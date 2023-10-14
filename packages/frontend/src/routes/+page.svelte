@@ -12,7 +12,7 @@
 	import type { marketFulldata } from "@am/backend/types/market";
 	import { api } from "$lib/api";
 	import { onMount, tick } from "svelte";
-	import type { pmMarketFulldata } from "$lib/types";
+	import type { pmMarketFulldata } from "@am/backend/types/market";
     import MobileMenuButton from "$lib/elements/mobile_menu_button.svelte";
 
 	export let data;

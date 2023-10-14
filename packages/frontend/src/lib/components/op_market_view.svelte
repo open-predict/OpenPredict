@@ -18,7 +18,7 @@
     import { PublicKey } from "@solana/web3.js";
     import { getChance } from "$lib/web3_utils";
     import { api } from "$lib/api";
-    import type { pmMarketFulldata } from "$lib/types";
+    import type { pmMarketFulldata } from "@am/backend/types/market";
     import Trade from "$lib/modals/trade.svelte";
     import { Dialog, DialogOverlay } from "@rgossiaux/svelte-headlessui";
     export let market: marketFulldata;

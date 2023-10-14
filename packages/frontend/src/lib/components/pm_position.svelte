@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { pmMarketFulldata, pmPosition, pmTokenData } from "$lib/types";
+    import type { pmMarketFulldata, pmPosition, pmTokenData } from "@am/backend/types/market";
     import { delay } from "$lib/utils";
     import { IconChevronDown } from "@tabler/icons-svelte";
     import { tick } from "svelte";

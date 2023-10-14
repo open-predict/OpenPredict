@@ -1,6 +1,6 @@
 <script lang="ts">
     import { api } from "$lib/api";
-    import type { pmMarketFulldata } from "$lib/types";
+    import type { pmMarketFulldata } from "@am/backend/types/market";
     import type { marketFulldata } from "@am/backend/types/market";
     import { PublicKey } from "@solana/web3.js";
     import IconShare from "@tabler/icons-svelte/dist/svelte/icons/IconShare.svelte";
