@@ -4,21 +4,27 @@ FROM node:18-alpine
 # Set the working directory
 WORKDIR /app
 
-# Copy package.json and pnpm-lock.yaml to the working directory
-COPY package.json pnpm-lock.yaml ./
-
 RUN npm install -g pnpm
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY node_module[s] ./node_modules
+
+WORKDIR /app/packages/backend
+
+COPY packages/backend/package.json ./
 
 WORKDIR /app/packages/frontend
-COPY packages/frontend/package.json ./
-COPY packages/frontend/node_module[s] ./node_modules
 
-RUN pnpm install
+COPY packages/frontend/package.json ./
+
+RUN --mount=type=cache,target=/app/.pnpm pnpm set store-dir /app/.pnpm && pnpm install --prefer-offline
 
 COPY packages/frontend ./
+
+WORKDIR /app/packages/backend
+
+COPY packages/backend ./
+
+WORKDIR /app/packages/frontend
 
 ARG PUBLIC_MAGIC_PUBLISHABLE_API_KEY
 ENV PUBLIC_MAGIC_PUBLISHABLE_API_KEY=$PUBLIC_MAGIC_PUBLISHABLE_API_KEY
@@ -30,9 +36,13 @@ ARG PUBLIC_FEE_PAYER_KEY
 ENV PUBLIC_FEE_PAYER_KEY=$PUBLIC_FEE_PAYER_KEY
 ARG PUBLIC_SOLANA_RPC_URL
 ENV PUBLIC_SOLANA_RPC_URL=$PUBLIC_SOLANA_RPC_URL
+ARG PUBLIC_POLYGON_RPC_URL
+ENV PUBLIC_POLYGON_RPC_URL=$PUBLIC_POLYGON_RPC_URL
 ARG PUBLIC_TRPC_URL
 ENV PUBLIC_TRPC_URL=$PUBLIC_TRPC_URL
+ARG PUBLIC_WEB3AUTH_ID
+ENV PUBLIC_WEB3AUTH_ID=$PUBLIC_WEB3AUTH_ID
 
-RUN pnpm build
+RUN NODE_OPTIONS=--max-old-space-size=32768 pnpm run build
 
 CMD ["pnpm", "run", "start"]

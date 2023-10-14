@@ -34,6 +34,8 @@ yarn-error.log*
 # vercel
 .vercel
 
+.svelte-kit
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
@@ -42,4 +44,3 @@ next-env.d.ts
 # Added by cargo
 
 /target
-db_data

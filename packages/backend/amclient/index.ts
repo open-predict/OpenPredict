@@ -1,14 +1,13 @@
 import * as helia from "helia"
 import * as pb from './oppb.js'
 import base58 from 'bs58'
-import {extMarketChaindata, marketFulldata, marketMetadataSchemaV0, pmMarketData, profileChaindata} from '../types/market.js'
+import {extMarketChaindata, marketFulldata, marketMetadataSchemaV0, pmMarketFulldata, profileChaindata} from '../types/market.js'
 import './globals.js'
 import * as multiformats from "multiformats"
 import {json as hJson, JSON as hJsonI} from "@helia/json"
 import {FsBlockstore} from 'blockstore-fs'
 import {FsDatastore} from 'datastore-fs'
 import {Mutex} from 'async-mutex'
-import {searchPmMarkets} from "./polymarket.js"
 
 declare global {
   var _helia: any
@@ -170,13 +169,7 @@ export async function searchMarkets(options: {
   orderBy: "volume" | "recent",
 }): Promise<{
   opMarkets: marketFulldata[],
-  pmMarkets: {
-    markets: pmMarketData[],
-    assetBooks: Map<string, {
-      asks: [number, number][],
-      bids: [number, number][],
-    }>,
-  },
+  pmMarkets: pmMarketFulldata[],
 }> {
   var _ret: Promise<marketFulldata>[] = []
   const iter = chainCache.markets.values();
@@ -222,7 +215,7 @@ export async function searchMarkets(options: {
       ret = ret.slice(0, options.limit != null && options.limit < 50 ? options.limit : 50);
       return ret;
     }),
-    pmMarkets: searchPmMarkets(options),
+    pmMarkets: globalThis.pmChainCache.searchMarkets(options),
   }
 }
 
