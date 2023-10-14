@@ -615,6 +615,7 @@ export const appRouter = router({
   searchMarkets: procedure.input(
     z.object({
       term: z.string().nullable(),
+      skip: z.number().nullable(),
       limit: z.number().nullable(),
     }),
   ).query(async (opts) => {
@@ -656,20 +657,20 @@ export const appRouter = router({
       }
     }))
     return <{
-      markets: ({
-        pmMarket: pmMarketFulldata,
-      } | {
-        opMarket: marketFulldata,
-      })[]
+      markets: MarketSearchResult[],
       opUsers: typeof users,
       pmMarketUsers: pmUserMap,
     }>{
         markets: [...markets.opMarkets.map(v => {
           return {
+            numNativeComments: 0,
+            numNativeLikes: 0,
             opMarket: v,
           }
         }), ...markets.pmMarkets.markets.map(v => {
           return {
+            numNativeComments: 0,
+            numNativeLikes: 0,
             pmMarket: v,
           }
         })],
@@ -699,6 +700,15 @@ export const appRouter = router({
   }),
 
 });
+
+export type MarketSearchResult = ({
+  numNativeComments: number,
+  numNativeLikes: number,
+} & ({
+  pmMarket: pmMarketFulldata,
+} | {
+  opMarket: marketFulldata,
+}))
 
 // export type definition of API
 export type AppRouter = typeof appRouter;

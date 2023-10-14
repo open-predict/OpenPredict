@@ -72,23 +72,29 @@ export type pmUserMap = Map<string, {
 }>
 
 export type pmTokenOrderdata = {
-  book: {
-    asks: [number, number][],
-    bids: [number, number][],
-  },
+  book: pmTokenOrderBook,
 
-  filledOrders: {
-    ts: number,
-    maker: string,
-    taker: string,
-    size: BigInt,
-    price: number,
-  }[]
+  filledOrders: pmTokenFilledOrder[]
 
-  positions: {
-    address: string,
-    position: number,
-  }[]
+  positions: pmTokenPosition[]
+}
+
+export type pmTokenOrderBook = {
+  asks: [number, number][],
+  bids: [number, number][],
+}
+
+export type pmTokenFilledOrder = {
+  ts: number,
+  maker: string,
+  taker: string,
+  size: BigInt,
+  price: number,
+}
+
+export type pmTokenPosition = {
+  address: string,
+  position: number,
 }
 
 export type pmMarketData = {
