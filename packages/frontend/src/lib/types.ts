@@ -24,6 +24,11 @@ export type pmMarketSummarydata = {
     volume: BigInt,
 }
 
+export type pmPosition = {
+    user: string,
+    position: BigInt,
+}
+
 export type pmFilledOrders = {
     id: string,
     ts: number,
@@ -44,15 +49,9 @@ export type pmTokenOrderdata = {
         asks: [number, number][],
         bids: [number, number][],
     },
-
     priceHistory: pmPriceHistoryPoint[],
-
     filledOrders: pmFilledOrders[]
-
-    positions: {
-        user: string,
-        position: BigInt,
-    }[]
+    positions: pmPosition[]
 }
 
 export type pmMarketData = {

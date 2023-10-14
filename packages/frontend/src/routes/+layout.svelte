@@ -9,10 +9,10 @@
   import { browser } from "$app/environment";
   import NProgress from "nprogress";
   import { navigating } from "$app/stores";
-  import "nprogress/nprogress.css";
   import "@fontsource-variable/open-sans";
   import "@fontsource-variable/inter";
   import ToastsProvider from "$lib/toasts/toastsProvider.svelte";
+  import "$lib/styles/nprogress.css";
 
   NProgress.configure({
     minimum: 0.16,
@@ -20,11 +20,13 @@
   });
 
   $: {
-    if ($navigating) {
-      NProgress.start();
-    }
-    if (!$navigating) {
-      NProgress.done();
+    if (browser) {
+      if ($navigating) {
+        NProgress.start();
+      }
+      if (!$navigating) {
+        NProgress.done();
+      }
     }
   }
 
@@ -38,28 +40,28 @@
 
 <svelte:head>
   <script lang="ts">
-		const theme = document.cookie
-			.split("; ")
-			.find((row) => row.startsWith("theme="))
-			?.split("=")[1];
-		switch (theme) {
-			case "dark":
-				document.documentElement.classList.add("dark");
-				break;
-			
-			case "light":
-				document.documentElement.classList.remove("dark");
-				break;
-		
-			default:
-				if(window.matchMedia("(prefers-color-scheme: dark)").matches){
-					document.documentElement.classList.add("dark");
-				} else {
-					document.documentElement.classList.remove("dark");
-				}
-				break;
-		}
-	</script>
+    const theme = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("theme="))
+      ?.split("=")[1];
+    switch (theme) {
+      case "dark":
+        document.documentElement.classList.add("dark");
+        break;
+
+      case "light":
+        document.documentElement.classList.remove("dark");
+        break;
+
+      default:
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+        break;
+    }
+  </script>
 </svelte:head>
 
 <Web3Provider />

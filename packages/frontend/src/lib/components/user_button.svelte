@@ -1,9 +1,17 @@
 <script lang="ts">
     import { web3Workspace } from "$lib/web3Workspace";
     import { Modal, modalStore } from "$lib/modals/modalStore";
-    import IconLoader from "@tabler/icons-svelte/dist/svelte/icons/IconLoader2.svelte";
-    import IconMenu from "@tabler/icons-svelte/dist/svelte/icons/IconMenu2.svelte";
-    import { generateProfileImage, readableAddress, usdFormatter } from "$lib/utils";
+    import {
+        IconBrightness,
+        IconMoon,
+        IconMenu2,
+        IconLoader,
+    } from "@tabler/icons-svelte";
+    import {
+        generateProfileImage,
+        readableAddress,
+        usdFormatter,
+    } from "$lib/utils";
     import {
         Dialog,
         DialogOverlay,
@@ -15,10 +23,89 @@
     import { web3Store } from "$lib/web3Store";
     import { toastsStore } from "$lib/toasts/toastsStore";
     import { PublicKey } from "@solana/web3.js";
+    import MenuButton from "./menu_button.svelte";
+    import { uiStore } from "$lib/uiStore";
+    import Pill from "$lib/elements/pill.svelte";
     $: ({ logout } = $web3Workspace);
     let mobileModal = false;
 </script>
 
+<MenuButton strategy="absolute">
+    <button
+        slot="target"
+        on:click={() => {
+            mobileModal = true;
+        }}
+        class="flex p-1.5 flex-nowrap items-center rounded-2xl ring-1 bg-gray-50 ring-gray-200 hover:bg-gray-200 hover:ring-gray-300 dark:bg-neutral-900 dark:ring-neutral-800 dark:text-neutral-300"
+    >
+        <div class="relative inline-block">
+            <div class="w-7 h-7 rounded-xl overflow-hidden">
+                <img
+                    src={generateProfileImage("$web3Store.solanaAddress")}
+                    alt="profile"
+                />
+            </div>
+            <div
+                class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-emerald-400 ring-4 ring-neutral-900"
+            />
+        </div>
+        <div
+            class="flex-col gap-0 text-right pl-2 text-[10px] leading-3 pr-1.5 hidden md:flex"
+        >
+            <IconMenu2 size={16} />
+        </div>
+    </button>
+    <div
+        class="flex justify-between items-center border-b border-neutral-800 px-3 py-1.5 mb-1.5 uppercase text-neutral-500 tracking-wide text-xs"
+    >
+        <p>Theme</p>
+        <div
+            class="group/pill mb-1 flex flex-nowrap whitespace-nowrap items-center gap-1.5 px-1.5 text-[10px] rounded-lg font-medium text-neutral-700 bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-400"
+        >
+            {#if $uiStore.theme === "light"}
+                <IconBrightness size={14} />
+                Light
+            {:else if $uiStore.theme === "dark"}
+                <IconMoon size={14} />
+                Dark
+            {:else}
+                Auto
+            {/if}
+        </div>
+    </div>
+    <button
+        on:click|stopPropagation|preventDefault={() => uiStore.toggleTheme()}
+        class="flex items-center gap-1.5 py-2 px-3 text-sm bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800"
+    >
+        {`Dark mode ${
+            $uiStore.theme
+                ? $uiStore.theme === "dark"
+                    ? "off"
+                    : "on"
+                : uiStore.browserDefaultDark()
+                ? "off"
+                : "on"
+        }`}
+    </button>
+    <button
+        on:click|stopPropagation|preventDefault={() => uiStore.setAuto()}
+        class="flex items-center gap-1.5 py-2 px-3 text-sm bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800"
+    >
+        {`Use browser defaults`}
+    </button>
+    <div
+        class="flex justify-between items-center border-y border-neutral-800 px-3 py-1.5 my-1.5 uppercase text-neutral-500 tracking-wide text-xs"
+    >
+        <p>Account</p>
+    </div>
+    <button
+        on:click|stopPropagation|preventDefault={() => uiStore.setAuto()}
+        class="flex items-center gap-1.5 py-2 px-3 text-sm bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800"
+    >
+        {`Logout`}
+    </button>
+</MenuButton>
+<!-- 
 {#if $web3Store?.solanaAddress}
     <button
         on:click={() => {
@@ -48,22 +135,22 @@
         </div>
     </button>
 {:else if $web3Store?.solanaAddress === null}
-    <!-- <button
+    <button
         on:click={() => {
             modalStore.openModal(Modal.login);
         }}
         class="btn_secondary px-8"
     >
         FAQs
-    </button> -->
-    <!-- <button
+    </button>
+    <button
         on:click={() => {
             modalStore.openModal(Modal.login);
         }}
         class="btn_primary px-8"
     >
         Signup
-    </button> -->
+    </button>
 {:else}
     <button
         disabled
@@ -139,4 +226,4 @@
             </button>
         </div>
     </div>
-</Dialog>
+</Dialog> -->

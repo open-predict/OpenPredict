@@ -7,14 +7,13 @@
     import BetaIndicator from "$lib/elements/beta_indicator.svelte";
     import Navigation from "$lib/components/navigation.svelte";
     import Links from "./links.svelte";
-    import MobileBanner from "./mobile_banner.svelte";
     import MobileNavigation from "./mobile_navigation.svelte";
 </script>
 
-<div class="flex w-full min-h-full bg-gray-100 dark:bg-black">
+<div class="relative flex w-full min-h-full bg-gray-100 dark:bg-black">
     <!-- left column -->
     <header
-        class="sticky top-0 hidden md:block md:w-1/12 lg:w-1/4 xl:w-3/10 max-h-screen bg-transparent"
+        class="sticky top-0 hidden md:block md:w-1/12 lg:w-3/12 xl:w-3/12 max-h-screen"
     >
         <div class="ml-auto max-w-xs h-full">
             <!-- desktop navigation -->
@@ -46,7 +45,7 @@
 
     <!-- center column -->
     <div
-        class={`sticky bottom-0 min-h-screen self-end w-full md:w-6/12 lg:w-5/12 xl:w-4/10 bg-white dark:bg-black`}
+        class={`sticky bottom-0 min-h-screen self-end w-full md:w-6/12 lg:w-6/12 xl:w-5/12 bg-white dark:bg-black`}
     >
         <!-- <MobileBanner /> -->
 
@@ -75,14 +74,16 @@
 
     <!-- right column -->
     <div
-        class="hidden md:block md:w-5/12 lg:w-1/4 xl:w-3/10"
+        class="hidden relative md:block md:w-5/12 lg:w-3/12 xl:w-4/12"
     >
-        <div class="sticky top-0 max-w-xs">
+        <div class="h-full max-w-xs">
             <div
-                class="sticky top-0 h-16 flex justify-end items-center gap-2.5 border-b border-gray-200 dark:border-neutral-900 bg-black/80 backdrop-blur-2xl z-10"
+                class="sticky top-0 w-full h-16 border-b border-gray-200 dark:border-neutral-900 backdrop-blur-2xl z-10"
             >
-                <WalletWidget />
-                <UserButton />
+                <div class="h-full w-full flex justify-end items-center gap-2.5 dark:bg-black/80">
+                    <WalletWidget />
+                    <UserButton />
+                </div>
             </div>
             <div class="flex flex-col p-4 xl:pr-0 gap-4">
                 {#if $web3Store?.solanaAddress === null}

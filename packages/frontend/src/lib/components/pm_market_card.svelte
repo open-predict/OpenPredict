@@ -17,7 +17,7 @@
     import VolumePill from "$lib/elements/volume_pill.svelte";
     import type { marketFulldata } from "@am/backend/types/market";
     import MarketCardLayout from "$lib/components/market_card_layout.svelte";
-    import MoreButton from "./more_button.svelte";
+    import MenuButton from "./menu_button.svelte";
     export let market: pmMarketFulldata;
     export let updateMarket: (market?: marketFulldata | pmMarketFulldata) => void;
     export let small = false;
@@ -46,7 +46,7 @@
             })}`}
         </Pill>
     </div>
-    <MoreButton slot="header_right">
+    <MenuButton slot="header_right" strategy="fixed">
         <button on:click|stopPropagation|preventDefault={() => window.navigator.clipboard.writeText(`https://openpredict.org/market/${market.data.question_id}`)} class="flex items-center gap-1.5 py-1 px-2.5 text-xs bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800/50">
             {`Copy link`}
             <IconCopy size={12} />
@@ -59,7 +59,7 @@
             {`Resolution contract`}
             <IconLink size={12} />
         </a>
-    </MoreButton>
+    </MenuButton>
     <!-- <ImageChecker
         slot="extra_content"
         url={market.data.image}

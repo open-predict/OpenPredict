@@ -5,33 +5,23 @@
     import IconChart from "@tabler/icons-svelte/dist/svelte/icons/IconChartLine.svelte";
     import IconOrderbook from "@tabler/icons-svelte/dist/svelte/icons/IconVocabulary.svelte";
     import IconExchange from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsExchange2.svelte";
-    import IconLimit from "@tabler/icons-svelte/dist/svelte/icons/IconEaseInOutControlPoints.svelte";
-    import IconMarket from "@tabler/icons-svelte/dist/svelte/icons/IconLivePhoto.svelte";
     import Pill from "$lib/elements/pill.svelte";
     import PolymarketLogo from "$lib/elements/polymarket_logo.svelte";
     import SubsidyPill from "$lib/elements/subsidy_pill.svelte";
     import VolumePill from "$lib/elements/volume_pill.svelte";
     import type { marketFulldata, pmTokenData } from "@am/backend/types/market";
-    import { onMount, tick } from "svelte";
     import type { pmMarketFulldata, pmTokenOrderdata } from "$lib/types";
     import TokenChart from "$lib/charts/token_chart.svelte";
     import Orderbook from "./orderbook.svelte";
     import FilledOrders from "./filled_orders.svelte";
     import { USDC_PER_DOLLAR } from "$lib/web3_utils";
-    import { faker } from "@faker-js/faker";
     import { usdFormatter } from "$lib/utils";
     import UserPill from "./user_pill.svelte";
-    import { Modal, modalStore } from "$lib/modals/modalStore";
-    import Trade from "$lib/modals/trade.svelte";
-    import Toggle from "$lib/elements/toggle.svelte";
     import PmTrade from "./pm_trade.svelte";
     export let market: pmMarketFulldata;
     export let updateMarket: (
         market?: marketFulldata | pmMarketFulldata
     ) => void;
-
-    let orderType: "limit" | "market" = "limit";
-
     $: tokens = market.data.tokens.reduce(
         (acc: Record<string, pmTokenData>, val) => {
             acc[val.token_id] = val;
@@ -39,28 +29,16 @@
         },
         {}
     );
-
     let selectedView: "trades" | "chart" | "orderbook" = "chart";
 </script>
 
 <div class="w-full max-w-full p-4 flex flex-col gap-4">
-    <!-- <ImageChecker url={market.data.image} ratio={1} resolution={400}>
-        <img
-            src={market.data.image}
-            class={`w-full h-56 rounded-xl object-cover object-center mb-2`}
-            alt="market cover"
-        />
-    </ImageChecker> -->
     <div class="flex justify-start items-start">
         <h2
             class="text-2xl font-semibold text-white flex-grow group-visited/link:text-indigo-300"
         >
             {market.data.question}
         </h2>
-        <!-- <div class="flex-grow flex ml-auto justify-end items-center">
-            <ShareButton pmMarket={market} {updateMarket} />
-            <LikeButton pmMarket={market} {updateMarket} />
-        </div> -->
     </div>
     <div class="w-full flex items-center flex-nowrap gap-2">
         <div class="relative w-9/10 max-w-9/10 grow overflow-hidden">
@@ -168,43 +146,13 @@
     </div>
     <div class="flex flex-col gap-2 mb-8 mt-4">
         <div class="flex justify-between items-center">
-            <h4 class="text-xl font-medium text-neutral-200">Trade</h4>
-            <Toggle
-                selected={orderType === "limit" ? "left" : "right"}
-                onSelect={(s) =>
-                    (orderType = s === "left" ? "limit" : "market")}
-            >
-                <div class="contents" slot="left">
-                    <IconLimit size={12} />
-                    Limit
-                </div>
-                <div class="contents" slot="right">
-                    <IconMarket size={12} />
-                    Market
-                </div>
-            </Toggle>
+            <h4 class="text-xl font-semibold text-neutral-200">Trade</h4>
         </div>
         <div class="w-full border-t border-neutral-900 mb-2" />
-        <!-- <div class="w-full flex flex-col gap-2">
-            <div class="flex justify-between flex-nowrap items-center">
-                <h4 class="text-md font-semibold text-neutral-200">
-                    {`Buy Shares`}
-                </h4>
-                <span class="text-neutral-400 text-xs">POSITION</span>
-            </div>
-        </div> -->
         <PmTrade {market} {updateMarket} onClose={() => {}} direction />
     </div>
-
-    <div class="flex flex-col gap-2 mb-8 mt-4">
-        <div class="flex justify-between items-center">
-            <h4 class="text-xl font-medium text-neutral-200">Your trades & positions</h4>
-        </div>
-        <div class="w-full border-t border-neutral-900 mb-2" />
-    </div>
-
-    <div class="flex flex-col gap-2 mb-8 mt-4">
-        <h4 class="text-xl font-medium text-neutral-200">Description</h4>
+    <div class="flex flex-col gap-2 mb-8">
+        <h4 class="text-xl font-semibold text-neutral-200">Description</h4>
         <div class="w-full border-t border-neutral-900 mb-2" />
         <p
             class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
@@ -213,7 +161,7 @@
         </p>
     </div>
     <div class="flex flex-col gap-2 mb-8">
-        <h4 class="text-xl font-medium text-neutral-200">Resolution</h4>
+        <h4 class="text-xl font-semibold text-neutral-200">Resolution</h4>
         <div class="w-full border-t border-neutral-900 mb-2" />
         <p
             class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
@@ -223,7 +171,7 @@
     </div>
     <div class="flex flex-col gap-2 mb-8">
         <div class="flex justify-between items-end">
-            <h4 class="text-xl font-medium text-neutral-200">Holders</h4>
+            <h4 class="text-xl font-semibold text-neutral-200">Holders</h4>
         </div>
         <div class="w-full border-t border-neutral-900 mb-2" />
         <div class="w-full grid grid-cols-2 gap-8">

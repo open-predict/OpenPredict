@@ -1,8 +1,5 @@
 <script lang="ts">
-    import IconMenu from "@tabler/icons-svelte/dist/svelte/icons/IconDotsVertical.svelte";
-    import IconTrade from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsUpDown.svelte";
-    import IconExternalLink from "@tabler/icons-svelte/dist/svelte/icons/IconExternalLink.svelte";
-    import IconCopy from "@tabler/icons-svelte/dist/svelte/icons/IconCopy.svelte";
+    import { IconCopy, IconExternalLink, IconArrowsUpDown } from "@tabler/icons-svelte"
     import type { marketFulldata } from "@am/backend/types/market";
     import { faker } from "@faker-js/faker";
     import Pill from "$lib/elements/pill.svelte";
@@ -18,7 +15,7 @@
     import MarketCardLayout from "./market_card_layout.svelte";
     import type { pmMarketFulldata } from "$lib/types";
     import UserPill from "./user_pill.svelte";
-    import MoreButton from "./more_button.svelte";
+    import MenuButton from "./menu_button.svelte";
     import Trade from "$lib/modals/trade.svelte";
     export let market: marketFulldata;
     export let updateMarket: (market?: marketFulldata | pmMarketFulldata) => void;
@@ -39,7 +36,7 @@
         <SubsidyPill opMarket={market} />
     </div>
 
-    <MoreButton slot="header_right">
+    <MenuButton slot="header_right" strategy="fixed">
         <button on:click={() => window.navigator.clipboard.writeText(`https://openpredict.org/market/${new PublicKey(market.data.data.AmmAddress).toBase58()}`)} class="flex items-center gap-1.5 py-1 px-2.5 text-xs bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800/50">
             {`Copy link`}
             <IconCopy size={12} />
@@ -48,7 +45,7 @@
             {`Market contract`}
             <IconExternalLink size={12} />
         </a>
-    </MoreButton>
+    </MenuButton>
     <span slot="title">
         {market.metadata?.title}
     </span>
@@ -79,7 +76,7 @@
         <button
             class="flex items-center justify-center rounded-lg text-sm gap-1 py-1.5 px-2.5 ring-1 ring-transparent shadow-lg bg-neutral-900 text-indigo-400/80 hover:text-indigo-300 hover:ring-indigo-800 hover:shadow-indigo-500/10"
         >
-            <IconTrade size={16} />
+            <IconArrowsUpDown size={16} />
             Trade
         </button>
     </div>

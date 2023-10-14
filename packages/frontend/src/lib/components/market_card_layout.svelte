@@ -14,7 +14,7 @@
         <div class="w-full max-w-full py-1.5 lg:p-2 xl:p-4">
             <div class="w-full flex flex-col justify-start gap-4">
                 <div
-                    class="w-full flex justify-between items-center flex-nowrap gap-2"
+                    class="relative w-full flex justify-between items-center flex-nowrap gap-2"
                 >
                     <div class="relative w-9/10 max-w-9/10 grow overflow-hidden">
                         <div

@@ -2,10 +2,10 @@ import { browser } from '$app/environment'
 import { writable } from 'svelte/store';
 import type { PublicKey, TokenAmount } from '@solana/web3.js';
 import Cookies from 'js-cookie';
-import { web3Workspace } from './web3Workspace';
-import log from './log';
-import SuperJSON from 'superjson';
-import type { ApiKeyCreds } from './clob';
+import { web3Workspace } from '$lib/web3Workspace';
+import log from '$lib/log';
+import type { ApiKeyCreds } from '$lib/clob';
+import { superjson } from '$lib/superjson';
 
 export type TSol = { amount?: number };
 export type TUsdc = { publicKey?: PublicKey | null, value?: TokenAmount };
@@ -30,7 +30,7 @@ const FILE = "web3Store";
 function createWeb3Store() {
 
     const initialValueRaw = Cookies.get(web3StoreLsKey);
-    const initialValueParsed = initialValueRaw ? SuperJSON.parse<TWeb3Store>(initialValueRaw) : undefined;
+    const initialValueParsed = initialValueRaw ? superjson.parse<TWeb3Store>(initialValueRaw) : undefined;
     const initialValue = initialValueParsed ? {
         ...initialValueParsed
     } : undefined;
@@ -46,9 +46,9 @@ function createWeb3Store() {
 
     subscribe((value) => {
         log("debug", FILE, "subscribe")
-        if (browser && SuperJSON.stringify(value) !== Cookies.get(web3StoreLsKey)) {
+        if (browser && superjson.stringify(value) !== Cookies.get(web3StoreLsKey)) {
             log("debug", FILE, "setting cookies...")
-            Cookies.set(web3StoreLsKey, SuperJSON.stringify(value))
+            Cookies.set(web3StoreLsKey, superjson.stringify(value))
         }
     })
 
