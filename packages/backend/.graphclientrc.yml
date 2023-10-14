@@ -1,0 +1,13 @@
+# .graphclientrc.yml
+sources:
+  - name: polymarket
+    handler:
+      graphql:
+        endpoint: https://goldsky.openpredict.org/c/polymarket/gn/subgraphs/name/2f21c18c
+
+plugins:
+  - pollingLive:
+      defaultInterval: 5000
+
+documents:
+  - ./amclient/polymarket_queries.graphql

@@ -664,10 +664,7 @@ export const appRouter = router({
         markets: markets.opMarkets,
         users: users,
       },
-      pmMarkets: {
-        markets: markets.pmMarkets.markets,
-        books: markets.pmMarkets.assetBooks,
-      },
+      pmMarkets: markets.pmMarkets,
     }
   }),
 

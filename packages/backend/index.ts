@@ -16,7 +16,7 @@ import {startAndMaintainPmList} from './amclient/polymarket.js';
 // @ts-ignore
 if (!globalThis.crypto) globalThis.crypto = webcrypto
 
-const port = 3000;
+const port = 3001;
 
 declare global {
   var mainProgramId: web3.PublicKey

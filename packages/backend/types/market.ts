@@ -56,6 +56,38 @@ export type TMarketMetadataSchemaV0 = z.infer<typeof marketMetadataSchemaV0>;
 
 //PM markets
 
+export type pmMarketFulldata = {
+  data: pmMarketData,
+  orderdata: Map<string, pmTokenOrderdata>,
+  meta: pmMarketSummarydata,
+}
+
+export type pmMarketSummarydata = {
+  volume: BigInt,
+}
+
+export type pmTokenOrderdata = {
+  book: {
+    asks: [number, number][],
+    bids: [number, number][],
+  },
+
+  filledOrders: {
+    ts: number,
+    maker: string,
+    taker: string,
+    size: BigInt,
+    price: number,
+  }[]
+
+  positions: {
+    proxyWallet: string,
+    name: string,
+    position: number,
+    profileImage: string,
+  }[]
+}
+
 export type pmMarketData = {
   condition_id: string,
   question_id: string,

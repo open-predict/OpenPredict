@@ -1,0 +1,69 @@
+query AllFilledOrders($market_ids: [ID!]) {
+  filledOrders(where: {market_: {id_in: $market_ids}}) {
+    timestamp
+    maker {
+      id
+    }
+    price
+    side
+    size
+    taker {
+      id
+    }
+    market {
+      id
+    }
+  }
+}
+
+query TrackFilledOrders($market_ids: [ID!]) {
+  filledOrders(
+    where: {market_: {id_in: $market_ids}}
+    first: 5
+    orderDirection: desc
+    orderBy: timestamp
+  ) {
+    id
+    timestamp
+    maker {
+      id
+    }
+    price
+    side
+    size
+    taker {
+      id
+    }
+    market {
+      id
+    }
+  }
+}
+
+query AllMarketPositions($market_ids:[ID!]) {
+  marketPositions(where: {market_: {id_in: $market_ids}}) {
+    outcomeIndex
+    netQuantity
+    netValue
+    market {
+      id
+    }
+    user {
+      id
+    }
+  }
+}
+
+query TrackMarketPositions($market_ids:[ID!]) {
+  marketPositions(where: {market_: {id_in: $market_ids}}) {
+    outcomeIndex
+    netQuantity
+    netValue
+    market {
+      id
+    }
+    user {
+      id
+    }
+  }
+}
