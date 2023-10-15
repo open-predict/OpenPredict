@@ -1,5 +1,5 @@
-import type { marketFulldata, marketPricePoint, marketTradeChaindata, marketUserChaindata, pmTokenData } from '@am/backend/types/market';
-import type { pmFilledOrders, pmMarketFulldata, pmTokenOrderdata } from '@am/backend/types/market';
+import type { TComment, marketFulldata, marketPricePoint, marketTradeChaindata, marketUserChaindata, pmTokenData } from '@am/backend/types/market';
+import type { pmTokenFilledOrder, pmMarketFulldata, pmTokenOrderdata } from '@am/backend/types/market';
 import { faker } from '@faker-js/faker';
 import { PublicKey } from '@solana/web3.js';
 import { USDC_PER_DOLLAR } from '$lib/web3_utils';
@@ -115,7 +115,7 @@ const book = () => {
     return { bids, asks }
 }
 
-const orders: pmFilledOrders[] = Array.from(Array(faker.datatype.number({ min: 0, max: 20 }))).map((_, i) => {
+const orders: pmTokenFilledOrder[] = Array.from(Array(faker.datatype.number({ min: 0, max: 20 }))).map((_, i) => {
     const before = new Date(Date.now() - (i * 24 * 60 * 60 * 1000))
     const order = {
         id: faker.finance.ethereumAddress(),
@@ -159,9 +159,8 @@ const pmMarkets: pmMarketFulldata[] = Array.from(Array(5)).map(() => {
             "question": faker.lorem.lines(1),
             "question_id": address,
             "tokens": tokenData,
-            likes: Array.from(UserAccounts.keys()),
         },
-        tokenOrderdata: tokenData.map((t, i) => {
+        orderdata: tokenData.map((t, i) => {
             const tokenPriceHistory = Array.from(PriceHistory.entries()).map(php => ({
                 t: php[1].At.getTime(),
                 price: faker.datatype.number({ min: 0.99, max: 49.99, precision: 2 })
@@ -171,7 +170,8 @@ const pmMarkets: pmMarketFulldata[] = Array.from(Array(5)).map(() => {
                 filledOrders: orders,
                 positions: Array.from(UserAccounts.entries()).map(e => ({
                     user: e[0],
-                    position: e[1].Shares,
+                    address: e[0],
+                    position: Number(e[1].Shares),
                 })),
                 priceHistory: i ? Array.from(PriceHistory.entries()).map((php, i) => ({
                     t: php[1].At.getTime(),
@@ -216,9 +216,9 @@ export async function searchMarkets(): Promise<TMarketWrapper[]> {
         markets.push({
             id: market.data.condition_id,
             volume: BigInt(Number(market.meta.volume)),
-            comments: market.data.comments.length,
-            traders: Array.from(market.orderdata.values()).reduce((acc: string[], val) => { acc = [...acc, ...val.positions.map(p => p.user)]; return acc }, []),
-            likes: market.data.likes,
+            comments: 0,
+            traders: Array.from(market.orderdata.values()).reduce((acc: string[], val) => { acc = [...acc, ...val.positions.map(p => p.address)]; return acc }, []),
+            likes: Array.from(market.orderdata.values()).reduce((acc: string[], val) => { acc = [...acc, ...val.positions.map(p => p.address)]; return acc }, []),
             pmMarket: market
         })
     })
@@ -226,7 +226,7 @@ export async function searchMarkets(): Promise<TMarketWrapper[]> {
     return markets
 }
 
-export async function getComments(id: string): Promise<TComments> {
+export async function getComments(id: string): Promise<TComment[]> {
     return Array.from(Array(faker.datatype.number({ min: 0, max: 10 }))).map(() => {
         return ({
             "content": faker.lorem.sentences(faker.datatype.number({ min: 1, max: 5 })),

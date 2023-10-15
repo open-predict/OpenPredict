@@ -1,14 +1,16 @@
 <script lang="ts">
     import { web3Store } from "$lib/web3Store";
     import type { marketFulldata } from "@am/backend/types/market";
-    import IconStar from "@tabler/icons-svelte/dist/svelte/icons/IconStar.svelte";
     import { Modal, modalStore } from "$lib/modals/modalStore";
     import { api } from "$lib/api";
     import { clone } from "lodash";
     import type { pmMarketFulldata } from "@am/backend/types/market";
+    import { IconStar } from "@tabler/icons-svelte";
     export let opMarket: marketFulldata | undefined = undefined;
     export let pmMarket: pmMarketFulldata | undefined = undefined;
-    export let updateMarket: (market?: marketFulldata | pmMarketFulldata) => void;
+    export let updateMarket: (
+        market?: marketFulldata | pmMarketFulldata
+    ) => void;
 
     function checkIds(
         ids: (string | undefined | null)[],
@@ -17,11 +19,7 @@
     ): boolean {
         let liked = false;
         for (const id of ids) {
-            if (
-                id &&
-                ((opMarket && opMarket.data.Likes.has(id)) ||
-                    (pmMarket && pmMarket.data.likes.includes(id)))
-            ) {
+            if (id && opMarket && opMarket.data.Likes.has(id)) {
                 liked = true;
             }
         }
@@ -33,11 +31,7 @@
         opMarket,
         pmMarket
     );
-    $: likes = opMarket
-        ? opMarket.data.Likes.size
-        : pmMarket
-        ? pmMarket.data.likes.length
-        : 0;
+    $: likes = opMarket ? opMarket.data.Likes.size : pmMarket ? 0 : 0;
 
     async function like() {
         if (!$web3Store?.solanaAddress) {
@@ -76,16 +70,16 @@
             }
             updateMarket(newMarket);
         } else if (pmMarket) {
-            const newMarket = clone(pmMarket);
-            if (newState) {
-                newMarket.data.likes.push($web3Store.solanaAddress);
-            } else {
-                const newLikes = newMarket.data.likes.filter(
-                    (l) => l !== $web3Store?.solanaAddress
-                );
-                newMarket.data.likes = newLikes;
-            }
-            updateMarket(newMarket);
+            // const newMarket = clone(pmMarket);
+            // if (newState) {
+            //     newMarket.data.likes.push($web3Store.solanaAddress);
+            // } else {
+            //     const newLikes = newMarket.data.likes.filter(
+            //         (l) => l !== $web3Store?.solanaAddress
+            //     );
+            //     newMarket.data.likes = newLikes;
+            // }
+            // updateMarket(newMarket);
         }
     }
 </script>

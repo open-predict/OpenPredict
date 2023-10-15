@@ -184,7 +184,7 @@
                                 class="flex justify-between text-neutral-200 items-center py-2"
                             >
                                 <div class="max-w-1/2 overflow-hidden">
-                                    <UserPill id={position.user} />
+                                    <UserPill id={position.address} />
                                 </div>
                                 <p
                                     class={`text-sm ${

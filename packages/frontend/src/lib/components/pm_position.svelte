@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { pmMarketFulldata, pmPosition, pmTokenData } from "@am/backend/types/market";
+    import type { pmMarketFulldata, pmTokenPosition, pmTokenData } from "@am/backend/types/market";
     import { delay } from "$lib/utils";
     import { IconChevronDown } from "@tabler/icons-svelte";
     import { tick } from "svelte";
@@ -7,7 +7,7 @@
 
     export let market: pmMarketFulldata;
     export let updateMarket: (market: pmMarketFulldata) => void;
-    export let position: pmPosition;
+    export let position: pmTokenPosition;
     export let token: pmTokenData;
 
     let expanded = false;

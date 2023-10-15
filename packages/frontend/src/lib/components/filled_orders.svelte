@@ -3,7 +3,7 @@
     import { getScrollParent, timeAgo, usdFormatter } from "$lib/utils";
     import { afterUpdate, onMount, tick } from "svelte";
     import type {
-        pmFilledOrders,
+        pmTokenFilledOrder,
         pmMarketFulldata,
         pmTokenOrderdata,
     } from "@am/backend/types/market";
@@ -24,7 +24,7 @@
     );
     $: allOrders = market.orderdata
         ? Array.from(market.orderdata.entries()).reduce(
-              (acc: (pmFilledOrders & { outcome: string })[], val) => {
+              (acc: (pmTokenFilledOrder & { outcome: string })[], val) => {
                   for (const order of val[1].filledOrders) {
                       acc.push({
                           outcome: tokens[val[0]].outcome.toLowerCase(),
@@ -86,7 +86,8 @@
             <div
                 class={`w-7/12 py-2 pl-2 flex gap-2 items-center text-xs`}
             >
-                {trade.side === "buy" ? "bought" : "sold"}
+                <!-- {trade.side === "buy" ? "bought" : "sold"} -->
+                {"who knows"}
                 {usdFormatter.format((trade.price / 100) * Number(trade.size)) + " of "}
                 <span
                     class={`${

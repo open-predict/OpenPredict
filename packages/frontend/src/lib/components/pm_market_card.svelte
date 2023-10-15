@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {IconCopy, IconExternalLink, IconArrowsUpDown} from "@tabler/icons-svelte"
+    import {IconCopy, IconExternalLink, IconArrowsUpDown, IconCalendar} from "@tabler/icons-svelte"
     import { faker } from "@faker-js/faker";
     import ImageChecker from "$lib/elements/image_checker.svelte";
     import Pill from "$lib/elements/pill.svelte";
@@ -34,7 +34,7 @@
         <VolumePill pmMarket={market} />
         <SubsidyPill pmMarket={market} />
         <Pill>
-            <IconCal size={14} class="text-red-400/50" />
+            <IconCalendar size={14} class="text-red-400/50" />
             {`${new Date(market.data.end_date_iso).toLocaleDateString("en-us", {
                 year: "numeric",
                 month: "numeric",

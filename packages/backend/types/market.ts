@@ -52,7 +52,12 @@ export const marketMetadataSchema2V0 = z.object({
 })
 
 export type TMarketMetadataSchemaV0 = z.infer<typeof marketMetadataSchemaV0>;
-export type TComment = z.infer<typeof commentSchemaV0>;
+
+export type TComment = {
+  "content": string
+  "createdAt": Date
+  "userKey": string
+}
 
 //PM markets
 
@@ -71,12 +76,19 @@ export type pmUserMap = Map<string, {
   profileImage: string,
 }>
 
+export type pmTokenPriceHistoryPoint = {
+  t: number,
+  price: number,    
+}
+
 export type pmTokenOrderdata = {
   book: pmTokenOrderBook,
 
   filledOrders: pmTokenFilledOrder[]
 
-  positions: pmTokenPosition[]
+  positions: pmTokenPosition[],
+
+  priceHistory: pmTokenPriceHistoryPoint[]
 }
 
 export type pmTokenOrderBook = {

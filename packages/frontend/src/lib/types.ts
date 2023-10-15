@@ -29,7 +29,7 @@ export type pmPosition = {
     position: BigInt,
 }
 
-export type pmFilledOrders = {
+export type pmTokenFilledOrder = {
     id: string,
     ts: number,
     maker: string,
@@ -50,7 +50,7 @@ export type pmTokenOrderdata = {
         bids: [number, number][],
     },
     priceHistory: pmPriceHistoryPoint[],
-    filledOrders: pmFilledOrders[]
+    filledOrders: pmTokenFilledOrder[]
     positions: pmPosition[]
 }
 
