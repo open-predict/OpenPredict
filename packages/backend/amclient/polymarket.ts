@@ -210,7 +210,6 @@ class PmChainCache {
                 this.positions.set(token, new Map(holders.map((v: any) => [v.proxyWallet, {
                   position: v.amount,
                 }])))
-                console.log("Positions: ", this.positions.get(token))
               }
             }
           }
@@ -233,7 +232,6 @@ class PmChainCache {
 
     tradableTokens = [...(new Set(tradableTokens))]
     if (tradableTokens.length > 0) {
-      console.log("New tokens: ", tradableTokens)
       if (this.marketWsActive) {
         this.marketWs.send(JSON.stringify({
           auth: {},
@@ -252,7 +250,6 @@ class PmChainCache {
               asks: sum.asks.map(v => [Number(v.price), Number(v.size)]),
               bids: sum.bids.map(v => [Number(v.price), Number(v.size)]),
             })
-            console.log("order book for ", t, ":", this.orderBooks.get(t));
           }
         })
       }
