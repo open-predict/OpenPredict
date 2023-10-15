@@ -1,5 +1,5 @@
 import {Chain, ClobClient} from "@polymarket/clob-client";
-import {pmMarketData, pmMarketFulldata, pmUserMap} from "../types/market.js";
+import {pmMarketData, pmMarketFulldata, pmTokenFilledOrder, pmUserMap} from "../types/market.js";
 import {WebSocket} from "ws";
 import fetch from "node-fetch";
 import {ethers} from "ethers";
@@ -31,13 +31,7 @@ class PmChainCache {
     price: number,
   }[] | null> = new Map()
 
-  filledOrders: Map<string, {
-    ts: number,
-    maker: string,
-    taker: string,
-    size: BigInt,
-    price: number,
-  }[]> = new Map()
+  filledOrders: Map<string, pmTokenFilledOrder[]> = new Map()
 
   positions: Map<string, Map<string, {
     position: number, //Dollars
@@ -51,15 +45,26 @@ class PmChainCache {
   ws = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`)
   wsActive = false
 
-  clientRequestNeck: Promise<void>[] = []
+  private pushClientRequest<T>(x: Promise<T>, y: (v: T) => Promise<void>): void {
+    this.clientRequestNeck.push([x, y])
+    this.drainClientRequests().then(_ => {})
+  }
+
+  clientRequestNeck: [Promise<any>, (x: any) => Promise<void>][] = []
+  currentClientRequests: Promise<number>[] = []
   usingClientRequestNeck = false
 
   private async drainClientRequests() {
     if (!this.usingClientRequestNeck) {
       this.usingClientRequestNeck = true
       while (this.clientRequestNeck.length > 0) {
-        const idx = await Promise.race(this.clientRequestNeck.slice(0, 10).map((v, i) => v.catch(_ => {}).then(_ => i)))
-        this.clientRequestNeck = [...this.clientRequestNeck.slice(0, idx), ...this.clientRequestNeck.slice(idx + 1)]
+        while (this.currentClientRequests.length < 10 && this.clientRequestNeck.length > 0) {
+          var [p, a] = this.clientRequestNeck[0]
+          this.currentClientRequests.push(p.then(a).then(_ => this.currentClientRequests.length))
+          this.clientRequestNeck = this.clientRequestNeck.slice(1)
+        }
+        const idx = await Promise.race(this.currentClientRequests)
+        this.currentClientRequests = [...this.currentClientRequests.slice(0, idx), ...this.currentClientRequests.slice(idx + 1)]
       }
       this.usingClientRequestNeck = false
     }
@@ -116,7 +121,6 @@ class PmChainCache {
 
     var tradableTokens: string[] = []
 
-    var prom: Promise<void>[] = []
     activeAndNew.forEach(v => {
       if (!v.accepting_orders || v.closed) {
         v.tokens.forEach(v => {
@@ -124,7 +128,7 @@ class PmChainCache {
         })
       } else {
         tradableTokens.push(...v.tokens.map(v => v.token_id))
-        prom.push(fetch("https://polymarket.openpredict.org/api/holders?conditionId=" + v.condition_id).then(resp => resp.json()).then((resp) => {
+        this.pushClientRequest(fetch("https://polymarket.openpredict.org/api/holders?conditionId=" + v.condition_id), async (resp) => resp.json().then((resp) => {
           if (resp instanceof Array) {
             for (var i = 0; i < resp.length; i++) {
               var token = resp[i].token;
@@ -152,10 +156,9 @@ class PmChainCache {
           console.log("error in api-holders at condition id", v.condition_id, ": ", err)
         }))
 
-        /*prom.push(fetch("https://polyclob.openpredict.org/live-activity/events/" + v.condition_id).then(resp => resp.json()).then((trades: any) => {
-          if(trades instanceof Array) {
-            var market_trades = new Map()
-            for(var i = 0; i < trades.length; i++) {
+        this.pushClientRequest(fetch("https://polyclob.openpredict.org/live-activity/events/" + v.condition_id), resp => resp.json().then((trades: any) => {
+          if (trades instanceof Array) {
+            for (var i = 0; i < trades.length; i++) {
               var trade: any = trades[i];
               if (trade != null && trade['event_type'] === "TRADE") {
                 var market = trade['market'];
@@ -164,23 +167,23 @@ class PmChainCache {
                 var size = trade['size'];
                 var price = trade['price'];
                 var timestamp_str = trade['timestamp'];
-                if (market != null && user != null && side != null && size != null && timestamp_str != null && market['asset_id'] != null) {
-                  var asset_id = market['asset_id'];
-                  var fulltrade = {
-                    user: {
-                      name: user['name'],
-                      profileImage: user['profileImage'],
-                      proxyAddress: user['proxyAddress'],
-                    },
-                    price: Number(trade['price']),
-                    size: Number(trade['size']),
-                    side: trade['side'],
-                    timestamp: Number(timestamp_str),
+                var asset_id = market['asset_id'];
+                if (market != null && user != null && side != null && size != null && price != null && timestamp_str != null && asset_id != null) {
+                  var fulltrade: pmTokenFilledOrder = {
+                    maker: user['proxyAddress'],
+                    price: Number(price),
+                    size: Number(size),
+                    ts: Number(timestamp_str),
+                    taker: undefined,
                   }
-                  if (market_trades.has(asset_id)) {
-                    market_trades.set(asset_id, market_trades.get(asset_id).push(fulltrade))
+                  this.users.set(user['proxyAddress'], {
+                    name: user['name'],
+                    profileImage: user['profileImage'],
+                  })
+                  if (this.filledOrders.has(asset_id)) {
+                    this.filledOrders.set(asset_id, [...this.filledOrders.get(asset_id)!, fulltrade])
                   } else {
-                    market_trades.set(asset_id, [fulltrade])
+                    this.filledOrders.set(asset_id, [fulltrade])
                   }
                 }
               }
@@ -188,7 +191,7 @@ class PmChainCache {
           }
         }).catch(err => {
           console.log("error in live-activity at condition id", v.condition_id, ": ", err)
-        }))*/
+        }))
       }
     })
 
@@ -207,7 +210,7 @@ class PmChainCache {
       for (var i = 0; i < tradableTokens.length; i++) {
         var t = tradableTokens[i];
 
-        prom.push(pmclient.getOrderBook(t).then(sum => {
+        this.pushClientRequest(pmclient.getOrderBook(t), async (sum) => {
           if (!("error" in sum) && sum.asks != null && sum.bids != null) {
             this.orderBooks.set(t, {
               asks: sum.asks.map(v => [Number(v.price), Number(v.size)]),
@@ -215,12 +218,8 @@ class PmChainCache {
             })
             console.log("order book for ", t, ":", this.orderBooks.get(t));
           }
-        }))
+        })
       }
-      this.clientRequestNeck.push(...prom)
-    }
-    if (prom.length > 0) {
-      this.drainClientRequests().then(_ => {})
     }
   }
 
@@ -281,7 +280,9 @@ class PmChainCache {
             if (this.filledOrders.has(t)) {
               var __filledOrders = this.filledOrders.get(t)!;
               __filledOrders.forEach(v => {
-                addUser(v.taker);
+                if (v.taker != null) {
+                  addUser(v.taker);
+                }
                 addUser(v.maker);
               })
               _filledOrders = __filledOrders;
@@ -334,5 +335,3 @@ export async function startAndMaintainPmList() {
     global.pmChainCache.setMarketData(markets.data)
   }
 }
-
-

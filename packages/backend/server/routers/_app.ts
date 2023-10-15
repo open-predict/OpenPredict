@@ -625,56 +625,89 @@ export const appRouter = router({
       orderBy: "recent",
     })
     const helia = await getHelia()
-    var users = new Map<string, TUser | null>()
+    var opUsers = new Map<string, TUser | null>()
+    var commentCounts = new Map<string, number>()
+    var likeCounts = new Map<string, number>()
+    const market_ids = [
+      ...markets.opMarkets.map(v => v.data.data.AmmAddress),
+      ...markets.pmMarkets.markets.map(v => Buffer.from(v.data.question_id.slice(2), 'hex'))
+    ]
     console.log("Searching markets...")
-    await Promise.allSettled(markets.opMarkets.map(async (m) => {
-      var v = m.data.data.OperatorKey.toBase58()
-      var maybe_username = globalThis.chainCache.usernames.get(v);
-      if (maybe_username != null) {
-        var maybe_profile = globalThis.chainCache.profiles.get(maybe_username!);
-        if (maybe_profile != null) {
-          var js;
-          try {
-            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid), {
-              signal: AbortSignal.timeout(500),
-            })
-          } catch (err) {
-            console.log("error getting ipfs data: ", err)
-          }
-          const metadata = userMetadataSchemaV0.safeParse(js)
-          if (metadata.success) {
-            users.set(maybe_profile.UserKey.toBase58(), {
-              username: maybe_username,
-              metadata: metadata.data
-            })
-          } else {
-            users.set(v, null)
-          }
+    await Promise.allSettled([
+      ...markets.opMarkets.map(async (m) => {
+        var v = m.data.data.OperatorKey.toBase58()
+        var maybe_username = globalThis.chainCache.usernames.get(v);
+        if (maybe_username != null) {
+          var maybe_profile = globalThis.chainCache.profiles.get(maybe_username!);
+          if (maybe_profile != null) {
+            var js;
+            try {
+              js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid), {
+                signal: AbortSignal.timeout(500),
+              })
+            } catch (err) {
+              console.log("error getting ipfs data: ", err)
+            }
+            const metadata = userMetadataSchemaV0.safeParse(js)
+            if (metadata.success) {
+              opUsers.set(maybe_profile.UserKey.toBase58(), {
+                username: maybe_username,
+                metadata: metadata.data
+              })
+            } else {
+              opUsers.set(v, null)
+            }
 
+          }
+        } else {
+          opUsers.set(v, null)
         }
-      } else {
-        users.set(v, null)
-      }
-    }))
+      }),
+      //TODO: Query for individual counts instead of selecting all rows with the amm
+      globalThis.chainCache.prisma.marketComment.findMany({
+        where: {
+          ammAddress: {
+            in: market_ids,
+          }
+        },
+        select: {
+          ammAddress: true,
+        }
+      }).then(resp => {
+        market_ids.forEach(v => commentCounts.set(v.toString(), resp.filter(n => n.ammAddress.equals(v)).length))
+      }),
+      globalThis.chainCache.prisma.marketLike.findMany({
+        where: {
+          ammAddress: {
+            in: market_ids,
+          }
+        },
+        select: {
+          ammAddress: true,
+        }
+      }).then(resp => {
+        market_ids.forEach(v => likeCounts.set(v.toString(), resp.filter(n => n.ammAddress.equals(v)).length))
+      })
+    ])
     return <{
       markets: MarketSearchResult[],
-      opUsers: typeof users,
+      opUsers: typeof opUsers,
       pmMarketUsers: pmUserMap,
     }>{
         markets: [...markets.opMarkets.map(v => {
           return {
-            numNativeComments: 0,
-            numNativeLikes: 0,
+            numNativeComments: commentCounts.get(v.data.data.AmmAddress.toString()) ?? 0,
+            numNativeLikes: likeCounts.get(v.data.data.AmmAddress.toString()) ?? 0,
             opMarket: v,
           }
         }), ...markets.pmMarkets.markets.map(v => {
           return {
-            numNativeComments: 0,
-            numNativeLikes: 0,
+            numNativeComments: commentCounts.get(Buffer.from(v.data.question_id.slice(2), 'hex').toString()) ?? 0,
+            numNativeLikes: likeCounts.get(Buffer.from(v.data.question_id.slice(2), 'hex').toString()) ?? 0,
             pmMarket: v,
           }
         })],
-        opUsers: users,
+        opUsers: opUsers,
         pmMarketUsers: markets.pmMarkets.users,
       }
   }),

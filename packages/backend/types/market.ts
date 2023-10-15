@@ -87,8 +87,8 @@ export type pmTokenOrderBook = {
 export type pmTokenFilledOrder = {
   ts: number,
   maker: string,
-  taker: string,
-  size: BigInt,
+  taker: string | undefined,
+  size: number,
   price: number,
 }
 
