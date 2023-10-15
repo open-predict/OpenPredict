@@ -13,7 +13,7 @@ import * as spl from "@solana/spl-token"
 import base58 from 'bs58';
 import SuperJSON from 'superjson';
 import fetch from "node-fetch"
-import {ClobClient} from '@polymarket/clob-client';
+import {ClobClient, Chain} from '@polymarket/clob-client';
 
 declare global {
   var loginChallengeCache: nodeCache
