@@ -99,14 +99,6 @@ model MarketTrade {
   @@index(fields: [userKey], type: Hash)
 }
 
-model MarketLike {
-  ammAddress Bytes
-  userKey    Bytes
-  createdAt  DateTime @default(now())
-
-  @@id([ammAddress, userKey])
-}
-
 model MarketData {
   ammAddress Bytes @id
 
@@ -145,9 +137,19 @@ model MarketDataSnapshot {
   @@index(fields: [retrievalTime], type: BTree)
 }
 
+//Below are for both polymarket and openpredict markets
+
+model MarketLike {
+  ammAddress Bytes //AMM is a misnomer; this is a market address
+  userKey    Bytes
+  createdAt  DateTime @default(now())
+
+  @@id([ammAddress, userKey])
+}
+
 model MarketComment {
   id         String   @id @default(uuid())
-  ammAddress Bytes
+  ammAddress Bytes //AMM is a misnomer; this is a market address
   createdAt  DateTime @default(now())
   userKey    Bytes
   content    String

@@ -64,6 +64,7 @@ async function handleAccountChanges(accounts: web3.AccountInfo<Buffer>[], retrie
     if (newMarketAccounts.length > 0 || updateMarketAccounts.length > 0) {
       var snapshots = new Map<string, marketPricePoint[]>();
       if (newMarketAccounts.length > 0) {
+        //TODO: Move this to search
         const resp = await globalThis.chainCache.prisma.$transaction([
           ...newMarketAccounts.map(([ammAddress, _]) => {
             return globalThis.chainCache.prisma.marketComment.count({where: {ammAddress: ammAddress}})
