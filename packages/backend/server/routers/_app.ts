@@ -748,6 +748,8 @@ export const appRouter = router({
 export type MarketSearchResult = ({
   numNativeComments: number,
   numNativeLikes: number,
+  pmMarket?: pmMarketFulldata,
+  opMarket?: marketFulldata
 } & ({
   pmMarket: pmMarketFulldata,
 } | {

@@ -1,7 +1,8 @@
-import { searchMarkets, type TMarketWrapper } from '$lib/api';
+import { searchMarkets } from '$lib/api';
 import { superjson } from '$lib/superjson';
+import type { MarketSearchResult } from '@am/backend/server/routers/_app';
 
-export type TPageData = TMarketWrapper[]
+export type TPageData = MarketSearchResult[]
 export const ssr = true;
 
 export async function load() {
@@ -21,6 +22,6 @@ export async function load() {
 
   const response = await searchMarkets();
   const data: TPageData = response;
-  data.sort((a, b) => Number(b.volume - a.volume))
+  data.sort((a, b) => Number(b.numNativeLikes - a.numNativeLikes))
   return superjson.serialize(data);
 }

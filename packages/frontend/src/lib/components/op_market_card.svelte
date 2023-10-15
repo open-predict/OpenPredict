@@ -2,7 +2,6 @@
     import { IconCopy, IconExternalLink, IconArrowsUpDown } from "@tabler/icons-svelte"
     import type { marketFulldata } from "@am/backend/types/market";
     import { faker } from "@faker-js/faker";
-    import Pill from "$lib/elements/pill.svelte";
     import LikeButton from "$lib/elements/like_button.svelte";
     import ShareButton from "$lib/elements/share_button.svelte";
     import CommentButton from "$lib/elements/comment_button.svelte";
@@ -11,12 +10,10 @@
     import ChangeIndicator from "$lib/elements/change_indicator.svelte";
     import SubsidyPill from "$lib/elements/subsidy_pill.svelte";
     import VolumePill from "$lib/elements/volume_pill.svelte";
-    import { api } from "$lib/api";
     import MarketCardLayout from "./market_card_layout.svelte";
     import type { pmMarketFulldata } from "@am/backend/types/market";
     import UserPill from "./user_pill.svelte";
     import MenuButton from "./menu_button.svelte";
-    import Trade from "$lib/modals/trade.svelte";
     export let market: marketFulldata;
     export let updateMarket: (market?: marketFulldata | pmMarketFulldata) => void;
     export let small = false;

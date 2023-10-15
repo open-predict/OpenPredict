@@ -55,6 +55,14 @@
             <IconMenu2 size={16} />
         </div>
     </button>
+    <div>
+        <div class="w-7 h-7 rounded-xl overflow-hidden">
+            <img
+                src={generateProfileImage("$web3Store.solanaAddress")}
+                alt="profile"
+            />
+        </div>
+    </div>
     <div
         class="flex justify-between items-center border-b border-neutral-800 px-3 py-1.5 mb-1.5 uppercase text-neutral-500 tracking-wide text-xs"
     >

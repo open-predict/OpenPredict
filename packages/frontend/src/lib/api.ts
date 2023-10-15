@@ -4,6 +4,7 @@ import { faker } from '@faker-js/faker';
 import { PublicKey } from '@solana/web3.js';
 import { USDC_PER_DOLLAR } from '$lib/web3_utils';
 import type { TUser } from '@am/backend/types/user';
+import type { MarketSearchResult } from '@am/backend/server/routers/_app';
 
 function randomizeString(input: string): string {
     const characters = input.split('');
@@ -121,7 +122,7 @@ const orders: pmTokenFilledOrder[] = Array.from(Array(faker.datatype.number({ mi
         id: faker.finance.ethereumAddress(),
         maker: Array.from(users.keys())[0],
         price: faker.datatype.number({ min: 1, max: 99, precision: 2 }),
-        // side: faker.datatype.boolean() ? "buy" : "sell" as "buy" | "sell",
+        side: faker.datatype.boolean() ? "buy" : "sell" as "buy" | "sell",
         size: faker.datatype.number({ min: 10, max: 100000 }),
         taker: Array.from(users.keys())[0],
         ts: faker.date.between(before, new Date()).getTime(),
@@ -187,38 +188,22 @@ const pmMarkets: pmMarketFulldata[] = Array.from(Array(5)).map(() => {
     return m;
 })
 
-export type TMarketWrapper = {
-    id: string,
-    volume: bigint,
-    traders: string[],
-    comments: number,
-    likes: string[],
-    opMarket?: marketFulldata,
-    pmMarket?: pmMarketFulldata
-}
+export async function searchMarkets(): Promise<MarketSearchResult[]> {
 
-export async function searchMarkets(): Promise<TMarketWrapper[]> {
-
-    let markets: TMarketWrapper[] = [];
+    let markets: MarketSearchResult[] = [];
 
     opMarkets.forEach(market => {
         markets.push({
-            id: new PublicKey(market.data.data.AmmAddress).toBase58(),
-            volume: faker.datatype.bigInt({ min: 0n, max: 10000000n }),
-            comments: market.data.CommentCount,
-            traders: Array.from(market.data.UserAccounts.keys()),
-            likes: Array.from(market.data.Likes),
+            numNativeLikes: market.data.Likes.size,
+            numNativeComments: market.data.CommentCount,
             opMarket: market
         })
     })
 
     pmMarkets.forEach(market => {
         markets.push({
-            id: market.data.condition_id,
-            volume: BigInt(Number(market.meta.volume)),
-            comments: 0,
-            traders: Array.from(market.orderdata.values()).reduce((acc: string[], val) => { acc = [...acc, ...val.positions.map(p => p.address)]; return acc }, []),
-            likes: Array.from(market.orderdata.values()).reduce((acc: string[], val) => { acc = [...acc, ...val.positions.map(p => p.address)]; return acc }, []),
+            numNativeComments: faker.datatype.number({min: 0, max:20}),
+            numNativeLikes: faker.datatype.number({min: 0, max: 20}),
             pmMarket: market
         })
     })

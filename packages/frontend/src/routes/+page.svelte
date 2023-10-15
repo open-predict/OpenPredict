@@ -13,7 +13,8 @@
 	import { api } from "$lib/api";
 	import { onMount, tick } from "svelte";
 	import type { pmMarketFulldata } from "@am/backend/types/market";
-    import MobileMenuButton from "$lib/elements/mobile_menu_button.svelte";
+	import MobileMenuButton from "$lib/elements/mobile_menu_button.svelte";
+    import { PublicKey } from "@solana/web3.js";
 
 	export let data;
 	$: markets = superjson.deserialize<TPageData>(data);
@@ -36,11 +37,11 @@
 		restore: async (value) => {
 			if (value.marketsInView && value.scrollPosition) {
 				const existingIds = (value.marketsInView as TPageData).map(
-					(m) => m.id
-				);
+					(m) => m.opMarket ? new PublicKey(m.opMarket.data.data.AmmAddress).toBase58() : m.pmMarket ? m.pmMarket.data.condition_id : null
+				).filter(m => m !== null);
 				markets = [
 					...value.marketsInView,
-					...markets.filter((m) => !existingIds.includes(m.id)),
+					...markets.filter((m) => !existingIds.includes(m.opMarket ? new PublicKey(m.opMarket.data.data.AmmAddress).toBase58() : m.pmMarket ? m.pmMarket.data.condition_id : null)),
 				];
 				await tick();
 				window.document.body.scrollTo({ top: value.scrollPosition });
@@ -89,16 +90,17 @@
 		<!-- <IntroCard /> -->
 		{#if markets && markets.length > 0}
 			<div id="top_indicator" class="opacity-0 border-0 ring-0" />
-			{#each markets as market}
-				{#if market.opMarket}
+			{#each markets as {opMarket, pmMarket}}
+				{#if opMarket}
 					<OpMarketCard
-						market={market.opMarket}
-						updateMarket={(m) => updateMarket(market.id, m)}
+						market={opMarket}
+						updateMarket={(m) => updateMarket(new PublicKey(opMarket?.data.data.AmmAddress ?? "").toBase58(), m)}
 					/>
-				{:else if market.pmMarket}
+				{/if}
+				{#if pmMarket}
 					<PmMarketCard
-						market={market.pmMarket}
-						updateMarket={(m) => updateMarket(market.id, m)}
+						market={pmMarket}
+						updateMarket={(m) => updateMarket(pmMarket?.data.condition_id ?? "", m)}
 					/>
 				{/if}
 			{/each}
