@@ -1,5 +1,17 @@
 import {z} from "zod";
 import * as web3 from "@solana/web3.js"
+import {PriceHistoryInterval} from "@polymarket/clob-client";
+
+export const getPmPriceHistorySchemaV0 = z.object({
+  interval: z.enum([
+    PriceHistoryInterval.ONE_HOUR,
+    PriceHistoryInterval.SIX_HOURS,
+    PriceHistoryInterval.ONE_DAY,
+    PriceHistoryInterval.ONE_WEEK,
+    PriceHistoryInterval.MAX,
+  ]),
+  market: z.string(),
+})
 
 export const likeMarketSchemaV0 = z.object({
   ammAddress: z.string().min(32).max(44),
@@ -101,6 +113,7 @@ export type pmTokenFilledOrder = {
   maker: string,
   taker: string | undefined,
   size: number,
+  side: string,
   price: number,
 }
 

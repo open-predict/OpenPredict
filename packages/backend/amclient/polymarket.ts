@@ -7,16 +7,6 @@ import {ethers} from "ethers";
 
 const tempwallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey);
 const pmclient = new ClobClient(process.env.CLOB_HOST || "https://polyclob.openpredict.org", Chain.POLYGON, tempwallet);
-/*var fullpmclient: ClobClient | null;
-var mut = new Mutex();
-async function getPmClient() {
-  return await mut.runExclusive(async () => {
-    if (fullpmclient == null) {
-      fullpmclient = new ClobClient(process.env.CLOB_HOST || "https://polyclob.openpredict.org", Chain.POLYGON, tempwallet, await pmclient.createOrDeriveApiKey(0));
-    }
-    return fullpmclient!;
-  })
-}*/
 
 class PmChainCache {
   marketData: Map<string, pmMarketData> = new Map()
@@ -25,11 +15,6 @@ class PmChainCache {
     name: string,
     profileImage: string,
   }> = new Map()
-
-  priceHistory: Map<string, {
-    ts: number,
-    price: number,
-  }[] | null> = new Map()
 
   filledOrders: Map<string, pmTokenFilledOrder[]> = new Map()
 
@@ -116,8 +101,8 @@ class PmChainCache {
 
   public setMarketData(data: pmMarketData[]) {
     var active = data.filter(v => v.active)
-    var activeAndNew = active.filter(v => !this.marketData.has(v.question_id))
-    active.forEach(v => this.marketData.set(v.question_id, v))
+    var activeAndNew = active.filter(v => !this.marketData.has(v.condition_id))
+    active.forEach(v => this.marketData.set(v.condition_id, v))
 
     var tradableTokens: string[] = []
 
@@ -168,11 +153,13 @@ class PmChainCache {
                 var price = trade['price'];
                 var timestamp_str = trade['timestamp'];
                 var asset_id = market['asset_id'];
+                console.log(trade)
                 if (market != null && user != null && side != null && size != null && price != null && timestamp_str != null && asset_id != null) {
                   var fulltrade: pmTokenFilledOrder = {
                     maker: user['proxyAddress'],
                     price: Number(price),
                     size: Number(size),
+                    side: side,
                     ts: Number(timestamp_str),
                     taker: undefined,
                   }
@@ -221,6 +208,10 @@ class PmChainCache {
         })
       }
     }
+  }
+
+  public hasMarket(condition_id: string) {
+    return this.marketData.has(condition_id)
   }
 
   public searchMarkets(options: {

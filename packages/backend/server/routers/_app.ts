@@ -1,6 +1,6 @@
 import {z} from 'zod';
 import {procedure, router} from '../trpc.js';
-import {commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata, pmMarketFulldata, pmUserMap} from '../../types/market.js';
+import {commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getPmPriceHistorySchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata, pmMarketFulldata, pmUserMap} from '../../types/market.js';
 import {checkoutWithChangenowSchemaV0, makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0} from '../../types/user.js';
 import {getHelia, getMarketFulldata, marketByAddress, searchMarkets} from '../../amclient/index.js';
 import * as nodeCache from "node-cache"
@@ -13,10 +13,13 @@ import * as spl from "@solana/spl-token"
 import base58 from 'bs58';
 import SuperJSON from 'superjson';
 import fetch from "node-fetch"
+import {ClobClient} from '@polymarket/clob-client';
 
 declare global {
   var loginChallengeCache: nodeCache
 };
+
+const pmclient = new ClobClient(process.env.CLOB_HOST || "https://polyclob.openpredict.org", Chain.POLYGON);
 
 async function getUserId(opts: any) {
   if (!opts.ctx.req.headers.cookie) {
@@ -395,7 +398,15 @@ export const appRouter = router({
       map.set(k, await getMarketFulldata(v))
     }))
     return map
+  }),
 
+  getPmPriceHistory: procedure.input(
+    getPmPriceHistorySchemaV0,
+  ).query(async (opts) => {
+    return await pmclient.getPricesHistory({
+      interval: opts.input.interval,
+      market: opts.input.market,
+    })
   }),
 
   getMarketAccounts: procedure.input(
