@@ -121,8 +121,8 @@ const orders: pmTokenFilledOrder[] = Array.from(Array(faker.datatype.number({ mi
         id: faker.finance.ethereumAddress(),
         maker: Array.from(users.keys())[0],
         price: faker.datatype.number({ min: 1, max: 99, precision: 2 }),
-        side: faker.datatype.boolean() ? "buy" : "sell" as "buy" | "sell",
-        size: faker.datatype.bigInt({ min: 10000n, max: 1000000n }),
+        // side: faker.datatype.boolean() ? "buy" : "sell" as "buy" | "sell",
+        size: faker.datatype.number({ min: 10, max: 100000 }),
         taker: Array.from(users.keys())[0],
         ts: faker.date.between(before, new Date()).getTime(),
     }
