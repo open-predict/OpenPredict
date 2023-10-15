@@ -2,6 +2,10 @@ import {z} from "zod";
 import * as web3 from "@solana/web3.js"
 import {PriceHistoryInterval} from "@polymarket/clob-client";
 
+export const getPmMarket = z.object({
+  condition_id: z.string()
+})
+
 export const getPmPriceHistorySchemaV0 = z.object({
   interval: z.enum([
     PriceHistoryInterval.ONE_HOUR,
@@ -10,7 +14,7 @@ export const getPmPriceHistorySchemaV0 = z.object({
     PriceHistoryInterval.ONE_WEEK,
     PriceHistoryInterval.MAX,
   ]),
-  market: z.string(),
+  condition_id: z.string(),
 })
 
 export const likeMarketSchemaV0 = z.object({
