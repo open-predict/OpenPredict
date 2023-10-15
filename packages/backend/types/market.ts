@@ -14,7 +14,7 @@ export const getPmPriceHistorySchemaV0 = z.object({
     PriceHistoryInterval.ONE_WEEK,
     PriceHistoryInterval.MAX,
   ]),
-  condition_id: z.string(),
+  asset_id: z.string(),
 })
 
 export const likeMarketSchemaV0 = z.object({
