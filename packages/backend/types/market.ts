@@ -18,9 +18,14 @@ export const getPmPriceHistorySchemaV0 = z.object({
 })
 
 export const likeMarketSchemaV0 = z.object({
-  ammAddress: z.string().min(32).max(44),
+  openPredictMarketAddress: z.string().min(32).max(44),
+  polymarketConditionId: z.undefined(),
   liked: z.boolean(),
-})
+}).or(z.object({
+  openPredictMarketAddress: z.undefined(),
+  polymarketConditionId: z.string().max(44),
+  liked: z.boolean(),
+}))
 
 export const getUserProfilesSchemaV0 = z.object({
   userId: z.string().min(32).max(44).array(),
@@ -35,13 +40,22 @@ export const getMarketAccountsSchemaV0 = z.object({
 })
 
 export const listCommentsSchemaV0 = z.object({
-  ammAddress: z.string().min(32).max(44),
-})
+  openPredictMarketAddress: z.string().min(32).max(44),
+  polymarketConditionId: z.undefined(),
+}).or(z.object({
+  openPredictMarketAddress: z.undefined(),
+  polymarketConditionId: z.string().max(44),
+}))
 
 export const commentSchemaV0 = z.object({
-  ammAddress: z.string().min(32).max(44),
+  openPredictMarketAddress: z.string().min(32).max(44),
+  polymarketConditionId: z.undefined(),
   content: z.string().max(2000),
-})
+}).or(z.object({
+  openPredictMarketAddress: z.undefined(),
+  polymarketConditionId: z.string().min(16).max(44),
+  content: z.string().max(2000),
+}))
 
 export const loginSchemaV0 = z.object({
   signedTx: z.number().array(),
