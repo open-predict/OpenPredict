@@ -1,14 +1,16 @@
 import type { marketFulldata } from '@am/backend/types/market.js';
-import type { TComments, TUsers, pmMarketFulldata } from '@am/backend/types/market.js';
-import { getComments, getMarket, users } from '$lib/api.js';
+import type { pmMarketFulldata } from '@am/backend/types/market.js';
 import { superjson } from '$lib/superjson.js';
+import { api } from '$lib/api.js';
+import type { TComment, TUsers } from '$lib/types.js';
 
 export type TMarketIdPageData = {
   id: string,
   pmMarket?: pmMarketFulldata,
   opMarket?: marketFulldata,
-  users: TUsers,
-  comments: TComments
+  users?: TUsers,
+  comments?: TComment[],
+  likes?: string[]
 }
 
 export async function load({ params }) {
@@ -17,18 +19,23 @@ export async function load({ params }) {
   //   ? (await import("$lib/trpc.js")).trpcc
   //   : (await import("$lib/btrpc.js")).btrpc;
 
-  const data: TMarketIdPageData = {
+  let data: TMarketIdPageData = {
     id: params.market_id ?? "",
-    users,
-    comments: params.market_id ? await getComments(params.market_id) : [],
   }
 
-  const response = await getMarket(params.market_id);
-  if(response.opMarket){
-    data.opMarket = response.opMarket
-  } else if (response.pmMarket){
-    data.pmMarket = response.pmMarket
+  if (params.market_id.startsWith("0x")) {
+    const res = await api.getPmMarket.query({ condition_id: params.market_id });
+    data.pmMarket = res.market as pmMarketFulldata;
+    data.comments = res.comments;
+    data.users = res.users;
+    data.likes;
+  } else {
+    const res = await api.getMarket.query({ id: params.market_id });
+    data.opMarket = res.market;
+    data.comments = res.comments;
+    data.users = res.users;
+    data.likes;
   }
-  
+
   return superjson.serialize(data);
 }

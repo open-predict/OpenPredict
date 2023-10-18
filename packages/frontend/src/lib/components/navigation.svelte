@@ -8,6 +8,7 @@
     import { goto } from "$app/navigation";
     import { draftsStore } from "$lib/marketDraftStore";
     import NavItem from "$lib/elements/nav_item.svelte";
+    import { IconActivity, IconNotification, IconSearch } from "@tabler/icons-svelte";
 
     $: creatingMarket = browser
         ? window.location.href.includes("/drafts/")
@@ -21,11 +22,11 @@
         referrerpolicy?: ReferrerPolicy;
     }[] = [
         { name: "Home", href: "/", Icon: IconCards },
-        { name: "Drafts", href: "/drafts", Icon: IconPencil },
+        { name: "Search", href: "#search", Icon: IconSearch },
+        { name: "Activity", href: "/activity", Icon: IconActivity },
         { name: "Profile", href: `/profile`, Icon: IconUser },
-        // { name: "Activity", href: "/activity", Icon: IconActivity },
-        // { name: "My Markets", href: "/markets", Icon: IconNotebook },
-        { name: "Wallet", href: `/wallet`, Icon: IconWallet },
+        // { name: "Wallet", href: `/wallet`, Icon: IconWallet },
+        // { name: "Drafts", href: "/drafts", Icon: IconPencil },
     ];
 </script>
 

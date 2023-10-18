@@ -18,7 +18,6 @@
     } from "$lib/web3_utils.js";
     // import { trpcc } from "$lib/trpc.js";
     import SuperJSON from "superjson";
-    import MarketCardSmall from "$lib/components/market_card_small.svelte";
     import { Modal, modalStore } from "$lib/modals/modalStore.js";
     import AccountSummary from "$lib/components/account_summary.svelte";
     import IconLoading from "@tabler/icons-svelte/dist/svelte/icons/IconLoader.svelte";
@@ -336,7 +335,7 @@
                     {#each Array.from(markets) as [address, chainData]}
                         <div class="hover:bg-white">
                             <a href={`/${address}`}>
-                                <MarketCardSmall market={chainData} />
+                                <!-- <MarketCardSmall market={chainData} /> -->
                             </a>
                         </div>
                     {/each}

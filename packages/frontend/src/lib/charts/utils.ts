@@ -1,8 +1,8 @@
 import log from "$lib/log";
-import type { pmPriceHistoryPoint } from "@am/backend/types/market";
 import {USDC_PER_DOLLAR, getChance} from "$lib/web3_utils";
 import type {marketPricePoint} from "@am/backend/types/market";
 import moment from "moment";
+import type { MarketPrice } from "$lib/clob";
 
 export const HOUR = 1000 * 60 * 60;
 export const DAY = 1000 * 60 * 60 * 24;
@@ -137,7 +137,7 @@ export function resampleOpMarketPricePoints(rawData: marketPricePoint[], term: P
 	return filled.map(dp => ({...dp, date: dp.date.toDate()}));
 }
 
-export function resamplePmPriceHistory(rawData: pmPriceHistoryPoint[], term: PriceHistoryTerm) {
+export function resamplePmPriceHistory(rawData: MarketPrice[], term: PriceHistoryTerm) {
 
 	log("debug", "utils-resample", "resamplePmPriceHistory...")
 
@@ -201,7 +201,7 @@ export function resamplePmPriceHistory(rawData: pmPriceHistoryPoint[], term: Pri
 	let endTime = moment(end)
 	let datesResampled = data.map(value => {
 		let resampled = moment(value.t).startOf(period)
-		return {date: resampled, price: value.price}
+		return {date: resampled, price: value.p}
 	})
 
 	type DPWithMoment = {

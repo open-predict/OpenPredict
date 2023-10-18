@@ -1,8 +1,12 @@
 <script lang="ts">
-    import IconCal from "@tabler/icons-svelte/dist/svelte/icons/IconCalendar.svelte";
-    import IconUser from "@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte";
-    import IconTrade from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsUpDown.svelte";
-    import IconLiquidity from "@tabler/icons-svelte/dist/svelte/icons/IconDroplet.svelte";
+    import {
+        IconArrowsExchange2,
+        IconVocabulary,
+        IconChartLine,
+        IconDroplet,
+        IconUser,
+        IconCalendar,
+    } from "@tabler/icons-svelte";
     import { faker } from "@faker-js/faker";
     import ImageChecker from "$lib/elements/image_checker.svelte";
     import Pill from "$lib/elements/pill.svelte";
@@ -21,121 +25,192 @@
     import type { pmMarketFulldata } from "@am/backend/types/market";
     import Trade from "$lib/modals/trade.svelte";
     import { Dialog, DialogOverlay } from "@rgossiaux/svelte-headlessui";
+    import UserPill from "./user_pill.svelte";
+    import TradersPill from "$lib/elements/traders_pill.svelte";
+    import OpChart from "$lib/charts/op_chart.svelte";
+    import OpTrade from "./op_trade.svelte";
     export let market: marketFulldata;
     export let updateMarket: (
         market?: marketFulldata | pmMarketFulldata
     ) => void;
-
     const id = new PublicKey(market.data.data.AmmAddress).toBase58();
     $: chanceDisplay =
         (getChance(market.data.data.Yes, market.data.data.No) * 100).toFixed(
             0
         ) + "%";
-    $: getCreatorResponse = api.getUser(id);
-
     let tradeModal = false;
+    let selectedView: "trades" | "chart" | "orderbook" = "chart";
 </script>
 
-<Dialog
-    open={tradeModal}
-    on:close={() => (tradeModal = false)}
-    class="fixed inset-0 z-10 overflow-y-auto flex min-h-full items-center justify-center text-center"
->
-    <DialogOverlay
-        class="fixed inset-0 bg-gray-300 bg-opacity-75 transition-opacity"
-    />
-
-    <Trade
-        {market}
-        direction={true}
-        onClose={() => (tradeModal = false)}
-        {updateMarket}
-    />
-</Dialog>
-
 <div class="w-full max-w-full p-4 flex flex-col gap-4">
-    <!-- <ImageChecker url={market.data.image} ratio={1} resolution={400}>
-        <img
-            src={market.data.image}
-            class={`w-full h-72 rounded-xl object-cover object-center mb-2`}
-            alt="market cover"
-        />
-    </ImageChecker> -->
-    <h2
-        class="text-xl lg:text-2xl font-semibold text-white flex-grow group-visited/link:text-indigo-300"
-    >
-        {market.metadata?.title}
-    </h2>
-    <div class="w-full flex justify-between items-center flex-nowrap gap-2">
-        <div class="w-full flex justify-start gap-2 items-center">
-            <VolumePill opMarket={market} />
-            <SubsidyPill opMarket={market} />
-            <Pill>
-                <IconLiquidity size={14} class="text-indigo-500" />
-                {`$298`}
-            </Pill>
-            <Pill>
-                <IconUser size={14} class="text-sky-500" />
-                {`${market.data.UserAccounts.size}`}
-            </Pill>
-            <div class="ml-auto" />
-        </div>
-    </div>
-    <div class="w-full flex items-start justify-start">
-        <div
-            class="flex w-full align-top gap-4 justify-start items-start flex-nowrap"
+    <div class="flex justify-start items-start">
+        <h2
+            class="text-2xl font-semibold text-white flex-grow group-visited/link:text-indigo-300"
         >
-            <div class="ml-3 flex flex-col justify-start items-end">
-                <h2 class="text-md lg:text-2xl font-bold text-white">
-                    {chanceDisplay}
-                </h2>
-                <ChangeIndicator opMarket={market} />
-            </div>
-        </div>
-    </div>
-    <!-- <div class="w-full flex items-start justify-start my-2">
-        <div
-            class="flex w-full align-top gap-4 justify-start items-start flex-nowrap"
+            {market.metadata?.title}
+        </h2>
+        <span
+            class="text-2xl font-semibold text-white"
         >
-            <div class="flex flex-col justify-start items-start">
-                <h2 class="text-md lg:text-3xl font-bold text-white">68%</h2>
-            </div>
-        </div>
-    </div> -->
-    <InteractiveChart priceData={market.data.PriceHistory} />
-    <p
-        class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-200"
-    >
-        {market.metadata?.description.replaceAll("\n", "\n\n")}
-    </p>
-    <div class="w-full flex flex-nowrap justify-start items-center">
-        <div class="flex flex-nowrap pl-4 p-1">
-            {#each Array.from(Array(4)) as t}
-                <img
-                    src={faker.image.avatar()}
-                    alt="s"
-                    class="h-6 w-6 rounded-full -ml-3 ring-2 ring-neutral-900"
-                />
-            {/each}
+            {chanceDisplay}
+        </span>
+    </div>
+    <div class="w-full flex items-center flex-nowrap gap-2">
+        <div class="relative w-9/10 max-w-9/10 grow overflow-hidden">
             <div
-                class="h-6 w-6 rounded-full -ml-3 ring-2 ring-indigo-800 bg-neutral-900 flex justify-center items-center text-[9px] font-extrabold text-white"
+                class="absolute h-full w-20 bg-gradient-to-r from-transparent to-black right-0"
+            />
+            <div
+                class="w-full flex justify-start gap-2 items-center overflow-x-scroll scrollbar_hide pr-20"
             >
-                +23
+                <UserPill {id} />
+                <VolumePill opMarket={market} />
+                <SubsidyPill opMarket={market} />
+                <TradersPill opMarket={market} />
+                <div class="ml-auto" />
             </div>
         </div>
+    </div>
+    <div
+        class="relative bg-neutral-950/90 rounded-lg min-h-[300px] max-h-[400px] h-[300px] overflow-y-scroll scrollbar_hide text-neutral-400"
+    >
+        {#if selectedView === "chart"}
+            <!-- <OpChart {market} /> -->
+        {:else if selectedView === "orderbook"}
+            <div class="flex justify-center items-center py-28">
+                <p>
+                    {"An orderbook is not yet available for this market."}
+                </p>
+            </div>
+        {:else}
+            <div class="flex justify-center items-center py-28">
+                <p>
+                    {"Trade history is not yet available for this market."}
+                </p>
+            </div>
+        {/if}
         <div
-            class="flex-grow flex ml-auto justify-end items-center gap-1 lg:gap-4"
+            class="w-full h-10 absolute bottom-0 border-t border-neutral-900 bg-neutral-950"
         >
-            <ShareButton opMarket={market} {updateMarket} />
-            <CommentButton opMarket={market} />
-            <LikeButton opMarket={market} {updateMarket} />
-            <button
-                on:click={() => tradeModal = true}
-                class="flex items-center justify-center rounded-lg text-sm gap-1 py-1.5 px-2.5 ring-1 ring-transparent shadow-lg bg-neutral-900 text-indigo-400/80 hover:text-indigo-300 hover:ring-indigo-800 hover:shadow-indigo-500/10"
+            <div
+                class="w-full flex items-center justify-between h-full bg-neutral-900/40 font-semibold text-xs divide-x divide-neutral-800"
             >
-                <IconTrade size={16} />
-                Trade
-            </button>
+                <button
+                    on:click={() => (selectedView = "chart")}
+                    class={`flex gap-1 items-center justify-center w-full h-full ${
+                        selectedView === "chart"
+                            ? "text-white"
+                            : "text-neutral-400"
+                    }`}
+                >
+                    <IconChartLine size={18} />
+                    Chart
+                </button>
+                <button
+                    on:click={() => (selectedView = "orderbook")}
+                    class={`flex gap-1 items-center justify-center w-full h-full ${
+                        selectedView === "orderbook"
+                            ? "text-white"
+                            : "text-neutral-400"
+                    }`}
+                >
+                    <IconVocabulary size={17} />
+                    Orderbook
+                </button>
+                <button
+                    on:click={() => (selectedView = "trades")}
+                    class={`flex gap-1 items-center justify-center w-full h-full ${
+                        selectedView === "trades"
+                            ? "text-white"
+                            : "text-neutral-400"
+                    }`}
+                >
+                    <IconArrowsExchange2 size={18} />
+                    Trades
+                </button>
+            </div>
         </div>
+    </div>
+    <div class="flex flex-col gap-2 mb-8 mt-4">
+        <div class="flex justify-between items-center">
+            <h4 class="text-xl font-semibold text-neutral-200">Trade</h4>
+        </div>
+        <div class="w-full border-t border-neutral-900 mb-2" />
+        <!-- <PmTrade {market} {updateMarket} onClose={() => {}} direction /> -->
+            <OpTrade {market} {updateMarket} />
+    </div>
+    <div class="flex flex-col gap-2 mb-8">
+        <h4 class="text-xl font-semibold text-neutral-200">Description</h4>
+        <div class="w-full border-t border-neutral-900 mb-2" />
+        <p
+            class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
+        >
+            {market.metadata?.description.replaceAll("\n", "\n\n")}
+        </p>
+    </div>
+    <div class="flex flex-col gap-2 mb-8">
+        <h4 class="text-xl font-semibold text-neutral-200">Resolution</h4>
+        <div class="w-full border-t border-neutral-900 mb-2" />
+        <p
+            class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
+        >
+            {"This market has not yet been resolved."}
+        </p>
+    </div>
+    <div class="flex flex-col gap-2 mb-8">
+        <div class="flex justify-between items-end">
+            <h4 class="text-xl font-semibold text-neutral-200">Holders</h4>
+        </div>
+        <div class="w-full border-t border-neutral-900 mb-2" />
+        <!-- <div class="w-full grid grid-cols-2 gap-8">
+            {#each Array.from(market.orderdata.entries()) as tokenOrderdata}
+                <div class="w-full flex flex-col gap-2">
+                    <div class="flex justify-between flex-nowrap items-center">
+                        <h4 class="text-md font-semibold text-neutral-200">
+                            {`${tokens[tokenOrderdata[0]].outcome} holders`}
+                        </h4>
+                        <span class="text-neutral-400 text-xs">POSITION</span>
+                    </div>
+                    <div class="flex flex-col divide-y divide-neutral-900">
+                        {#each tokenOrderdata[1].positions.slice(0, 5) as position}
+                            <div
+                                class="flex justify-between text-neutral-200 items-center py-2"
+                            >
+                                <div class="max-w-1/2 overflow-hidden">
+                                    <UserPill id={position.address} />
+                                </div>
+                                <p
+                                    class={`text-sm ${
+                                        tokens[tokenOrderdata[0]].outcome ===
+                                        "Yes"
+                                            ? "text-green-400"
+                                            : tokens[tokenOrderdata[0]]
+                                                  .outcome === "No"
+                                            ? "text-red-500"
+                                            : "text-indigo-400"
+                                    }`}
+                                >
+                                    {usdFormatter.format(
+                                        Number(position.position) /
+                                            (USDC_PER_DOLLAR * 10000)
+                                    )}
+                                </p>
+                            </div>
+                        {/each}
+                    </div>
+                </div>
+            {/each}
+        </div> -->
+    </div>
+    <div class="flex flex-col gap-2 mb-8">
+        <div class="flex justify-between items-end">
+            <h4 class="text-xl font-medium text-neutral-200">Comments</h4>
+        </div>
+        <div class="w-full border-t border-neutral-900 mb-2" />
+        <p
+            class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
+        >
+            {"No comments"}
+        </p>
     </div>
 </div>

@@ -5,7 +5,6 @@
     import { web3Store } from "$lib/web3Store";
     import { PublicKey } from "@solana/web3.js";
     import { Dialog, DialogOverlay } from "@rgossiaux/svelte-headlessui";
-    import MarketCardLarge from "$lib/components/market_card_large.svelte";
     import SuperJSON from "superjson";
     import MarketActions from "$lib/components/market_actions.svelte";
     import type { TMarketIdPageData } from "./+page.js";
@@ -20,10 +19,11 @@
     import { superjson } from "$lib/superjson.js";
     import PmMarketView from "$lib/components/pm_market_view.svelte";
     import OpMarketView from "$lib/components/op_market_view.svelte";
-    import { api, type TMarketWrapper } from "$lib/api.js";
+    import { api } from "$lib/api.js";
     import { onMount } from "svelte";
     import ShareButton from "$lib/elements/share_button.svelte";
     import LikeButton from "$lib/elements/like_button.svelte";
+    import type { MarketSearchResult } from "@am/backend/server/routers/_app.js";
 
     export let data;
 
@@ -89,21 +89,21 @@
 
     // $: createdAt = market?.data?.PriceHistory[0]?.At as Date | undefined;
 
-    let relatedMarkets: TMarketWrapper[] = [];
+    let relatedMarkets: MarketSearchResult[] = [];
 
     onMount(async () => {
-        relatedMarkets = await api.getRelatedMarkets();
-        const bottomIndicator =
-            window.document.getElementById("bottom_indicator");
-        if (bottomIndicator) {
-            const bottomObserver = new IntersectionObserver(async (entries) => {
-                if (entries[entries.length - 1].isIntersecting) {
-                    const newRelatedMarkets = await api.getRelatedMarkets();
-                    relatedMarkets = [...relatedMarkets, ...newRelatedMarkets];
-                }
-            });
-            bottomObserver.observe(bottomIndicator);
-        }
+        // relatedMarkets = await api.getRelatedMarkets();
+        // const bottomIndicator =
+        //     window.document.getElementById("bottom_indicator");
+        // if (bottomIndicator) {
+        //     const bottomObserver = new IntersectionObserver(async (entries) => {
+        //         if (entries[entries.length - 1].isIntersecting) {
+        //             const newRelatedMarkets = await api.getRelatedMarkets();
+        //             relatedMarkets = [...relatedMarkets, ...newRelatedMarkets];
+        //         }
+        //     });
+        //     bottomObserver.observe(bottomIndicator);
+        // }
     });
 </script>
 

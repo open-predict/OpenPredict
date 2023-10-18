@@ -1,18 +1,20 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
-    import { getUser } from "$lib/api";
+    import { api } from "$lib/api";
     import Pill from "$lib/elements/pill.svelte";
     import { generateProfileImage, readableAddress } from "$lib/utils";
-    import IconLoader from "@tabler/icons-svelte/dist/svelte/icons/IconLoader.svelte";
+    import { IconLoader } from "@tabler/icons-svelte";
     import { createPopperActions } from "svelte-popperjs";
 
     const [popperRef, popperContent] = createPopperActions();
     export let id: string;
 
-    let showPopup = false;
-
-    $: userResponse = getUser(id);
+    $: userResponse = api.getUser.query({userId: [id]}).then(res => {
+        return Array.from(res.entries())[0][1]
+    })
+    
 </script>
+
 <!-- 
 {#if showPopup}
     <div

@@ -1,9 +1,9 @@
 <script lang="ts">
-    import IconDown from "@tabler/icons-svelte/dist/svelte/icons/IconTriangleFilled.svelte";
     import type { marketFulldata } from "@am/backend/types/market";
     import type { pmMarketFulldata } from "@am/backend/types/market";
     import { getChance } from "$lib/web3_utils";
     import { faker } from "@faker-js/faker";
+    import { IconTriangleFilled } from "@tabler/icons-svelte";
     export let opMarket: marketFulldata | undefined = undefined;
     export let pmMarket: pmMarketFulldata | undefined = undefined;
     export let size: 0 | 1 = 0;
@@ -48,7 +48,7 @@
     }`}
 >
     {#if change}
-        <IconDown
+        <IconTriangleFilled
             size={size > 0 ? 10 : 6}
             class={change < 0 ? "rotate-180 text-red-600" : "text-emerald-500"}
         />

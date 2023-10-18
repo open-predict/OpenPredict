@@ -26,6 +26,8 @@
     import MenuButton from "./menu_button.svelte";
     import { uiStore } from "$lib/uiStore";
     import Pill from "$lib/elements/pill.svelte";
+    import { faker } from "@faker-js/faker";
+    import WalletWidget from "./wallet_widget.svelte";
     $: ({ logout } = $web3Workspace);
     let mobileModal = false;
 </script>
@@ -36,7 +38,7 @@
         on:click={() => {
             mobileModal = true;
         }}
-        class="flex p-1.5 flex-nowrap items-center rounded-2xl ring-1 bg-gray-50 ring-gray-200 hover:bg-gray-200 hover:ring-gray-300 dark:bg-neutral-900 dark:ring-neutral-800 dark:text-neutral-300"
+        class="flex p-1.5 flex-nowrap items-center rounded-2xl ring-1 bg-gray-50 ring-gray-200 hover:bg-gray-200 hover:ring-gray-300 dark:bg-neutral-950 dark:ring-neutral-900 dark:text-neutral-300"
     >
         <div class="relative inline-block">
             <div class="w-7 h-7 rounded-xl overflow-hidden">
@@ -55,29 +57,106 @@
             <IconMenu2 size={16} />
         </div>
     </button>
-    <div>
-        <div class="w-7 h-7 rounded-xl overflow-hidden">
-            <img
-                src={generateProfileImage("$web3Store.solanaAddress")}
-                alt="profile"
-            />
+    <div class="flex flex-col p-1.5 gap-3">
+        <div class="flex justify-start items-start gap-3 hover:bg-neutral-800 rounded-xl p-1.5">
+            <div class="w-10 h-10 rounded-2xl overflow-hidden">
+                <img
+                    src={generateProfileImage("$web3Store.solanaAddress")}
+                    alt="profile"
+                />
+            </div>
+            <div>
+                <p class="text-sm">
+                    {faker.name.fullName()}
+                </p>
+                <span class="text-xs text-neutral-400">
+                    {faker.internet.userName()}
+                </span>
+            </div>
         </div>
+        <div class="w-full flex flex-nowrap items-center justify-items-stretch h-10">
+            <WalletWidget />
+        </div>
+        <button
+            on:click|stopPropagation|preventDefault={() => uiStore.setAuto()}
+            class="btn_primary w-52 m-1.5"
+        >
+            {`Fund account`}
+        </button>
     </div>
     <div
-        class="flex justify-between items-center border-b border-neutral-800 px-3 py-1.5 mb-1.5 uppercase text-neutral-500 tracking-wide text-xs"
+        class="flex justify-between items-center border-y border-neutral-800 px-3 py-1 my-1.5 text-neutral-300 text-xs bg-neutral-800/50"
+    >
+        <p>Account</p>
+    </div>
+    <button
+        on:click|stopPropagation|preventDefault={() => uiStore.setAuto()}
+        class="flex items-center gap-1.5 py-2 px-3 text-sm bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800"
+    >
+        {`Notifications`}
+    </button>
+    <button
+        on:click|stopPropagation|preventDefault={() => uiStore.setAuto()}
+        class="flex items-center gap-1.5 py-2 px-3 text-sm bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800"
+    >
+        {`Positions`}
+    </button>
+    <button
+        on:click|stopPropagation|preventDefault={() => uiStore.setAuto()}
+        class="flex items-center gap-1.5 py-2 px-3 text-sm bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800"
+    >
+        {`Limit orders`}
+    </button>
+    <button
+        on:click|stopPropagation|preventDefault={() => uiStore.setAuto()}
+        class="flex items-center gap-1.5 py-2 px-3 text-sm bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800"
+    >
+        {`Questions`}
+    </button>
+    <button
+        on:click|stopPropagation|preventDefault={() => uiStore.setAuto()}
+        class="flex items-center gap-1.5 py-2 px-3 text-sm bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800"
+    >
+        {`Drafts`}
+    </button>
+    <button
+        on:click|stopPropagation|preventDefault={() => uiStore.setAuto()}
+        class="flex items-center gap-1.5 py-2 px-3 text-sm bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800"
+    >
+        {`Wallet`}
+    </button>
+    <div
+        class="flex justify-between items-center border-y border-neutral-800 px-3 py-1 my-1.5 text-neutral-300 text-xs bg-neutral-800/50"
+    >
+        <p>Site</p>
+    </div>
+    <button
+        on:click|stopPropagation|preventDefault={() => uiStore.setAuto()}
+        class="flex items-center gap-1.5 py-2 px-3 text-sm bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800"
+    >
+        {`Leaderboard`}
+    </button>
+    <button
+        on:click|stopPropagation|preventDefault={() => uiStore.setAuto()}
+        class="flex items-center gap-1.5 py-2 px-3 text-sm bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800"
+    >
+        {`Learn`}
+    </button>
+    <button
+        on:click|stopPropagation|preventDefault={() => uiStore.setAuto()}
+        class="flex items-center gap-1.5 py-2 px-3 text-sm bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800"
+    >
+        {`Support / Discord`}
+    </button>
+    <div
+        class="flex justify-between items-center border-y border-neutral-800 px-3 py-1 my-1.5 text-neutral-300 text-xs bg-neutral-800/50"
     >
         <p>Theme</p>
-        <div
-            class="group/pill mb-1 flex flex-nowrap whitespace-nowrap items-center gap-1.5 px-1.5 text-[10px] rounded-lg font-medium text-neutral-700 bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-400"
-        >
+        <div class="text-neutral-700 dark:text-neutral-400">
             {#if $uiStore.theme === "light"}
-                <IconBrightness size={14} />
-                Light
+                <IconBrightness size={12} />
             {:else if $uiStore.theme === "dark"}
-                <IconMoon size={14} />
-                Dark
-            {:else}
-                Auto
+                <IconMoon size={12} />
             {/if}
         </div>
     </div>
@@ -102,9 +181,9 @@
         {`Use browser defaults`}
     </button>
     <div
-        class="flex justify-between items-center border-y border-neutral-800 px-3 py-1.5 my-1.5 uppercase text-neutral-500 tracking-wide text-xs"
+        class="flex justify-between items-center border-y border-neutral-800 px-3 py-1 my-1.5 text-neutral-300 text-xs bg-neutral-800/50"
     >
-        <p>Account</p>
+        <p>Auth</p>
     </div>
     <button
         on:click|stopPropagation|preventDefault={() => uiStore.setAuto()}

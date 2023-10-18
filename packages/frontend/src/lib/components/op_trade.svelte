@@ -39,16 +39,14 @@
         IconExternalLink,
         IconLivePhoto,
     } from "@tabler/icons-svelte";
-    import PmPosition from "./pm_position.svelte";
 
-    export let market: pmMarketFulldata;
-    export let direction: boolean;
-    export let onClose: () => void;
-    export let updateMarket: (market: pmMarketFulldata) => void;
+    export let market: marketFulldata;
+    export let updateMarket: (market: marketFulldata) => void;
 
-    let selectedToken: { token: pmTokenOrderdata; id: string } | undefined;
+    let selectedToken: { id: string } | undefined;
+    let direction: boolean = false;
 
-    async function selectToken(token: string) {
+    async function selectToken(token: "yes" | "no") {
         var content = document.getElementById("content");
         if (selectedToken && selectedToken.id === token) {
             selectedToken = undefined;
@@ -61,7 +59,6 @@
         } else {
             selectedToken = {
                 id: token,
-                token: market.orderdata.get(token) as pmTokenOrderdata,
             };
             if (content) {
                 await tick();
@@ -69,14 +66,6 @@
             }
         }
     }
-
-    $: tokens = market.data.tokens.reduce(
-        (acc: Record<string, pmTokenData>, val) => {
-            acc[val.token_id] = val;
-            return acc;
-        },
-        {}
-    );
 
     const step = 0.1 * USDC_PER_DOLLAR;
     const chance = 0.5;
@@ -178,26 +167,26 @@
         </div>
         <div class={`flex flex-col gap-4`}>
             <div class="flex gap-3 col-span-3">
-                {#each Array.from(Object.entries(market.data.tokens)) as token}
-                    <button
-                        on:click={() => selectToken(token[0])}
-                        class={`h-10 text-sm w-full rounded-xl font-semibold mt-auto ring-2 ${
-                            token[1].outcome === "Yes"
-                                ? `ring-emerald-400 ${
-                                      selectedToken?.id === token[0]
-                                          ? "bg-green-400 text-white"
-                                          : "text-green-400"
-                                  }`
-                                : `ring-red-500 ${
-                                      selectedToken?.id === token[0]
-                                          ? "bg-red-500 text-white"
-                                          : "text-red-500"
-                                  }`
-                        }`}
-                    >
-                        {token[1].outcome}
-                    </button>
-                {/each}
+                <button
+                    on:click={() => selectToken("yes")}
+                    class={`h-10 text-sm w-full rounded-xl font-semibold mt-auto ring-2 ring-emerald-600 ${
+                        selectedToken?.id === "yes"
+                            ? "bg-emerald-600 text-white"
+                            : "text-emerald-600"
+                    }`}
+                >
+                    {"Yes"}
+                </button>
+                <button
+                    on:click={() => selectToken("no")}
+                    class={`h-10 text-sm w-full rounded-xl font-semibold mt-auto ring-2 ring-red-600 ${
+                        selectedToken?.id === "no"
+                            ? "bg-red-600 text-white"
+                            : "text-red-600"
+                    }`}
+                >
+                    {"No"}
+                </button>
             </div>
             <div class="content" id="content">
                 {#if selectedToken}
@@ -380,18 +369,10 @@
         </div>
     </div>
     <div class="flex flex-col gap-2">
-        <h4 class="font-semibold text-neutral-300">
-            {`Limit orders`}
-        </h4>
-        <p class="text-neutral-300">
-            {"You have no active limit orders."}
-        </p>
-    </div>
-    <div class="flex flex-col gap-2">
         <h4 class="font-semibold text-neutral-300 my-1">
             {`Positions`}
         </h4>
-        {#each Array.from(market.orderdata.entries()).slice(0, 1) as token}
+        <!-- {#each Array.from(market.orderdata.entries()).slice(0, 1) as token}
             {#each token[1].positions.slice(0, 1) as position}
                 <PmPosition
                     {market}
@@ -400,6 +381,6 @@
                     token={tokens[token[0]]}
                 />
             {/each}
-        {/each}
+        {/each} -->
     </div>
 </div>

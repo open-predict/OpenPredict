@@ -23,8 +23,8 @@
 
     async function show() {
         showPopup = true;
-        if(strategy === "absolute"){
-            offset[0] = 500
+        if (strategy === "absolute") {
+            offset[0] = 500;
         }
     }
 
@@ -35,19 +35,17 @@
 
 {#if showPopup}
     <div
-        class="h-auto w-auto"
+        class="h-auto w-auto z-10"
         id="tooltip"
         role="tooltip"
         use:popperContent={{
             placement: "bottom-end",
-            strategy:"fixed",
-            modifiers: [
-                { name: "offset", options: { offset } }, 
-            ],
+            strategy: "fixed",
+            modifiers: [{ name: "offset", options: { offset } }],
         }}
     >
-    <div
-            class="flex flex-col py-1.5 z-10 bg-neutral-900 text-xs rounded-lg text-white shadow-2xl ring-1 ring-neutral-800"
+        <div
+            class="flex flex-col py-1.5 bg-neutral-900 text-xs rounded-lg text-white shadow-2xl ring-1 ring-neutral-800"
             on:mouseenter={() => (inPopup = true)}
             on:mouseleave={() => {
                 inPopup = false;

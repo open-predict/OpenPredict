@@ -13,7 +13,7 @@
 <div class="relative flex w-full min-h-full bg-gray-100 dark:bg-black">
     <!-- left column -->
     <header
-        class="sticky top-0 hidden md:block md:w-1/12 lg:w-3/12 xl:w-3/12 max-h-screen"
+        class="sticky top-0 hidden md:block md:w-1/12 lg:w-2/12 xl:w-3/12 max-h-screen"
     >
         <div class="ml-auto max-w-xs h-full">
             <!-- desktop navigation -->
@@ -74,14 +74,16 @@
 
     <!-- right column -->
     <div
-        class="hidden relative md:block md:w-5/12 lg:w-3/12 xl:w-4/12"
+        class="hidden relative md:block md:w-5/12 lg:w-4/12 xl:w-4/12"
     >
         <div class="h-full max-w-xs">
             <div
                 class="sticky top-0 w-full h-16 border-b border-gray-200 dark:border-neutral-900 backdrop-blur-2xl z-10"
             >
-                <div class="h-full w-full flex justify-end items-center gap-2.5 dark:bg-black/80">
-                    <WalletWidget />
+                <div class="h-full w-full flex justify-end items-center gap-2 dark:bg-black/80">
+                    <div class="flex flex-nowrap justify-evenly overflow-hidden w-48 items-center rounded-2xl ring-1 h-10 divide-x bg-white ring-neutral-200 dark:bg-neutral-950 dark:ring-neutral-900 divide-neutral-900">
+                        <WalletWidget />
+                    </div>
                     <UserButton />
                 </div>
             </div>

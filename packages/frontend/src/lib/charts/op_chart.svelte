@@ -1,7 +1,7 @@
 <script lang="ts">
     import type {
+        marketFulldata,
         marketPricePoint,
-        pmMarketFulldata,
         pmTokenData,
     } from "@am/backend/types/market";
     import {
@@ -24,48 +24,10 @@
     import { dateFormatter } from "$lib/utils";
     import type { pmTokenOrderdata } from "@am/backend/types/market";
     import colors from "tailwindcss/colors";
-    import { api } from "$lib/api";
-    import { PriceHistoryInterval } from "$lib/clob";
+    import { USDC_PER_DOLLAR } from "$lib/web3_utils";
 
-    export let market: pmMarketFulldata;
+    export let market: marketFulldata | undefined = undefined;
     export let term: PriceHistoryTerm = PriceHistoryTerm.ALL;
-
-    $: tokenPriceHistoryPromise = api.getPmPriceHistory
-        .query({
-            interval: PriceHistoryInterval.ONE_DAY,
-            token_id: market.data.condition_id,
-            start: new Date(Date.now() - 7 * (24 * 60 * 60 * 1000)),
-        })
-        .then((dp) => {
-            return Array.from(dp.entries())
-                .map((e, i) => {
-                    console.log("tokenMetadata", tokenMetadata)
-                    console.log(dp)
-                    return {
-                        id: i === 0 ? tokenMetadata[0].token_id : tokenMetadata[1].token_id,
-                        data: resamplePmPriceHistory(e[1], term),
-                    };
-                })
-                .reduce(
-                    (
-                        acc: Record<
-                            string,
-                            {
-                                id: string;
-                                data: {
-                                    date: Date;
-                                    price: number;
-                                }[];
-                            }
-                        >,
-                        val
-                    ) => {
-                        acc[val.id] = val;
-                        return acc;
-                    },
-                    {}
-                );
-        });
 
     const marginTop = 10;
     const marginRight = 60;
@@ -85,30 +47,43 @@
     const acceptableColors = ["indigo", "sky", "blue", "orange", "yellow"];
 
     $: workingWidth = width - inset - marginLeft - marginRight + 50;
-    $: tokens = tokenMetadata
-        ? tokenMetadata
-              .map((t, i) => ({
-                  ...t,
-                  color:
-                      t.outcome === "Yes"
-                          ? colors.green[400]
-                          : t.outcome === "No"
-                          ? colors.red[400]
-                          : Object.entries(colors).filter(([name, value]) =>
-                                acceptableColors.includes(name)
-                            )[i][1]["500"],
-              }))
-              .reduce(
-                  (
-                      acc: Record<string, pmTokenData & { color: string }>,
-                      val
-                  ) => {
-                      acc[val.token_id] = val;
-                      return acc;
-                  },
-                  {}
-              )
-        : undefined;
+
+    const tokens: Record<string, {"token_id": string, outcome: string, color: string}> = {
+        yes: {
+            token_id: "yes",
+            outcome: "Yes",
+            color: colors.green[400],
+        },
+        no: {
+            token_id: "no",
+            outcome: "No",
+            color: colors.red[400],
+        },
+    };
+
+    $: tokenData = market
+        ? market.data.PriceHistory.reduce(
+              (
+                  acc: Record<
+                      string,
+                      { id: string; data: { date: Date; price: number }[] }
+                  >,
+                  val
+              ) => {
+                    const chance = Number((Number(val.No)/USDC_PER_DOLLAR) / ((Number(val.Yes)/USDC_PER_DOLLAR) + (Number(val.No))/USDC_PER_DOLLAR))
+                  acc["yes"].data.push({
+                      date: val.At,
+                      price: Number((chance*100).toFixed(0)),
+                  });
+                  acc["no"].data.push({
+                      date: val.At,
+                      price: Number(((1 - chance)*100).toFixed(0))
+                  });
+                  return acc;
+              },
+              { yes: { id: "yes", data: [] }, no: { id: "no", data: [] } }
+          )
+        : { yes: { id: "yes", data: [] }, no: { id: "no", data: [] } };
 
     $: xScaledDotInfo = dotInfo ? xScale(aggPoints[dotInfo.i].x) : undefined;
 
@@ -139,9 +114,8 @@
         yTicks: number[],
         graphReady: boolean = false;
 
-    async function createGraph() {
+    function createGraph() {
         try {
-            const tokenData = await tokenDataPromise;
             if (!tokenData) return;
 
             lines = new Map();
@@ -151,10 +125,10 @@
 
             let xVals: Date[] = Object.values(tokenData)
                 .reduce((acc: Date[], val) => {
-                    return [...acc, ...val.data.map((e: any) => e.date)];
+                    return [...acc, ...val.data.map((e) => e.date)];
                 }, [])
                 .sort(
-                    (a: Date, b: Date) =>
+                    (a, b) =>
                         (a as unknown as number) - (b as unknown as number)
                 );
 
@@ -173,10 +147,10 @@
 
                 const _yVals = data.map((el) => el.price);
                 const _xVals = data.map((el) => el.date);
-                
+
                 const gaps = (d: any, i: any) =>
                     _xVals[i] instanceof Date && !isNaN(_yVals[i]);
-                    
+
                 const points = data.map((el) => ({
                     x: el.date,
                     y: el.price,
@@ -190,22 +164,22 @@
                     .y((i: any) => yScale(_yVals[i]));
 
                 const chartArea = area()
-                .defined((i: any) => cleanData[i])
-                .curve(curve)
-                .x((i: any) => xScale(_xVals[i]))
-                .y0(yScale(0))
-                .y1((i: any) => yScale(_yVals[i]));
+                    .defined((i: any) => cleanData[i])
+                    .curve(curve)
+                    .x((i: any) => xScale(_xVals[i]))
+                    .y0(yScale(0))
+                    .y1((i: any) => yScale(_yVals[i]));
 
                 const I: any[] = range(_xVals.length);
                 const newLine = chartLine(I);
                 const newArea = chartArea(I);
                 lines.set(id, { line: newLine, area: newArea });
-                
+
                 const pointsScaled: ArrayLike<any> = points.map((el) => [
                     xScale(el.x),
                     yScale(el.y),
                 ]);
-                
+
                 tokenPointsScaled.push(pointsScaled);
                 tokenPoints[id] = points;
 
@@ -245,7 +219,7 @@
         }
     }
 
-    $: width, tokenDataPromise, createGraph();
+    $: width, tokenData, createGraph();
 
     function handleFocusMouse(e: any, i: number, point: any) {
         const aggX = aggPoints[i].x;

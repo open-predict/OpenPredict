@@ -15,9 +15,11 @@
 	import type { pmMarketFulldata } from "@am/backend/types/market";
 	import MobileMenuButton from "$lib/elements/mobile_menu_button.svelte";
     import { PublicKey } from "@solana/web3.js";
+    import type { MarketSearchResult } from "@am/backend/server/routers/_app";
 
 	export let data;
-	$: markets = superjson.deserialize<TPageData>(data);
+	$: pageData = superjson.deserialize<TPageData>(data)
+	$: ({markets} = pageData);
 
 	function updateMarket(
 		id: string,
@@ -27,25 +29,33 @@
 		// markets = markets;
 	}
 
+	type TSnapshot = {
+		data: TPageData,
+		scrollPosition: number,
+	}
 	export const snapshot = {
 		capture: () => {
-			return {
-				marketsInView: markets,
+			const _snapshot: TSnapshot = {
+				data: pageData,
 				scrollPosition: window.document.body.scrollTop,
-			};
+			}
+			return superjson.stringify(_snapshot);
 		},
 		restore: async (value) => {
-			if (value.marketsInView && value.scrollPosition) {
-				const existingIds = (value.marketsInView as TPageData).map(
-					(m) => m.opMarket ? new PublicKey(m.opMarket.data.data.AmmAddress).toBase58() : m.pmMarket ? m.pmMarket.data.condition_id : null
-				).filter(m => m !== null);
-				markets = [
-					...value.marketsInView,
-					...markets.filter((m) => !existingIds.includes(m.opMarket ? new PublicKey(m.opMarket.data.data.AmmAddress).toBase58() : m.pmMarket ? m.pmMarket.data.condition_id : null)),
-				];
-				await tick();
-				window.document.body.scrollTo({ top: value.scrollPosition });
-			}
+			return;
+			if(!value) return;
+			const parsedData = superjson.deserialize<TSnapshot>(value);
+			// if (parsedData.data && parsedData.scrollPosition) {
+			// 	const existingIds = (parsedData.data as TPageData).map(
+			// 		(m) => m.opMarket ? new PublicKey(m.opMarket.data.data.AmmAddress).toBase58() : m.pmMarket ? m.pmMarket.data.condition_id : null
+			// 	).filter(m => m !== null);
+			// 	markets = [
+			// 		...value.marketsInView,
+			// 		...(markets ?? []).filter((m) => !existingIds.includes(m.opMarket ? new PublicKey(m.opMarket.data.data.AmmAddress).toBase58() : m.pmMarket ? m.pmMarket.data.condition_id : null)),
+			// 	];
+			// 	await tick();
+			// 	window.document.body.scrollTo({ top: value.scrollPosition });
+			// }
 		},
 	};
 
@@ -61,8 +71,9 @@
 			});
 			const bottomObserver = new IntersectionObserver(async (entries) => {
 				if (entries[entries.length - 1].isIntersecting) {
-					const relatedMarkets = await api.getRelatedMarkets();
-					markets = [...markets, ...relatedMarkets];
+					console.log("Implement infinite scroll")
+					// const relatedMarkets = await api.getRelatedMarkets
+					// markets = [...(markets ?? []), ...relatedMarkets];
 				}
 			});
 			topObserver.observe(topIndicator);

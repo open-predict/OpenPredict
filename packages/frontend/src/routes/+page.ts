@@ -1,27 +1,33 @@
-import { searchMarkets } from '$lib/api';
+import { api } from '$lib/api';
 import { superjson } from '$lib/superjson';
 import type { MarketSearchResult } from '@am/backend/server/routers/_app';
+import type { pmUserMap } from '@am/backend/types/market';
+import type { TUser } from '@am/backend/types/user';
 
-export type TPageData = MarketSearchResult[]
+export type TPageData = {
+  error?: any,
+  markets?: MarketSearchResult[];
+  opUsers?: Map<string, TUser | null>;
+  pmMarketUsers?: pmUserMap;
+}
+
 export const ssr = true;
 
 export async function load() {
+  const data: TPageData = await api.searchMarkets.query({
+    term: "",
+    limit: 10,
+    skip: 0
+  }).catch((e: any) => {
+    console.error(e);
+    return {
+      error: e
+    }
+  })
 
-  // const trpc = browser
-  //   ? (await import("$lib/trpc.js")).trpcc
-  //   : (await import("$lib/btrpc.js")).btrpc;
+  if (data.markets) {
+    data.markets.sort((a, b) => Number(b.numNativeLikes - a.numNativeLikes))
+  }
 
-  // try {
-  //   data.searchResponse = (await trpc.searchMarkets.query({
-  //     term: "",
-  //     limit: 10,
-  //   }))
-  // } catch (err) {
-  //   console.log("Couldn't search markets: ", err)
-  // }
-
-  const response = await searchMarkets();
-  const data: TPageData = response;
-  data.sort((a, b) => Number(b.numNativeLikes - a.numNativeLikes))
   return superjson.serialize(data);
 }

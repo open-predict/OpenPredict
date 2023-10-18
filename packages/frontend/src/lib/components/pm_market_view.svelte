@@ -1,11 +1,21 @@
 <script lang="ts">
-    import { IconArrowsExchange2 as IconExchange , IconVocabulary as IconOrderbook, IconChartLine as IconChart,IconDroplet as IconLiquidity, IconUser, IconCalendar as IconCal } from "@tabler/icons-svelte"
+    import {
+        IconArrowsExchange2 as IconExchange,
+        IconVocabulary as IconOrderbook,
+        IconChartLine as IconChart,
+        IconDroplet as IconLiquidity,
+        IconUser,
+        IconCalendar as IconCal,
+    } from "@tabler/icons-svelte";
     import Pill from "$lib/elements/pill.svelte";
     import PolymarketLogo from "$lib/elements/polymarket_logo.svelte";
     import SubsidyPill from "$lib/elements/subsidy_pill.svelte";
     import VolumePill from "$lib/elements/volume_pill.svelte";
     import type { marketFulldata, pmTokenData } from "@am/backend/types/market";
-    import type { pmMarketFulldata, pmTokenOrderdata } from "@am/backend/types/market";
+    import type {
+        pmMarketFulldata,
+        pmTokenOrderdata,
+    } from "@am/backend/types/market";
     import TokenChart from "$lib/charts/token_chart.svelte";
     import Orderbook from "./orderbook.svelte";
     import FilledOrders from "./filled_orders.svelte";
@@ -13,6 +23,7 @@
     import { usdFormatter } from "$lib/utils";
     import UserPill from "./user_pill.svelte";
     import PmTrade from "./pm_trade.svelte";
+    import TradersPill from "$lib/elements/traders_pill.svelte";
     export let market: pmMarketFulldata;
     export let updateMarket: (
         market?: marketFulldata | pmMarketFulldata
@@ -59,16 +70,7 @@
                     <IconLiquidity size={14} class="text-indigo-500" />
                     {`$298`}
                 </Pill>
-                <Pill>
-                    <IconUser size={14} class="text-sky-500" />
-                    {`${Array.from(market.orderdata.values()).reduce(
-                        (acc, val) => {
-                            acc += val.positions.length;
-                            return acc;
-                        },
-                        0
-                    )}`}
-                </Pill>
+                <TradersPill pmMarket={market} />
                 <Pill>
                     <IconCal size={14} class="text-red-500" />
                     {`${new Date(market.data.end_date_iso).toLocaleDateString(
@@ -84,22 +86,23 @@
             </div>
         </div>
     </div>
-    <div
-        class="relative bg-neutral-950/90 rounded-lg min-h-[300px] max-h-[400px] h-[300px] overflow-y-scroll scrollbar_hide"
-    >
-        {#if selectedView === "chart"}
-            <TokenChart
-                pmTokenOrderdata={market.orderdata}
-                tokenMetadata={market.data.tokens}
-            />
-        {:else if selectedView === "orderbook"}
-            <Orderbook {market} {updateMarket} />
-        {:else}
-            <FilledOrders {market} {updateMarket} />
-        {/if}
+    <div class="flex flex-col bg-neutral-950 rounded-xl overflow-hidden">
         <div
-            class="h-10 sticky bottom-0 border-t border-neutral-900 bg-neutral-950"
+            class="bg-neutral-950/90 min-h-[300px] max-h-[400px] h-[300px] overflow-y-scroll scrollbar_hide"
         >
+            {#if selectedView === "chart"}
+                <TokenChart
+                    {market}
+                    tokenMetadata={market.data.tokens}
+                />
+                <div />
+            {:else if selectedView === "orderbook"}
+                <Orderbook {market} {updateMarket} />
+            {:else}
+                <FilledOrders {market} {updateMarket} />
+            {/if}
+        </div>
+        <div class="w-full h-10 border-t border-neutral-900">
             <div
                 class="w-full flex items-center justify-between h-full bg-neutral-900/40 font-semibold text-xs divide-x divide-neutral-800"
             >

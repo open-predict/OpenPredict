@@ -1,19 +1,19 @@
-import {z} from 'zod';
-import {procedure, router} from '../trpc.js';
-import {commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getPmMarket, getPmPriceHistorySchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata, pmMarketFulldata, pmUserMap} from '../../types/market.js';
-import {checkoutWithChangenowSchemaV0, makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0} from '../../types/user.js';
-import {getHelia, getMarketFulldata, marketByAddress, searchMarkets} from '../../amclient/index.js';
-import * as nodeCache from "node-cache"
-import {createHash, randomBytes} from "crypto"
-import * as web3 from "@solana/web3.js"
-import * as cookie from "cookie"
-import * as ed25519 from "@noble/ed25519"
-import * as multiformats from "multiformats"
-import * as spl from "@solana/spl-token"
+import { z } from 'zod';
+import { procedure, router } from '../trpc.js';
+import { commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getPmMarket, getPmPriceHistorySchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata, pmMarketFulldata, pmUserMap } from '../../types/market.js';
+import { checkoutWithChangenowSchemaV0, makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0 } from '../../types/user.js';
+import { getHelia, getMarketFulldata, marketByAddress, searchMarkets } from '../../amclient/index.js';
+import * as nodeCache from "node-cache";
+import { createHash, randomBytes } from "crypto";
+import * as web3 from "@solana/web3.js";
+import * as cookie from "cookie";
+import * as ed25519 from "@noble/ed25519";
+import * as multiformats from "multiformats";
+import * as spl from "@solana/spl-token";
 import base58 from 'bs58';
 import SuperJSON from 'superjson';
-import fetch from "node-fetch"
-import {ClobClient, Chain} from '@polymarket/clob-client';
+import fetch from "node-fetch";
+import { ClobClient, Chain, MarketPrice } from '@polymarket/clob-client';
 
 declare global {
   var loginChallengeCache: nodeCache
@@ -69,7 +69,7 @@ async function getUserId(opts: any) {
   }
 }
 
-type CreateAccountResult = {
+export type CreateAccountResult = {
   error?: Error;
   address?: web3.PublicKey;
   mint?: web3.PublicKey;
@@ -181,6 +181,7 @@ export const appRouter = router({
   ).query(async (opts) => {
     return {
       market: {},
+      users: new Map(),
       comments: [],
       likes: [],
     }
@@ -412,10 +413,13 @@ export const appRouter = router({
   getPmPriceHistory: procedure.input(
     getPmPriceHistorySchemaV0,
   ).query(async (opts) => {
-    return await pmclient.getPricesHistory({
+    const pmPh = new Map<string, MarketPrice[]>()
+    const res = await pmclient.getPricesHistory({
       interval: opts.input.interval,
-      market: opts.input.market,
-    })
+      market: opts.input.condition_id,
+    });
+    pmPh.set("", res);
+    return pmPh;
   }),
 
   getMarketAccounts: procedure.input(
@@ -744,10 +748,10 @@ export const appRouter = router({
       }
     } else {
       return {
-        resp: {
           market: resp[0],
-          users: resp[1],
-        }
+          users: new Map<string, TUser>(),
+          comments: [],
+          likes: [] 
       }
     }
   }),

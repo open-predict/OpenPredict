@@ -14,6 +14,8 @@ export const getPmPriceHistorySchemaV0 = z.object({
     PriceHistoryInterval.ONE_WEEK,
     PriceHistoryInterval.MAX,
   ]),
+  start: z.date(),
+  end: z.date().optional(),
   condition_id: z.string(),
 })
 
@@ -104,7 +106,6 @@ export type pmTokenOrderdata = {
 
   positions: pmTokenPosition[],
 
-  priceHistory: pmTokenPriceHistoryPoint[]
 }
 
 export type pmTokenOrderBook = {

@@ -13,7 +13,7 @@
   // import { trpcc } from "$lib/trpc";
   import { onMount } from "svelte";
   import { PublicKey } from "@solana/web3.js";
-    import { getMarketAccounts } from "$lib/api";
+    import { api } from "$lib/api";
 
   let loading = false;
 
@@ -28,7 +28,7 @@
     // const positions = await trpcc.getMarketAccounts.query({
     //   userId: $web3Store.solanaAddress,
     // });
-    const positions = await getMarketAccounts($web3Store.solanaAddress);
+    const positions = await api.getMarketAccounts.query({userId: $web3Store.solanaAddress})
     // positions.forEach((p) => {
     //   const us = getUserShares(
     //     p.market.data,
