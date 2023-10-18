@@ -1,10 +1,10 @@
 <script lang="ts">
-    import IconSubsidy from "@tabler/icons-svelte/dist/svelte/icons/IconMoneybag.svelte";
     import type { marketFulldata } from "@am/backend/types/market";
     import Pill from "$lib/elements/pill.svelte";
     import { usdFormatter } from "$lib/utils";
     import { USDC_PER_DOLLAR } from "$lib/web3_utils"
     import type { pmMarketFulldata } from "@am/backend/types/market";
+    import { IconMoneybag } from "@tabler/icons-svelte";
 
     export let opMarket: marketFulldata | undefined = undefined;
     export let pmMarket: pmMarketFulldata | undefined = undefined;
@@ -27,7 +27,7 @@
 
 {#if subsidyDisplay}
     <Pill>
-        <IconSubsidy size={14} class="text-yellow-300" />
+        <IconMoneybag size={14} class="text-yellow-300" />
         <span>
             {`${subsidyDisplay}`}
         </span>

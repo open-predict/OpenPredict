@@ -1,14 +1,9 @@
 <script lang="ts">
     import { browser } from "$app/environment";
-    import IconCards from "@tabler/icons-svelte/dist/svelte/icons/IconCards.svelte";
-    import IconUser from "@tabler/icons-svelte/dist/svelte/icons/IconUser.svelte";
-    import IconPlus from "@tabler/icons-svelte/dist/svelte/icons/IconPlus.svelte";
-    import IconWallet from "@tabler/icons-svelte/dist/svelte/icons/IconWallet.svelte";
-    import IconPencil from "@tabler/icons-svelte/dist/svelte/icons/IconEditCircle.svelte";
+    import { IconActivity, IconCards, IconPlus, IconSearch, IconUser } from "@tabler/icons-svelte";
     import { goto } from "$app/navigation";
     import { draftsStore } from "$lib/marketDraftStore";
     import NavItem from "$lib/elements/nav_item.svelte";
-    import { IconActivity, IconNotification, IconSearch } from "@tabler/icons-svelte";
 
     $: creatingMarket = browser
         ? window.location.href.includes("/drafts/")

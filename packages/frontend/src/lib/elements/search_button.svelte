@@ -1,6 +1,6 @@
 <script lang="ts">
-	import IconSearch from "@tabler/icons-svelte/dist/svelte/icons/IconSearch.svelte";
     import { Modal, modalStore } from "$lib/modals/modalStore";
+    import { IconSearch } from "@tabler/icons-svelte";
 </script>
 
 <button

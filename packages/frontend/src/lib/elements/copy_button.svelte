@@ -1,6 +1,6 @@
 <script lang="ts">
-    import IconCopy from "@tabler/icons-svelte/dist/svelte/icons/IconCopy.svelte";
-    import IconCheck from "@tabler/icons-svelte/dist/svelte/icons/IconCheck.svelte";
+    import { IconCheck, IconCopy } from "@tabler/icons-svelte";
+
     export let value: string;
     let copied = false;
     function copy() {

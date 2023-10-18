@@ -1,6 +1,5 @@
 <script lang="ts">
     import ColumnLayout from "$lib/components/column_layout.svelte";
-    import IconLink from "@tabler/icons-svelte/dist/svelte/icons/IconLink.svelte";
     import { web3Workspace } from "$lib/web3Workspace";
     import { web3Store } from "$lib/web3Store";
     import { PublicKey } from "@solana/web3.js";

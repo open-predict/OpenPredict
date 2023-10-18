@@ -178,7 +178,7 @@ async function validateInstructions(transaction: web3.Transaction, feePayer: web
 export const appRouter = router({
   getPmMarket: procedure.input(
     getPmMarket,
-  ).query(async (opts) => {
+  ).query(async (_) => {
     return {
       market: {},
       users: new Map(),
@@ -413,13 +413,10 @@ export const appRouter = router({
   getPmPriceHistory: procedure.input(
     getPmPriceHistorySchemaV0,
   ).query(async (opts) => {
-    const pmPh = new Map<string, MarketPrice[]>()
-    const res = await pmclient.getPricesHistory({
+    return await pmclient.getPricesHistory({
       interval: opts.input.interval,
-      market: opts.input.condition_id,
-    });
-    pmPh.set("", res);
-    return pmPh;
+      market: opts.input.asset_id,
+    })
   }),
 
   getMarketAccounts: procedure.input(

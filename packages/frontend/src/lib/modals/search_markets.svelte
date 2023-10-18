@@ -1,14 +1,12 @@
 <script lang="ts">
     import { Dialog, DialogOverlay } from "@rgossiaux/svelte-headlessui";
-    import IconSearch from "@tabler/icons-svelte/dist/svelte/icons/IconSearch.svelte";
-    import IconArrowRight from "@tabler/icons-svelte/dist/svelte/icons/IconArrowRight.svelte";
-    import IconPackageOff from "@tabler/icons-svelte/dist/svelte/icons/IconPackageOff.svelte";
     import { Modal, modalStore } from "$lib/modals/modalStore";
     import { Spinner } from "flowbite-svelte";
     // import { trpcc } from "$lib/trpc";
     import { goto } from "$app/navigation";
     import { draftsStore } from "$lib/marketDraftStore";
     import debounce from "lodash/debounce.js";
+    import { IconArrowRight, IconSearch } from "@tabler/icons-svelte";
 
     let searchTerm = "";
     let debouncedSearchTerm = "";

@@ -1,7 +1,5 @@
 <script lang="ts">
     import ColumnLayout from "$lib/components/column_layout.svelte";
-    import IconTrash from "@tabler/icons-svelte/dist/svelte/icons/IconTrash.svelte";
-    import IconX from "@tabler/icons-svelte/dist/svelte/icons/IconX.svelte";
     import { draftsStore } from "$lib/marketDraftStore.js";
     import { onMount } from "svelte";
     import {
@@ -16,23 +14,19 @@
     } from "@rgossiaux/svelte-headlessui";
     import { web3Store } from "$lib/web3Store.js";
     import { goto } from "$app/navigation";
-    import IconPlus from "@tabler/icons-svelte/dist/svelte/icons/IconPlus.svelte";
-    import IconMinus from "@tabler/icons-svelte/dist/svelte/icons/IconMinus.svelte";
-    import IconLoader from "@tabler/icons-svelte/dist/svelte/icons/IconLoader2.svelte";
-    import {
-        USDC_PER_DOLLAR,
-        TxStatus,
-        autoresizeTextarea,
-        usdFormatter,
-        initMarketInstruction,
-    } from "$lib/utils.js";
+    import { autoresizeTextarea, usdFormatter } from "$lib/utils.js";
     import debounce from "lodash/debounce.js";
     import { Modal, modalStore } from "$lib/modals/modalStore.js";
     import base58 from "bs58";
-    // import { trpcc } from "../../../lib/trpc.js";
     import { web3Workspace } from "$lib/web3Workspace.js";
     import LoadingOverlay from "$lib/components/loading_overlay.svelte";
     import MainHeader from "$lib/components/header.svelte";
+    import {
+        IconMinus,
+        IconPlus,
+        IconTrash,
+        IconX,
+    } from "@tabler/icons-svelte";
 
     export let data;
 
@@ -310,7 +304,10 @@
                         {`Create market`}
                     </button>
                     <p class="text-sm text-gray-500">
-                        {`You have ${usdFormatter.format(Number($web3Store?.solanaUsdcBalance ?? 0n)/1000000)}`}
+                        {`You have ${usdFormatter.format(
+                            Number($web3Store?.solanaUsdcBalance ?? 0n) /
+                                1000000
+                        )}`}
                     </p>
                 </div>
             </div>

@@ -1,11 +1,9 @@
 <script lang="ts">
     import ColumnLayout from "$lib/components/column_layout.svelte";
     import { draftsStore } from "$lib/marketDraftStore";
-    import IconPlus from "@tabler/icons-svelte/dist/svelte/icons/IconPlus.svelte";
-    import { usdFormatter } from "$lib/utils";
-    import { PublicKey } from "@solana/web3.js";
     import { goto } from "$app/navigation";
     import MainHeader from "$lib/components/header.svelte";
+    import { IconPlus } from "@tabler/icons-svelte";
 </script>
 
 <ColumnLayout>

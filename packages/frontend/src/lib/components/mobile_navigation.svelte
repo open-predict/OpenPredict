@@ -1,12 +1,8 @@
 <script>
-    import IconCards from "@tabler/icons-svelte/dist/svelte/icons/IconCards.svelte";
-    import IconUser from "@tabler/icons-svelte/dist/svelte/icons/IconUserCircle.svelte";
-    import IconPlus from "@tabler/icons-svelte/dist/svelte/icons/IconPlus.svelte";
-    import IconWallet from "@tabler/icons-svelte/dist/svelte/icons/IconWallet.svelte";
-    import IconSearch from "@tabler/icons-svelte/dist/svelte/icons/IconSearch.svelte";
     import { goto } from "$app/navigation";
     import { draftsStore } from "$lib/marketDraftStore";
     import { Modal, modalStore } from "$lib/modals/modalStore";
+    import { IconCards, IconPlus, IconSearch, IconUserCircle, IconWallet } from "@tabler/icons-svelte";
 </script>
 
 <nav
@@ -45,7 +41,7 @@
         href="/profile"
         class="h-full pt-2 rounded-full flex flex-col justify-center items-center text-gray-500"
     >
-        <IconUser />
+        <IconUserCircle />
         <span class="text-[0.7rem] mt-1"> Profile </span>
     </a>
 </nav>

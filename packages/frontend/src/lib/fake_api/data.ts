@@ -88,11 +88,6 @@ export const pmTokenPricePoints: MarketPrice[] = Array.from(PriceHistory.entries
     p: faker.datatype.number({ min: 0.99, max: 49.99, precision: 2 })
 }))
 
-export const pmMarketPricePoints: Map<string, MarketPrice[]> = pmMarketTokens.reduce((acc, val) => {
-    acc.set(val.token_id, val.outcome === "No" ? pmTokenPricePoints : pmTokenPricePoints.map(e => ({ ...e, p: 50 - e.p })))
-    return acc;
-}, new Map<string, MarketPrice[]>)
-
 let lastSlot = 1;
 let lastTradeDate = new Date(Date.now() - (14 * 24 * 60 * 60 * 1000));
 

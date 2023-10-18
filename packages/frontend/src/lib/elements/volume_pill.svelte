@@ -1,10 +1,10 @@
 <script lang="ts">
-    import IconExchange from "@tabler/icons-svelte/dist/svelte/icons/IconArrowsExchange2.svelte";
     import type { marketFulldata } from "@am/backend/types/market";
     import Pill from "$lib/elements/pill.svelte";
     import { usdFormatter } from "$lib/utils";
     import { USDC_PER_DOLLAR } from "$lib/web3_utils";
     import type { pmMarketFulldata } from "@am/backend/types/market";
+    import { IconExchange } from "@tabler/icons-svelte";
 
     export let opMarket: marketFulldata | undefined = undefined;
     export let pmMarket: pmMarketFulldata | undefined = undefined;

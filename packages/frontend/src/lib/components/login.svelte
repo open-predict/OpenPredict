@@ -1,8 +1,8 @@
 <script lang="ts">
     import { Modal, modalStore } from "$lib/modals/modalStore";
-    import IconLoader from "@tabler/icons-svelte/dist/svelte/icons/IconLoader2.svelte";
     import { web3Workspace } from "$lib/web3Workspace";
     import { web3Store } from "$lib/web3Store";
+    import { IconLoader } from "@tabler/icons-svelte";
 
     let loading = false;
     let email = "";

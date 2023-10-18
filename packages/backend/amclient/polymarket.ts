@@ -16,7 +16,7 @@ class PmChainCache {
     profileImage: string,
   }> = new Map()
 
-  filledOrders: Map<string, pmTokenFilledOrder[]> = new Map()
+  filledOrders: Map<string, Map<string, pmTokenFilledOrder>> = new Map()
 
   positions: Map<string, Map<string, {
     position: number, //Dollars
@@ -27,8 +27,6 @@ class PmChainCache {
     bids: [number, number][],
   } | null> = new Map()
 
-  ws = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`)
-  wsActive = false
 
   private pushClientRequest<T>(x: Promise<T>, y: (v: T) => Promise<void>): void {
     this.clientRequestNeck.push([x, y])
@@ -55,48 +53,127 @@ class PmChainCache {
     }
   }
 
+  marketWsActive = false
+  marketWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`)
+  liveActivityWsActive = false
+  liveActivityWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/live-activity`)
+
+  private processActivityNotification(trade: any) {
+    if (trade != null && trade['event_type'] === "TRADE") {
+      var market = trade['market'];
+      var user = trade['user'];
+      var side = trade['side'];
+      var size = trade['size'];
+      var price = trade['price'];
+      var timestamp_str = trade['timestamp'];
+      var asset_id = market['asset_id'];
+      var txhash = market['transaction_hash'];
+      if (
+        market != null &&
+        user != null &&
+        side != null &&
+        size != null &&
+        price != null &&
+        timestamp_str != null &&
+        asset_id != null &&
+        txhash != null
+      ) {
+        var fulltrade: pmTokenFilledOrder = {
+          maker: user['proxyAddress'],
+          price: Number(price),
+          size: Number(size),
+          side: side,
+          ts: Number(timestamp_str),
+          taker: undefined,
+        }
+        this.users.set(user['proxyAddress'], {
+          name: user['name'],
+          profileImage: user['profileImage'],
+        })
+        if (this.filledOrders.has(asset_id)) {
+          var m = this.filledOrders.get(asset_id)!
+          m.set(txhash, fulltrade)
+        } else {
+          this.filledOrders.set(asset_id, new Map([txhash, fulltrade]))
+        }
+      }
+    }
+  }
+
   private startWs() {
-    this.ws.on("open", () => {
-      this.wsActive = true
-      const asset_ids = [...(new Set([
-        ...[...this.marketData.values()].reduce(
-          (p, v) => [...p, ...v.tokens.map(v => v.token_id)], <string[]>[]
-        ),
-      ])).values()]
-      this.ws.send(JSON.stringify({
-        auth: {},
-        type: "market",
-        markets: [] as string[],
-        assets_ids: asset_ids,
-      }))
-      setInterval(() => {
-        this.ws.send("PING")
-      }, 5000)
-      this.ws.onmessage = (msg: any) => {
-        var resp: any
-        try {
-          resp = JSON.parse(msg.data)
-        } catch {
-          return;
-        }
-        console.log("PM update: ", resp);
-        if (resp['event_type'] == 'book' && resp['asset_id'] != null && resp['asks'] != null && resp['bids'] != null) {
-          this.orderBooks.set(resp['asset_id'], {
-            asks: resp['asks'].map((v: {price: string, size: string}) => [new Number(v.price), new Number(v.size)]),
-            bids: resp['bids'].map((v: {price: string, size: string}) => [new Number(v.price), new Number(v.size)]),
-          })
-        }
-      };
-    })
-    this.ws.on("error", (err) => {
-      this.wsActive = false
-      console.log("ws err, reconnecting: ", err)
-      this.startWs()
-    })
+    const liveActivityWs = () => {
+      this.liveActivityWs.on("open", () => {
+        this.liveActivityWsActive = true
+        this.liveActivityWs.onmessage = (msg: any) => {
+          var resp: any
+          try {
+            resp = JSON.parse(msg.data)
+          } catch {
+            return;
+          }
+          console.log("LiveActivity update: ", resp);
+          if (resp instanceof Array) {
+            for (var i = 0; i < resp.length; i++) {
+              this.processActivityNotification(resp[i])
+            }
+          } else {
+            this.processActivityNotification(resp)
+          }
+        };
+      })
+      this.liveActivityWs.on("error", (err) => {
+        this.liveActivityWsActive = false
+        console.log("ws err, reconnecting: ", err)
+        liveActivityWs()
+      })
+    }
+    const startMarketWs = () => {
+      this.marketWs.on("open", () => {
+        this.marketWsActive = true
+        const asset_ids = [...(new Set([
+          ...[...this.marketData.values()].reduce(
+            (p, v) => [...p, ...v.tokens.map(v => v.token_id)], <string[]>[]
+          ),
+        ])).values()]
+        this.marketWs.send(JSON.stringify({
+          auth: {},
+          type: "market",
+          markets: [] as string[],
+          assets_ids: asset_ids,
+        }))
+        this.marketWs.onmessage = (msg: any) => {
+          var resp: any
+          try {
+            resp = JSON.parse(msg.data)
+          } catch {
+            return;
+          }
+          console.log("PM update: ", resp);
+          if (resp['event_type'] == 'book' && resp['asset_id'] != null && resp['asks'] != null && resp['bids'] != null) {
+            this.orderBooks.set(resp['asset_id'], {
+              asks: resp['asks'].map((v: {price: string, size: string}) => [new Number(v.price), new Number(v.size)]),
+              bids: resp['bids'].map((v: {price: string, size: string}) => [new Number(v.price), new Number(v.size)]),
+            })
+          }
+        };
+      })
+      this.marketWs.on("error", (err) => {
+        this.marketWsActive = false
+        console.log("ws err, reconnecting: ", err)
+        startMarketWs()
+      })
+    }
+    startMarketWs()
+    liveActivityWs()
   }
 
   constructor() {
     this.startWs()
+    setInterval(() => {
+      if (this.marketWsActive) {
+        this.marketWs.send("PING")
+      }
+    }, 5000)
   }
 
   public setMarketData(data: pmMarketData[]) {
@@ -133,7 +210,6 @@ class PmChainCache {
                 this.positions.set(token, new Map(holders.map((v: any) => [v.proxyWallet, {
                   position: v.amount,
                 }])))
-                console.log("Positions: ", this.positions.get(token))
               }
             }
           }
@@ -145,35 +221,7 @@ class PmChainCache {
           if (trades instanceof Array) {
             for (var i = 0; i < trades.length; i++) {
               var trade: any = trades[i];
-              if (trade != null && trade['event_type'] === "TRADE") {
-                var market = trade['market'];
-                var user = trade['user'];
-                var side = trade['side'];
-                var size = trade['size'];
-                var price = trade['price'];
-                var timestamp_str = trade['timestamp'];
-                var asset_id = market['asset_id'];
-                console.log(trade)
-                if (market != null && user != null && side != null && size != null && price != null && timestamp_str != null && asset_id != null) {
-                  var fulltrade: pmTokenFilledOrder = {
-                    maker: user['proxyAddress'],
-                    price: Number(price),
-                    size: Number(size),
-                    side: side,
-                    ts: Number(timestamp_str),
-                    taker: undefined,
-                  }
-                  this.users.set(user['proxyAddress'], {
-                    name: user['name'],
-                    profileImage: user['profileImage'],
-                  })
-                  if (this.filledOrders.has(asset_id)) {
-                    this.filledOrders.set(asset_id, [...this.filledOrders.get(asset_id)!, fulltrade])
-                  } else {
-                    this.filledOrders.set(asset_id, [fulltrade])
-                  }
-                }
-              }
+              this.processActivityNotification(trade)
             }
           }
         }).catch(err => {
@@ -184,9 +232,8 @@ class PmChainCache {
 
     tradableTokens = [...(new Set(tradableTokens))]
     if (tradableTokens.length > 0) {
-      console.log("New tokens: ", tradableTokens)
-      if (this.wsActive) {
-        this.ws.send(JSON.stringify({
+      if (this.marketWsActive) {
+        this.marketWs.send(JSON.stringify({
           auth: {},
           type: "market",
           markets: [] as string[],
@@ -203,7 +250,6 @@ class PmChainCache {
               asks: sum.asks.map(v => [Number(v.price), Number(v.size)]),
               bids: sum.bids.map(v => [Number(v.price), Number(v.size)]),
             })
-            console.log("order book for ", t, ":", this.orderBooks.get(t));
           }
         })
       }
@@ -270,13 +316,13 @@ class PmChainCache {
             var _filledOrders: any[] = []
             if (this.filledOrders.has(t)) {
               var __filledOrders = this.filledOrders.get(t)!;
-              __filledOrders.forEach(v => {
+              [...__filledOrders.values()].forEach(v => {
                 if (v.taker != null) {
                   addUser(v.taker);
                 }
                 addUser(v.maker);
               })
-              _filledOrders = __filledOrders;
+              _filledOrders = [...__filledOrders.values()];
             }
 
             var _positions: any[] = []

@@ -13,7 +13,7 @@ superjson.registerCustom<Buffer, number[]>(
   "buffer"
 );
 
-export const btrpc = createTRPCProxyClient<AppRouter>({
+export const trpc = createTRPCProxyClient<AppRouter>({
   // transformer,
   transformer: superjson,
   links: [

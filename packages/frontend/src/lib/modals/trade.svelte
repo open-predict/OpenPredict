@@ -9,9 +9,6 @@
     marketFulldata,
   } from "@am/backend/types/market";
   import { PublicKey } from "@solana/web3.js";
-  import IconPlus from "@tabler/icons-svelte/dist/svelte/icons/IconPlus.svelte";
-  import IconMinus from "@tabler/icons-svelte/dist/svelte/icons/IconMinus.svelte";
-  import IconSwitch from "@tabler/icons-svelte/dist/svelte/icons/IconSwitchVertical.svelte";
   import { onMount } from "svelte";
   import { USDC_PER_DOLLAR } from "$lib/web3_utils";
   import { browser } from "$app/environment";
@@ -30,6 +27,7 @@
   import confetti from "canvas-confetti";
   import { web3Store } from "$lib/web3Store";
   import LoadingOverlay from "$lib/components/loading_overlay.svelte";
+    import { IconMinus, IconPlus, IconSwitchVertical } from "@tabler/icons-svelte";
 
   export let market: marketFulldata;
   export let direction: boolean;
@@ -244,7 +242,7 @@
       on:click={() => (direction = !direction)}
       class="rounded-full bg-gray-50 ring-1 ring-gray-200 hover:bg-gray-200 p-1"
     >
-      <IconSwitch size={15} />
+      <IconSwitchVertical size={15} />
     </button>
   </div>
   <div class="w-full flex justify-center items-center gap-2 pt-12">

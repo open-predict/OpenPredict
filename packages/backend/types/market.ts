@@ -16,7 +16,7 @@ export const getPmPriceHistorySchemaV0 = z.object({
   ]),
   start: z.date(),
   end: z.date().optional(),
-  condition_id: z.string(),
+  asset_id: z.string(),
 })
 
 export const likeMarketSchemaV0 = z.object({

@@ -4,16 +4,17 @@
   import { web3Store } from "$lib/web3Store";
   import CopyButton from "../elements/copy_button.svelte";
   import { Modal, modalStore } from "$lib/modals/modalStore";
-  import IconRefresh from "@tabler/icons-svelte/dist/svelte/icons/IconRefresh.svelte";
-  import IconSend from "@tabler/icons-svelte/dist/svelte/icons/IconSend.svelte";
-  import IconDown from "@tabler/icons-svelte/dist/svelte/icons/IconChevronDown.svelte";
-  import IconCoins from "@tabler/icons-svelte/dist/svelte/icons/IconCoins.svelte";
-  import IconLoader from "@tabler/icons-svelte/dist/svelte/icons/IconLoader.svelte";
   import { web3Workspace } from "$lib/web3Workspace";
+  import {
+    IconLoader,
+    IconCoins,
+    IconSend,
+    IconRefresh,
+  } from "@tabler/icons-svelte";
   // import { trpcc } from "$lib/trpc";
   import { onMount } from "svelte";
   import { PublicKey } from "@solana/web3.js";
-    import { api } from "$lib/api";
+  import { api } from "$lib/api";
 
   let loading = false;
 
@@ -28,7 +29,9 @@
     // const positions = await trpcc.getMarketAccounts.query({
     //   userId: $web3Store.solanaAddress,
     // });
-    const positions = await api.getMarketAccounts.query({userId: $web3Store.solanaAddress})
+    const positions = await api.getMarketAccounts.query({
+      userId: $web3Store.solanaAddress,
+    });
     // positions.forEach((p) => {
     //   const us = getUserShares(
     //     p.market.data,

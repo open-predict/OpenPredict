@@ -1,10 +1,9 @@
 <script lang="ts">
     import { toastsStore } from "$lib/toasts/toastsStore";
-    import IconX from "@tabler/icons-svelte/dist/svelte/icons/IconX.svelte";
-    import IconError from "@tabler/icons-svelte/dist/svelte/icons/IconAlertCircle.svelte";
     import { crossfade } from "svelte/transition";
     import { quintOut } from "svelte/easing";
     import { flip } from "svelte/animate"
+    import { IconAlertCircle, IconX } from "@tabler/icons-svelte";
 
     const [send, receive] = crossfade({
         duration: (d) => Math.sqrt(d * 200),
@@ -41,7 +40,7 @@
             animate:flip
         >
             {#if toast.variant === "error"}
-                <IconError />
+                <IconAlertCircle />
             {/if}
             <p>
                 {toast.title}

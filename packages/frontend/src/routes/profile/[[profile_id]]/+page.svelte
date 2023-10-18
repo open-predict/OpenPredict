@@ -20,7 +20,6 @@
     import SuperJSON from "superjson";
     import { Modal, modalStore } from "$lib/modals/modalStore.js";
     import AccountSummary from "$lib/components/account_summary.svelte";
-    import IconLoading from "@tabler/icons-svelte/dist/svelte/icons/IconLoader.svelte";
     import { page } from "$app/stores";
     import CopyButton from "$lib/elements/copy_button.svelte";
     import LoadingOverlay from "$lib/components/loading_overlay.svelte";

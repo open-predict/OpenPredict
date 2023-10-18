@@ -1,6 +1,6 @@
 <script lang="ts">
     import { browser } from "$app/environment";
-    import IconBack from "@tabler/icons-svelte/dist/svelte/icons/IconArrowLeft.svelte";
+    import { IconArrowLeft } from "@tabler/icons-svelte";
     $: locationSplit = browser ? window.location.pathname.split("/") : [];
 </script>
 
@@ -9,7 +9,8 @@
         class="action_icon"
         on:click={() => window.history.back()}
     >
-        <IconBack size={20} />
+        <IconArrowLeft
+         size={20} />
     </button>
 {:else}
     <div class="md:hidden">

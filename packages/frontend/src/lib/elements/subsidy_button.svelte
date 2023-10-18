@@ -2,7 +2,7 @@
     import { createPopperActions } from "svelte-popperjs";
     const [popperRef, popperContent] = createPopperActions();
     import { USDC_PER_DOLLAR } from "$lib/web3_utils";
-    import IconCurrency from "@tabler/icons-svelte/dist/svelte/icons/IconCurrency.svelte";
+    import { IconCurrency } from "@tabler/icons-svelte";
     export let subsidy: bigint;
     let showTooltip = false;
 </script>

@@ -1,8 +1,6 @@
 <script lang="ts">
     import NavItem from "$lib/elements/nav_item.svelte";
-    import IconGithub from "@tabler/icons-svelte/dist/svelte/icons/IconBrandGithub.svelte";
-    import IconDiscord from "@tabler/icons-svelte/dist/svelte/icons/IconBrandDiscord.svelte";
-    import IconBadge from "@tabler/icons-svelte/dist/svelte/icons/IconBadge.svelte";
+    import { IconBadge, IconBrandDiscord, IconBrandGithub } from "@tabler/icons-svelte";
 
     const links: {
         Icon: any;
@@ -18,14 +16,14 @@
         },
         {
             name: "Discord",
-            Icon: IconDiscord,
+            Icon: IconBrandDiscord,
             href: "https://discord.gg/k7NymNAS7h",
             target: "_blank",
             referrerpolicy: "no-referrer",
         },
         {
             name: "Github",
-            Icon: IconGithub,
+            Icon: IconBrandGithub,
             href: "https://github.com/open-predict/OpenPredict",
             target: "_blank",
             referrerpolicy: "no-referrer",

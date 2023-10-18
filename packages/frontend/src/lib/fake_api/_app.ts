@@ -86,7 +86,7 @@ export const fakeAppRouter = router({
   getPmPriceHistory: procedure.input(
     getPmPriceHistorySchemaV0,
   ).query(async (opts) => {
-    return data.pmMarketPricePoints
+    return data.pmTokenPricePoints
   }),
 
   getMarketAccounts: procedure.input(

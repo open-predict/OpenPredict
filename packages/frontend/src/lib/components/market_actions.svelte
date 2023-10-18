@@ -16,9 +16,8 @@
         PUBLIC_USDC_MINT_ADDR,
     } from "$env/static/public";
     import { PublicKey } from "@solana/web3.js";
-    import IconX from "@tabler/icons-svelte/dist/svelte/icons/IconCircleX.svelte";
-    import IconCheck from "@tabler/icons-svelte/dist/svelte/icons/IconCircleCheck.svelte";
     import LoadingOverlay from "./loading_overlay.svelte";
+    import { IconCircleCheck, IconCircleX } from "@tabler/icons-svelte";
 
     export let market: marketFulldata;
     export let small = false;
@@ -121,9 +120,9 @@
         } px-4 py-2.5 rounded-2xl flex items-center gap-4 w-full`}
     >
         {#if resolved}
-            <IconCheck class={"stroke-green-500"} />
+            <IconCircleCheck class={"stroke-green-500"} />
         {:else}
-            <IconX class={"stroke-red-600"} />
+            <IconCircleX class={"stroke-red-600"} />
         {/if}
         <p class="text-sm">
             {`Market resolved to ${resolved ? "'yes'" : "'no'"}`}

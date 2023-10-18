@@ -1,9 +1,9 @@
 <script lang="ts">
     import type { marketFulldata } from "@am/backend/types/market";
-    import IconUser from "@tabler/icons-svelte/dist/svelte/icons/IconUserCheck.svelte";
-    import IconCurrency from "@tabler/icons-svelte/dist/svelte/icons/IconCurrency.svelte";
-    import { USDC_PER_DOLLAR, getChance, usdFormatter } from "$lib/utils";
+    import { usdFormatter } from "$lib/utils";
     import SmallChart from "../charts/small_chart.svelte";
+    import { IconCurrency, IconUserCheck } from "@tabler/icons-svelte";
+    import { USDC_PER_DOLLAR, getChance } from "$lib/web3_utils";
     export let market: marketFulldata;
     $: chance = 100 * getChance(market.data.data.Yes, market.data.data.No);
 </script>
@@ -44,7 +44,7 @@
                 <button
                     class="flex text-sm py-1 px-3 justify-center items-center rounded-full gap-2 text-gray-500 fill-gray-200 stroke-gray-500 text-md hover:bg-gray-100 hover:text-gray-600 hover:stroke-gray-600 hover:fill-gray-300"
                 >
-                    <IconUser class="stroke-inherit fill-inherit" size={14} />
+                    <IconUserCheck class="stroke-inherit fill-inherit" size={14} />
                     {market.data.UserAccounts.size}
                 </button>
             </div>

@@ -30,6 +30,7 @@ export default defineConfig({
         }
     },
     build: {
+        target: "esnext", // or "es2019"
         rollupOptions: {
             plugins: [inject({ 
                 Buffer: ['buffer', 'Buffer'],

@@ -1,8 +1,6 @@
 <script lang="ts">
+    import { IconCircleCheck, IconCircleX } from "@tabler/icons-svelte";
     import { Spinner } from "flowbite-svelte";
-    import IconCheck from "@tabler/icons-svelte/dist/svelte/icons/IconCircleCheck.svelte";
-    import IconX from "@tabler/icons-svelte/dist/svelte/icons/IconCircleX.svelte";
-
     export let loadingMessage = "";
     export let errorMessage = "";
     export let completedMessage = "";
@@ -16,7 +14,7 @@
     >
         {#if errorMessage}
             <div class={"text-red-500"}>
-                <IconX size={50} stroke={1.5} />
+                <IconCircleX size={50} stroke={1.5} />
             </div>
             <p class="text-gray-700 max-w-sm">
                 {errorMessage}
@@ -26,7 +24,7 @@
             </button>
         {:else if completedMessage}
             <div class={"text-green-500"}>
-                <IconCheck size={50} stroke={1.5} />
+                <IconCircleCheck size={50} stroke={1.5} />
             </div>
             <p class=" text-gray-700 max-w-sm">
                 {completedMessage}

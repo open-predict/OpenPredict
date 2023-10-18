@@ -1,6 +1,6 @@
 <script lang="ts">
-    import IconSearch from "@tabler/icons-svelte/dist/svelte/icons/IconSearch.svelte";
-    import IconUfo from "@tabler/icons-svelte/dist/svelte/icons/IconUfo.svelte";
+    import { IconUfo } from "@tabler/icons-svelte";
+
 </script>
 
 <div class="flex flex-col items-center justify-center h-80 gap-6">
