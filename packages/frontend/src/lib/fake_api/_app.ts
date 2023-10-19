@@ -227,8 +227,11 @@ export const fakeAppRouter = router({
   ).query(async (opts) => {
     return {
       market: data.pmMarkets[0] ?? undefined,
+      data: {
+        userM: data.pmUsers,
+        data: data.pmMarkets[0]
+      },
       comments: data.comments,
-      users: data.users,
       likes: Array.from(data.users.keys())
     }
   }),

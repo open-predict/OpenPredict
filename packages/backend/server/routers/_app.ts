@@ -13,7 +13,7 @@ import * as spl from "@solana/spl-token";
 import base58 from 'bs58';
 import SuperJSON from 'superjson';
 import fetch from "node-fetch";
-import { ClobClient, Chain, MarketPrice } from '@polymarket/clob-client';
+import { ClobClient, Chain } from '@polymarket/clob-client';
 
 declare global {
   var loginChallengeCache: nodeCache
@@ -178,10 +178,9 @@ async function validateInstructions(transaction: web3.Transaction, feePayer: web
 export const appRouter = router({
   getPmMarket: procedure.input(
     getPmMarket,
-  ).query(async (_) => {
+  ).query(async (opts) => {
     return {
-      market: {},
-      users: new Map(),
+      data: global.pmChainCache.getMarket(opts.input.condition_id),
       comments: [],
       likes: [],
     }
@@ -313,36 +312,52 @@ export const appRouter = router({
         error: resp.error,
       }
     } else {
-      var maybe_market = globalThis.chainCache.markets.get(opts.input.ammAddress);
-      if (maybe_market != null) {
-        if (opts.input.liked) {
-          const start = new Date();
-          const x = await globalThis.chainCache.prisma.marketLike.upsert({
-            where: {
-              ammAddress_userKey: {
-                userKey: resp.key,
-                ammAddress: Buffer.from(base58.decode(opts.input.ammAddress)),
-              },
-            },
-            update: {},
-            create: {
+      var marketAddr: Buffer
+      var exists: boolean;
+      if (opts.input.openPredictMarketAddress != null) {
+        exists = globalThis.chainCache.markets.has(opts.input.openPredictMarketAddress);
+        marketAddr = Buffer.from(base58.decode(opts.input.openPredictMarketAddress));
+      } else {
+        exists = globalThis.pmChainCache.hasMarket(opts.input.polymarketConditionId);
+        marketAddr = Buffer.from(opts.input.polymarketConditionId.slice(2), 'hex');
+      }
+      if (!exists) {
+        opts.ctx.res.statusCode = 404
+        return {
+          error: "No such market"
+        }
+      }
+      if (opts.input.liked) {
+        const start = new Date();
+        const x = await globalThis.chainCache.prisma.marketLike.upsert({
+          where: {
+            ammAddress_userKey: {
               userKey: resp.key,
-              ammAddress: Buffer.from(base58.decode(opts.input.ammAddress)),
+              ammAddress: marketAddr,
             },
-          })
-          if (start < x.createdAt) {
-            maybe_market.Likes.add(base58.encode(resp.key));
-          }
-        } else {
-          const res = await globalThis.chainCache.prisma.marketLike.deleteMany({
-            where: {
-              ammAddress: Buffer.from(base58.decode(opts.input.ammAddress)),
-              userKey: resp.key,
-            },
-          })
-          if (res.count > 0) {
-            maybe_market.Likes.delete(base58.encode(resp.key));
-          }
+          },
+          update: {},
+          create: {
+            userKey: resp.key,
+            ammAddress: marketAddr,
+          },
+        })
+        if (opts.input.openPredictMarketAddress != null && start < x.createdAt) {
+          var market = globalThis.chainCache.markets.get(opts.input.openPredictMarketAddress)!
+          market.Likes.add(base58.encode(resp.key));
+          globalThis.chainCache.markets.set(opts.input.openPredictMarketAddress, market);
+        }
+      } else {
+        const res = await globalThis.chainCache.prisma.marketLike.deleteMany({
+          where: {
+            ammAddress: marketAddr,
+            userKey: resp.key,
+          },
+        })
+        if (opts.input.openPredictMarketAddress != null && res.count > 0) {
+          var market = globalThis.chainCache.markets.get(opts.input.openPredictMarketAddress)!
+          market.Likes.delete(base58.encode(resp.key));
+          globalThis.chainCache.markets.set(opts.input.openPredictMarketAddress, market);
         }
       }
     }
@@ -441,15 +456,32 @@ export const appRouter = router({
   listComments: procedure.input(
     listCommentsSchemaV0
   ).query(async (opts) => {
-    const comments = await globalThis.chainCache.prisma.marketComment.findMany({
-      where: {
-        ammAddress: Buffer.from(base58.decode(opts.input.ammAddress)),
-      },
-    })
-    var users = new Map<string, TUser | null>();
+    var opUsers = new Map<string, TUser>();
+    var pmUsers: pmUserMap = new Map();
+    var comments;
+    if (opts.input.openPredictMarketAddress != null) {
+      comments = await globalThis.chainCache.prisma.marketComment.findMany({
+        where: {
+          ammAddress: Buffer.from(base58.decode(opts.input.openPredictMarketAddress)),
+        },
+      })
+    } else {
+      comments = await globalThis.chainCache.prisma.marketComment.findMany({
+        where: {
+          ammAddress: Buffer.from(opts.input.polymarketConditionId.slice(2,), 'hex'),
+        },
+      })
+      var potentialKeys = comments.map(v => "0x" + v.userKey.toString('hex'))
+      potentialKeys.forEach(key => {
+        var ret = globalThis.pmChainCache.users.get(key)
+        if (ret != null) {
+          pmUsers.set(key, ret)
+        }
+      })
+    }
     const helia = await getHelia()
-    comments.forEach(v => users.set(base58.encode(v.userKey), null))
-    await Promise.allSettled([...users.keys()].map(async (k: string) => {
+    const keys = comments.map(v => base58.encode(v.userKey))
+    await Promise.allSettled(keys.map(async (k: string) => {
       var maybe_username = globalThis.chainCache.usernames.get(k);
       if (maybe_username != null) {
         var maybe_profile = globalThis.chainCache.profiles.get(maybe_username!);
@@ -466,7 +498,7 @@ export const appRouter = router({
           console.log("Got the following helia ipfs data: ", js);
           const metadata = userMetadataSchemaV0.safeParse(js)
           if (metadata.success) {
-            users.set(maybe_profile.UserKey.toBase58(), {
+            opUsers.set(maybe_profile.UserKey.toBase58(), {
               username: maybe_username,
               metadata: metadata.data
             })
@@ -484,7 +516,8 @@ export const appRouter = router({
           content: v.content,
         }
       }),
-      users: users,
+      opUsers: opUsers,
+      pmUsers: pmUsers,
     }
   }),
 
@@ -497,23 +530,37 @@ export const appRouter = router({
         error: resp.error,
       }
     } else {
-      var maybe_market = globalThis.chainCache.markets.get(opts.input.ammAddress)
-      if (maybe_market == null) {
-        opts.ctx.res.statusCode = 404
-        return {
-          error: "No such market"
+      var buf: Buffer
+      if (opts.input.openPredictMarketAddress != null) {
+        var maybe_market = globalThis.chainCache.markets.get(opts.input.openPredictMarketAddress)
+        if (maybe_market == null) {
+          opts.ctx.res.statusCode = 404
+          return {
+            error: "No such market"
+          }
+        } else {
+          buf = Buffer.from(base58.decode(opts.input.openPredictMarketAddress));
+          maybe_market!.CommentCount += 1;
+          globalThis.chainCache.markets.set(opts.input.openPredictMarketAddress, maybe_market!);
         }
       } else {
-        await globalThis.chainCache.prisma.marketComment.create({
-          data: {
-            userKey: resp.key,
-            ammAddress: Buffer.from(base58.decode(opts.input.ammAddress)),
-            content: opts.input.content,
-          },
-        })
-        maybe_market!.CommentCount += 1;
-        globalThis.chainCache.markets.set(opts.input.ammAddress, maybe_market!);
+        var maybe_pmmarket = globalThis.pmChainCache.getMarket(opts.input.polymarketConditionId)
+        if (maybe_pmmarket == null) {
+          opts.ctx.res.statusCode = 404
+          return {
+            error: "No such market"
+          }
+        } else {
+          buf = Buffer.from(opts.input.polymarketConditionId.slice(2,));
+        }
       }
+      await globalThis.chainCache.prisma.marketComment.create({
+        data: {
+          userKey: resp.key,
+          ammAddress: buf,
+          content: opts.input.content,
+        },
+      })
     }
   }),
 

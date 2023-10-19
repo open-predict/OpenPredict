@@ -37,6 +37,7 @@ services:
         - PUBLIC_SOLANA_RPC_URL=${SOLANA_RPC_URL}
         - PUBLIC_POLYGON_RPC_URL=${POLYGON_RPC_URL}
         - PUBLIC_TRPC_URL=http://localhost:3000
+        - PUBLIC_INTERNAL_TRPC_URL=http://backend:3000
         - PUBLIC_WEB3AUTH_ID=${WEB3AUTH_ID}
     environment:
       - INTERNAL_TRPC_URL=http://backend:3000

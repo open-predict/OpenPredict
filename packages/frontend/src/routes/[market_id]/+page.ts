@@ -25,9 +25,9 @@ export async function load({ params }) {
 
   if (params.market_id.startsWith("0x")) {
     const res = await api.getPmMarket.query({ condition_id: params.market_id });
-    data.pmMarket = res.market as pmMarketFulldata;
+    data.pmMarket = res.data.data;
     data.comments = res.comments;
-    data.users = res.users;
+    data.users = res.data.users;
     data.likes;
   } else {
     const res = await api.getMarket.query({ id: params.market_id });

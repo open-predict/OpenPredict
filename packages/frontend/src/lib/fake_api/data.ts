@@ -62,7 +62,6 @@ export const UserAccounts: Map<string, marketUserChaindata> = Array.from(users.k
 
 let lastPriceHistoryDate = new Date(Date.now() - (14 * 24 * 60 * 60 * 1000));
 
-
 export const PriceHistory: marketPricePoint[] = Array.from(Array(faker.datatype.number({ min: 0, max: 20 }))).map(() => {
     const limit = new Date(lastPriceHistoryDate.getTime() + (1 * 24 * 60 * 60 * 1000))
     const point = {

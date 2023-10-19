@@ -11,7 +11,6 @@
     IconSend,
     IconRefresh,
   } from "@tabler/icons-svelte";
-  // import { trpcc } from "$lib/trpc";
   import { onMount } from "svelte";
   import { PublicKey } from "@solana/web3.js";
   import { api } from "$lib/api";

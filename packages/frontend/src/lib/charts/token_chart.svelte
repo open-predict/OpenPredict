@@ -297,7 +297,7 @@
         </nav>
     </div>
     {#await tokenDataPromise}
-        <div class={`bg-neutral-900 animate-pulse h-${height} w-${width}`}>Loading</div>
+        <div class={`bg-neutral-900 animate-pulse h-[${height}px] w-[${width}px]`}>Loading</div>
     {:then tokens}
         {#if graphReady && tokens}
             <svg

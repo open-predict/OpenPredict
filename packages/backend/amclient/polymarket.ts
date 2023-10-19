@@ -260,6 +260,64 @@ class PmChainCache {
     return this.marketData.has(condition_id)
   }
 
+  private toFulldata(userMap: pmUserMap, data: pmMarketData): pmMarketFulldata {
+    const addUser = (address: string) => {
+      if (!userMap.has(address) && this.users.has(address)) {
+        userMap.set(address, this.users.get(address)!)
+      }
+    }
+    return {
+      data: data,
+      orderdata: new Map(data.tokens.map(t => t.token_id).map(t => {
+        var _filledOrders: any[] = []
+        if (this.filledOrders.has(t)) {
+          var __filledOrders = this.filledOrders.get(t)!;
+          [...__filledOrders.values()].forEach(v => {
+            if (v.taker != null) {
+              addUser(v.taker);
+            }
+            addUser(v.maker);
+          })
+          _filledOrders = [...__filledOrders.values()];
+        }
+
+        var _positions: any[] = []
+        if (this.positions.has(t)) {
+          var __positions = this.positions.get(t)!;
+          [...__positions.entries()].forEach(([k, v]) => {
+            addUser(k)
+            _positions.push({
+              address: k,
+              position: v.position,
+            })
+          })
+        }
+
+        return [t, {
+          filledOrders: _filledOrders,
+          positions: _positions,
+          book: this.orderBooks.get(t) ?? {asks: [], bids: []},
+        }]
+      })),
+      meta: {
+        volume: BigInt(0), //TODO: Get actual volume
+      },
+    }
+  }
+
+  public getMarket(condition_id: string) {
+    var data = this.marketData.get(condition_id);
+    if (data == null) {
+      return null;
+    } else {
+      var m: pmUserMap = new Map()
+      return {
+        userM: m,
+        data: this.toFulldata(m, data),
+      }
+    }
+  }
+
   public searchMarkets(options: {
     term?: string,
     limit?: number,
@@ -302,52 +360,10 @@ class PmChainCache {
       }
     }
     var userMap = new Map()
-    const addUser = (address: string) => {
-      if (!userMap.has(address) && this.users.has(address)) {
-        userMap.set(address, this.users.get(address)!)
-      }
-    }
+
     return {
       users: userMap,
-      markets: marketData.map(data => {
-        return {
-          data: data,
-          orderdata: new Map(data.tokens.map(t => t.token_id).map(t => {
-            var _filledOrders: any[] = []
-            if (this.filledOrders.has(t)) {
-              var __filledOrders = this.filledOrders.get(t)!;
-              [...__filledOrders.values()].forEach(v => {
-                if (v.taker != null) {
-                  addUser(v.taker);
-                }
-                addUser(v.maker);
-              })
-              _filledOrders = [...__filledOrders.values()];
-            }
-
-            var _positions: any[] = []
-            if (this.positions.has(t)) {
-              var __positions = this.positions.get(t)!;
-              [...__positions.entries()].forEach(([k, v]) => {
-                addUser(k)
-                _positions.push({
-                  address: k,
-                  position: v.position,
-                })
-              })
-            }
-
-            return [t, {
-              filledOrders: _filledOrders,
-              positions: _positions,
-              book: this.orderBooks.get(t) ?? {asks: [], bids: []},
-            }]
-          })),
-          meta: {
-            volume: BigInt(0), //TODO: Get actual volume
-          },
-        }
-      })
+      markets: marketData.map(data => this.toFulldata(userMap, data))
     }
   }
 }

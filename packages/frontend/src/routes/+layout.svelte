@@ -4,7 +4,7 @@
   import LoginModal from "$lib/modals/login.svelte";
   import SearchMarkets from "$lib/modals/search_markets.svelte";
   import BackendAuth from "$lib/modals/backend_auth.svelte";
-  import AccountSummary from "$lib/modals/account_summary.svelte";
+  // import AccountSummary from "$lib/modals/account_summary.svelte";
   import { Buffer } from "buffer";
   import { browser } from "$app/environment";
   import NProgress from "nprogress";
@@ -73,4 +73,4 @@
 <LoginModal />
 <BackendAuth />
 <SearchMarkets />
-<AccountSummary />
+<!-- <AccountSummary /> -->

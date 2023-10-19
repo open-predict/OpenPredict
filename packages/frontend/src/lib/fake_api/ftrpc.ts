@@ -35,7 +35,7 @@ const procedureLink: TRPCLink<FakeAppRouter> = () => {
     };
   };
   
-export const trpc = createTRPCProxyClient({
+export const ftrpc = createTRPCProxyClient({
     transformer: superjson,
     links: [procedureLink]
 })
