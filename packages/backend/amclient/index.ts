@@ -8,6 +8,7 @@ import {json as hJson, JSON as hJsonI} from "@helia/json"
 import {FsBlockstore} from 'blockstore-fs'
 import {FsDatastore} from 'datastore-fs'
 import {Mutex} from 'async-mutex'
+import {TUser} from "../types/user.js"
 
 declare global {
   var _helia: any
@@ -167,12 +168,9 @@ export async function searchMarkets(options: {
   limit?: number,
   tradable?: boolean,
   orderBy: "volume" | "recent",
-}): Promise<{
+}, pmUsers: pmUserMap, opUsers: Map<string, TUser>): Promise<{
   opMarkets: marketFulldata[],
-  pmMarkets: {
-    markets: pmMarketFulldata[],
-    users: pmUserMap,
-  }
+  pmMarkets: pmMarketFulldata[],
 }> {
   var _ret: Promise<marketFulldata>[] = []
   const iter = chainCache.markets.values();
@@ -218,7 +216,7 @@ export async function searchMarkets(options: {
       ret = ret.slice(0, options.limit != null && options.limit < 50 ? options.limit : 50);
       return ret;
     }),
-    pmMarkets: globalThis.pmChainCache.searchMarkets(options),
+    pmMarkets: globalThis.pmChainCache.searchMarkets(options, pmUsers, opUsers),
   }
 }
 

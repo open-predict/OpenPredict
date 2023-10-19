@@ -687,18 +687,19 @@ export const appRouter = router({
       limit: z.number().nullable(),
     }),
   ).query(async (opts) => {
+    var opUsers = new Map<string, TUser>()
+    var pmUsers: pmUserMap = new Map();
     const markets = await searchMarkets({
       term: opts.input.term ? opts.input.term : undefined,
       limit: opts.input.limit ? opts.input.limit : undefined,
       orderBy: "recent",
-    })
+    }, pmUsers, opUsers)
     const helia = await getHelia()
-    var opUsers = new Map<string, TUser | null>()
     var commentCounts = new Map<string, number>()
     var likeCounts = new Map<string, number>()
     const market_ids = [
       ...markets.opMarkets.map(v => v.data.data.AmmAddress),
-      ...markets.pmMarkets.markets.map(v => Buffer.from(v.data.question_id.slice(2), 'hex'))
+      ...markets.pmMarkets.map(v => Buffer.from(v.data.condition_id.slice(2), 'hex'))
     ]
     console.log("Searching markets...")
     await Promise.allSettled([
@@ -722,13 +723,8 @@ export const appRouter = router({
                 username: maybe_username,
                 metadata: metadata.data
               })
-            } else {
-              opUsers.set(v, null)
             }
-
           }
-        } else {
-          opUsers.set(v, null)
         }
       }),
       //TODO: Query for individual counts instead of selecting all rows with the amm
@@ -768,7 +764,7 @@ export const appRouter = router({
             numNativeLikes: likeCounts.get(v.data.data.AmmAddress.toString()) ?? 0,
             opMarket: v,
           }
-        }), ...markets.pmMarkets.markets.map(v => {
+        }), ...markets.pmMarkets.map(v => {
           return {
             numNativeComments: commentCounts.get(Buffer.from(v.data.question_id.slice(2), 'hex').toString()) ?? 0,
             numNativeLikes: likeCounts.get(Buffer.from(v.data.question_id.slice(2), 'hex').toString()) ?? 0,
@@ -776,7 +772,7 @@ export const appRouter = router({
           }
         })],
         opUsers: opUsers,
-        pmMarketUsers: markets.pmMarkets.users,
+        pmMarketUsers: pmUsers,
       }
   }),
 
@@ -809,7 +805,9 @@ export type MarketSearchResult = ({
   opMarket?: marketFulldata
 } & ({
   pmMarket: pmMarketFulldata,
+  opMarket: undefined,
 } | {
+  pmMarket: undefined,
   opMarket: marketFulldata,
 }))
 

@@ -3,6 +3,7 @@ import {pmMarketData, pmMarketFulldata, pmTokenFilledOrder, pmUserMap} from "../
 import {WebSocket} from "ws";
 import fetch from "node-fetch";
 import {ethers} from "ethers";
+import {TUser} from "../types/user.js";
 //import {Mutex} from "async-mutex";
 
 const tempwallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey);
@@ -260,10 +261,12 @@ class PmChainCache {
     return this.marketData.has(condition_id)
   }
 
-  private toFulldata(userMap: pmUserMap, data: pmMarketData): pmMarketFulldata {
+  private toFulldata(pmUserMap: pmUserMap, opUserMap: Map<string, TUser>, data: pmMarketData): pmMarketFulldata {
     const addUser = (address: string) => {
-      if (!userMap.has(address) && this.users.has(address)) {
-        userMap.set(address, this.users.get(address)!)
+      //TODO: Add opUser if it exists
+      opUserMap;
+      if (!pmUserMap.has(address) && this.users.has(address)) {
+        pmUserMap.set(address, this.users.get(address)!)
       }
     }
     return {
@@ -310,10 +313,12 @@ class PmChainCache {
     if (data == null) {
       return null;
     } else {
-      var m: pmUserMap = new Map()
+      var pmM = new Map()
+      var opM = new Map()
       return {
-        userM: m,
-        data: this.toFulldata(m, data),
+        pmUserM: pmM,
+        opUserM: opM,
+        data: this.toFulldata(pmM, opM, data),
       }
     }
   }
@@ -323,10 +328,7 @@ class PmChainCache {
     limit?: number,
     tradable?: boolean,
     orderBy: "volume" | "recent",
-  }): {
-    markets: pmMarketFulldata[],
-    users: pmUserMap,
-  } {
+  }, pmUsers: pmUserMap, opUsers: Map<string, TUser>): pmMarketFulldata[] {
     if (options.limit == null) {
       options.limit = 50;
     }
@@ -359,12 +361,7 @@ class PmChainCache {
           break;
       }
     }
-    var userMap = new Map()
-
-    return {
-      users: userMap,
-      markets: marketData.map(data => this.toFulldata(userMap, data))
-    }
+    return marketData.map(data => this.toFulldata(pmUsers, opUsers, data));
   }
 }
 
