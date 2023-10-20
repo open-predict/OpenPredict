@@ -8,6 +8,7 @@ import {json as hJson, JSON as hJsonI} from "@helia/json"
 import {FsBlockstore} from 'blockstore-fs'
 import {FsDatastore} from 'datastore-fs'
 import {Mutex} from 'async-mutex'
+import {TUser, userMetadataSchemaV0} from "../types/user.js"
 
 declare global {
   var _helia: any
@@ -162,18 +163,164 @@ export async function getMarketFulldata(data: extMarketChaindata): Promise<marke
   }
 }
 
-export async function searchMarkets(options: {
-  term?: string,
-  limit?: number,
-  tradable?: boolean,
-  orderBy: "volume" | "recent",
+export type _MarketSearchResult = {
+  pmMarket: pmMarketFulldata,
+  opMarket: undefined,
+} | {
+  pmMarket: undefined,
+  opMarket: marketFulldata,
+}
+
+export async function getAllMarketMeta(data: {
+  results?: _MarketSearchResult[],
+  pmMarkets?: pmMarketFulldata[],
+  opMarkets?: marketFulldata[],
 }): Promise<{
-  opMarkets: marketFulldata[],
-  pmMarkets: {
-    markets: pmMarketFulldata[],
-    users: pmUserMap,
-  }
+  pmUsers: pmUserMap,
+  opUsers: Map<string, TUser>,
+  commentNo: {[market_id: string]: number},
+  likeNo: {[market_id: string]: number},
 }> {
+  var pmUsers: pmUserMap = new Map();
+  var opUsers: Map<string, TUser> = new Map();
+
+  var commentNo: {[market_id: string]: number} = {}
+  var likeNo: {[market_id: string]: number} = {}
+
+  var opMarkets: marketFulldata[] = data.opMarkets ?? []
+  var pmMarkets: pmMarketFulldata[] = data.pmMarkets ?? []
+  if (data.results != null) {
+    for (var result of data.results) {
+      if (result.opMarket != null) {
+        opMarkets.push(result.opMarket);
+      } else {
+        pmMarkets.push(result.pmMarket);
+      }
+    }
+  }
+  var market_ids: Map<string, {
+    id_str: string,
+  }> = new Map();
+  opMarkets.forEach(v => market_ids.set(v.data.data.AmmAddress.toString(), {
+    id_str: base58.encode(v.data.data.AmmAddress),
+  }));
+  pmMarkets.forEach(v => {
+    v.data.tokens.forEach((token) => {
+      market_ids.set(Buffer.from(token.token_id.slice(2), 'hex').toString(), {
+        id_str: token.token_id,
+      })
+    })
+  })
+  //Get all polymarket users
+  //TODO: Get openpredict users from here too in allSettled
+  pmMarkets.forEach((m) => {
+    const getPmUser = (key: string) => {
+      if (!pmUsers.has(key) && globalThis.pmChainCache.users.has(key)) {
+        pmUsers.set(key, globalThis.pmChainCache.users.get(key)!);
+      }
+    }
+    for (var orderMap of m.orderdata.values()) {
+      orderMap.filledOrders.forEach(v => {
+        getPmUser(v.maker)
+        if (v.taker != null) {
+          getPmUser(v.taker)
+        }
+      })
+      orderMap.positions.forEach(v => {
+        getPmUser(v.address);
+      })
+    }
+  })
+  const helia = await getHelia()
+  var retrievingOpUser = new Set<string>()
+  const getOpUser = async (key: string) => {
+    if (!retrievingOpUser.has(key) && !opUsers.has(key)) {
+      retrievingOpUser.add(key)
+      var maybe_username = globalThis.chainCache.usernames.get(key);
+      if (maybe_username != null) {
+        var maybe_profile = globalThis.chainCache.profiles.get(maybe_username!);
+        if (maybe_profile != null) {
+          var js;
+          try {
+            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid), {
+              signal: AbortSignal.timeout(500),
+            })
+          } catch (err) {
+            console.log("error getting ipfs data: ", err)
+          }
+          const metadata = userMetadataSchemaV0.safeParse(js)
+          if (metadata.success) {
+            opUsers.set(maybe_profile.UserKey.toBase58(), {
+              username: maybe_username,
+              metadata: metadata.data
+            })
+          }
+        }
+      }
+    }
+  }
+
+  //Do all of this at once.
+  await Promise.allSettled([
+    //Get all openpredict users
+    opMarkets.reduce((prev, m) => {
+      return [
+        ...prev,
+        ...[...m.data.UserAccounts.keys()].map(v => getOpUser(v)),
+        ...[...m.data.Likes.values()].map(v => getOpUser(v)),
+        getOpUser(m.data.data.OperatorKey.toBase58()),
+      ]
+    }, <Promise<void>[]>[]),
+    //Market comment counts
+    globalThis.chainCache.prisma.marketComment.findMany({
+      where: {
+        ammAddress: {
+          in: [...market_ids.keys()].map(v => Buffer.from(v)),
+        }
+      },
+      select: {
+        ammAddress: true,
+      }
+    }).then(resp => {
+      for (var it of resp) {
+        var val = market_ids.get(it.ammAddress.toString())!
+        commentNo[val.id_str] = commentNo[val.id_str] + 1;
+      }
+    }),
+    //Market likes
+    globalThis.chainCache.prisma.marketLike.findMany({
+      where: {
+        ammAddress: {
+          in: [...market_ids.keys()].map(v => Buffer.from(v)),
+        }
+      },
+      select: {
+        ammAddress: true,
+      }
+    }).then(resp => {
+      for (var it of resp) {
+        var val = market_ids.get(it.ammAddress.toString())!
+        likeNo[val.id_str] = commentNo[val.id_str] + 1;
+      }
+    })
+  ])
+  return {
+    pmUsers,
+    opUsers,
+    commentNo,
+    likeNo,
+  }
+}
+
+export async function searchMarkets(
+  options: {
+    term?: string,
+    limit?: number,
+    skip?: number,
+    tradable?: boolean,
+    orderBy: "volume" | "recent",
+  },
+): Promise<_MarketSearchResult[]> {
   var _ret: Promise<marketFulldata>[] = []
   const iter = chainCache.markets.values();
   while (true) {
@@ -186,40 +333,59 @@ export async function searchMarkets(options: {
       )
     }
   }
-
-  return {
-    opMarkets: await Promise.allSettled(_ret).then(result => {
-      var ret = result.filter(v => v.status == "fulfilled").map(v => (v as PromiseFulfilledResult<marketFulldata>).value);
-      console.log(`Did not find metadata for ${ret.filter(r => r.metadata === null).length} of ${result.length} markets`)
-      if (options.term != null) {
-        ret = ret.filter(v => v.metadata && JSON.stringify(v.metadata).includes(options.term!))
+  var results: _MarketSearchResult[] = []
+  await Promise.allSettled(_ret).then(result => {
+    var ret = result.filter(v => v.status == "fulfilled").map(v => (v as PromiseFulfilledResult<marketFulldata>).value);
+    console.log(`Did not find metadata for ${ret.filter(r => r.metadata === null).length} of ${result.length} markets`)
+    if (options.term != null) {
+      ret = ret.filter(v => v.metadata && JSON.stringify(v.metadata).includes(options.term!))
+    }
+    results.push(...ret.map(v => {
+      return {
+        opMarket: v,
+        pmMarket: undefined,
       }
-      if (options.orderBy != null) {
-        switch (options.orderBy) {
-          case "volume":
-            ret.sort((a, b) => b.data.Trades.reduce((prev, cur) => prev + Number(cur.microUSDC), 0) - a.data.Trades.reduce((prev, cur) => prev + Number(cur.microUSDC), 0));
-            break;
-          case "recent":
-            ret.sort((a, b) => {
-              //TODO: Init date at market creation
-              var a_date = 0;
-              if (a.data.PriceHistory.length > 0) {
-                a_date = a.data.PriceHistory[a.data.PriceHistory.length - 1].At.getTime();
+    }))
+  })
+  results.push(...globalThis.pmChainCache.searchMarkets(options).map(market => {
+    return {
+      opMarket: undefined,
+      pmMarket: market,
+    }
+  }))
+  switch (options.orderBy) {
+    case "recent":
+      results.sort((a, b) => {
+        const getLatestTrade = (result: _MarketSearchResult): number => {
+          var latestOrder = 0;
+          if (result.opMarket == null) {
+            var _orderdata = [...result.pmMarket.orderdata.values()]
+            for (var orderdata of _orderdata) {
+              for (var filledOrder of orderdata.filledOrders) {
+                if (latestOrder > filledOrder.ts) {
+                  latestOrder = filledOrder.ts;
+                }
               }
-              var b_date = 0;
-              if (b.data.PriceHistory.length > 0) {
-                b_date = b.data.PriceHistory[b.data.PriceHistory.length - 1].At.getTime();
+            }
+          } else {
+            for (var historyPoint of result.opMarket.data.PriceHistory) {
+              var t = historyPoint.At.getTime()
+              if (t > latestOrder) {
+                latestOrder = t;
               }
-              return b_date - a_date;
-            });
-            break;
+            }
+          }
+          return latestOrder;
         }
-      }
-      ret = ret.slice(0, options.limit != null && options.limit < 50 ? options.limit : 50);
-      return ret;
-    }),
-    pmMarkets: globalThis.pmChainCache.searchMarkets(options),
+        return getLatestTrade(b) - getLatestTrade(a)
+      })
+      break;
+    case "volume":
+      break;
   }
+  var start = options.skip ?? 0;
+  results = results.slice(start, start + (options.limit != null && options.limit < 50 ? options.limit : 50));
+  return results;
 }
 
 export async function alertNewTransaction(sig: string) {

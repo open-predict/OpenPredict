@@ -1,10 +1,10 @@
-import { z } from 'zod';
-import { procedure, router } from '../trpc.js';
-import { commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getPmMarket, getPmPriceHistorySchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata, pmMarketFulldata, pmUserMap } from '../../types/market.js';
-import { checkoutWithChangenowSchemaV0, makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0 } from '../../types/user.js';
-import { getHelia, getMarketFulldata, marketByAddress, searchMarkets } from '../../amclient/index.js';
+import {z} from 'zod';
+import {procedure, router} from '../trpc.js';
+import {commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getPmMarket, getPmPriceHistorySchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata, pmUserMap} from '../../types/market.js';
+import {checkoutWithChangenowSchemaV0, makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0} from '../../types/user.js';
+import {_MarketSearchResult, getAllMarketMeta, getHelia, getMarketFulldata, marketByAddress, searchMarkets} from '../../amclient/index.js';
 import * as nodeCache from "node-cache";
-import { createHash, randomBytes } from "crypto";
+import {createHash, randomBytes} from "crypto";
 import * as web3 from "@solana/web3.js";
 import * as cookie from "cookie";
 import * as ed25519 from "@noble/ed25519";
@@ -13,7 +13,7 @@ import * as spl from "@solana/spl-token";
 import base58 from 'bs58';
 import SuperJSON from 'superjson';
 import fetch from "node-fetch";
-import { ClobClient, Chain } from '@polymarket/clob-client';
+import {ClobClient, Chain} from '@polymarket/clob-client';
 
 declare global {
   var loginChallengeCache: nodeCache
@@ -682,102 +682,20 @@ export const appRouter = router({
 
   searchMarkets: procedure.input(
     z.object({
-      term: z.string().nullable(),
-      skip: z.number().nullable(),
-      limit: z.number().nullable(),
+      term: z.string().optional(),
+      skip: z.number().optional(),
+      limit: z.number().optional(),
+      orderBy: z.enum(["recent", "volume"]),
     }),
   ).query(async (opts) => {
-    const markets = await searchMarkets({
-      term: opts.input.term ? opts.input.term : undefined,
-      limit: opts.input.limit ? opts.input.limit : undefined,
-      orderBy: "recent",
-    })
-    const helia = await getHelia()
-    var opUsers = new Map<string, TUser | null>()
-    var commentCounts = new Map<string, number>()
-    var likeCounts = new Map<string, number>()
-    const market_ids = [
-      ...markets.opMarkets.map(v => v.data.data.AmmAddress),
-      ...markets.pmMarkets.markets.map(v => Buffer.from(v.data.question_id.slice(2), 'hex'))
-    ]
-    console.log("Searching markets...")
-    await Promise.allSettled([
-      ...markets.opMarkets.map(async (m) => {
-        var v = m.data.data.OperatorKey.toBase58()
-        var maybe_username = globalThis.chainCache.usernames.get(v);
-        if (maybe_username != null) {
-          var maybe_profile = globalThis.chainCache.profiles.get(maybe_username!);
-          if (maybe_profile != null) {
-            var js;
-            try {
-              js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid), {
-                signal: AbortSignal.timeout(500),
-              })
-            } catch (err) {
-              console.log("error getting ipfs data: ", err)
-            }
-            const metadata = userMetadataSchemaV0.safeParse(js)
-            if (metadata.success) {
-              opUsers.set(maybe_profile.UserKey.toBase58(), {
-                username: maybe_username,
-                metadata: metadata.data
-              })
-            } else {
-              opUsers.set(v, null)
-            }
-
-          }
-        } else {
-          opUsers.set(v, null)
-        }
-      }),
-      //TODO: Query for individual counts instead of selecting all rows with the amm
-      globalThis.chainCache.prisma.marketComment.findMany({
-        where: {
-          ammAddress: {
-            in: market_ids,
-          }
-        },
-        select: {
-          ammAddress: true,
-        }
-      }).then(resp => {
-        market_ids.forEach(v => commentCounts.set(v.toString(), resp.filter(n => n.ammAddress.equals(v)).length))
-      }),
-      globalThis.chainCache.prisma.marketLike.findMany({
-        where: {
-          ammAddress: {
-            in: market_ids,
-          }
-        },
-        select: {
-          ammAddress: true,
-        }
-      }).then(resp => {
-        market_ids.forEach(v => likeCounts.set(v.toString(), resp.filter(n => n.ammAddress.equals(v)).length))
+    return await getAllMarketMeta({
+      results: await searchMarkets({
+        term: opts.input.term,
+        skip: opts.input.skip,
+        limit: opts.input.limit,
+        orderBy: opts.input.orderBy,
       })
-    ])
-    return <{
-      markets: MarketSearchResult[],
-      opUsers: typeof opUsers,
-      pmMarketUsers: pmUserMap,
-    }>{
-        markets: [...markets.opMarkets.map(v => {
-          return {
-            numNativeComments: commentCounts.get(v.data.data.AmmAddress.toString()) ?? 0,
-            numNativeLikes: likeCounts.get(v.data.data.AmmAddress.toString()) ?? 0,
-            opMarket: v,
-          }
-        }), ...markets.pmMarkets.markets.map(v => {
-          return {
-            numNativeComments: commentCounts.get(Buffer.from(v.data.question_id.slice(2), 'hex').toString()) ?? 0,
-            numNativeLikes: likeCounts.get(Buffer.from(v.data.question_id.slice(2), 'hex').toString()) ?? 0,
-            pmMarket: v,
-          }
-        })],
-        opUsers: opUsers,
-        pmMarketUsers: markets.pmMarkets.users,
-      }
+    })
   }),
 
   getMarket: procedure.input(
@@ -792,26 +710,19 @@ export const appRouter = router({
       }
     } else {
       return {
-          market: resp[0],
-          users: new Map<string, TUser>(),
-          comments: [],
-          likes: [] 
+        market: resp[0],
+        users: new Map<string, TUser>(),
+        comments: [],
+        likes: []
       }
     }
   }),
-
 });
 
 export type MarketSearchResult = ({
   numNativeComments: number,
   numNativeLikes: number,
-  pmMarket?: pmMarketFulldata,
-  opMarket?: marketFulldata
-} & ({
-  pmMarket: pmMarketFulldata,
-} | {
-  opMarket: marketFulldata,
-}))
+} & _MarketSearchResult);
 
 // export type definition of API
 export type AppRouter = typeof appRouter;

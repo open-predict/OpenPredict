@@ -1,5 +1,5 @@
 import {Chain, ClobClient} from "@polymarket/clob-client";
-import {pmMarketData, pmMarketFulldata, pmTokenFilledOrder, pmUserMap} from "../types/market.js";
+import {pmMarketData, pmMarketFulldata, pmTokenFilledOrder} from "../types/market.js";
 import {WebSocket} from "ws";
 import fetch from "node-fetch";
 import {ethers} from "ethers";
@@ -260,24 +260,13 @@ class PmChainCache {
     return this.marketData.has(condition_id)
   }
 
-  private toFulldata(userMap: pmUserMap, data: pmMarketData): pmMarketFulldata {
-    const addUser = (address: string) => {
-      if (!userMap.has(address) && this.users.has(address)) {
-        userMap.set(address, this.users.get(address)!)
-      }
-    }
+  private toFulldata(data: pmMarketData): pmMarketFulldata {
     return {
       data: data,
       orderdata: new Map(data.tokens.map(t => t.token_id).map(t => {
         var _filledOrders: any[] = []
         if (this.filledOrders.has(t)) {
           var __filledOrders = this.filledOrders.get(t)!;
-          [...__filledOrders.values()].forEach(v => {
-            if (v.taker != null) {
-              addUser(v.taker);
-            }
-            addUser(v.maker);
-          })
           _filledOrders = [...__filledOrders.values()];
         }
 
@@ -285,7 +274,6 @@ class PmChainCache {
         if (this.positions.has(t)) {
           var __positions = this.positions.get(t)!;
           [...__positions.entries()].forEach(([k, v]) => {
-            addUser(k)
             _positions.push({
               address: k,
               position: v.position,
@@ -310,23 +298,23 @@ class PmChainCache {
     if (data == null) {
       return null;
     } else {
-      var m: pmUserMap = new Map()
+      var pmM = new Map()
+      var opM = new Map()
+      var _data = this.toFulldata(data);
       return {
-        userM: m,
-        data: this.toFulldata(m, data),
+        pmUserM: pmM,
+        opUserM: opM,
+        data: _data,
       }
     }
   }
 
   public searchMarkets(options: {
     term?: string,
+    skip?: number,
     limit?: number,
     tradable?: boolean,
-    orderBy: "volume" | "recent",
-  }): {
-    markets: pmMarketFulldata[],
-    users: pmUserMap,
-  } {
+  }): pmMarketFulldata[] {
     if (options.limit == null) {
       options.limit = 50;
     }
@@ -348,23 +336,7 @@ class PmChainCache {
     if (options.tradable != null) {
       marketData = marketData.filter(v => options.tradable == !v.closed);
     }
-    if (options.orderBy != null) {
-      switch (options.orderBy) {
-        case "volume":
-          break;
-        case "recent":
-          marketData.sort((a, b) => {
-            return (new Date(a.end_date_iso)).getTime() - (new Date(b.end_date_iso)).getTime();
-          });
-          break;
-      }
-    }
-    var userMap = new Map()
-
-    return {
-      users: userMap,
-      markets: marketData.map(data => this.toFulldata(userMap, data))
-    }
+    return marketData.map(data => this.toFulldata(data));
   }
 }
 
