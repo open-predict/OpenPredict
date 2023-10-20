@@ -16,7 +16,7 @@ import {startAndMaintainPmList} from './amclient/polymarket.js';
 // @ts-ignore
 if (!globalThis.crypto) globalThis.crypto = webcrypto
 
-const port = 3001;
+const port = 3000;
 
 declare global {
   var mainProgramId: web3.PublicKey
@@ -77,7 +77,7 @@ const start = async () => {
     })
     const server = createHTTPServer({
       middleware: cors({
-        origin: dev ? ["http://localhost:5173", "http://frontend:5173"] : ["https://openpredict.org", /\.openpredict\.org$/],
+        origin: ["http://127.0.0.1:5173", "http://localhost:5173", "http://frontend:5173", "https://openpredict.org", /\.openpredict\.org$/ ],
         methods: ["GET", "POST"],
         credentials: true
       }),

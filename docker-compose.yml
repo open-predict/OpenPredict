@@ -39,8 +39,10 @@ services:
         - PUBLIC_TRPC_URL=http://localhost:3000
         - PUBLIC_INTERNAL_TRPC_URL=http://backend:3000
         - PUBLIC_WEB3AUTH_ID=${WEB3AUTH_ID}
+        - PUBLIC_FAKE_API=false
     environment:
       - INTERNAL_TRPC_URL=http://backend:3000
+      - PUBLIC_FAKE_API=false
       - PORT=5173
     ports:
       - 5173:5173  
