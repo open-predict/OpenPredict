@@ -176,27 +176,28 @@ export const fakeAppRouter = router({
 
   searchMarkets: procedure.input(
     z.object({
-      term: z.string().nullable(),
-      skip: z.number().nullable(),
-      limit: z.number().nullable(),
+      term: z.string().optional(),
+      skip: z.number().optional(),
+      limit: z.number().optional(),
+      orderBy: z.enum(["recent", "volume"]),
     }),
   ).query(async (opts) => {
     const results: MarketSearchResult[] = [];
-    data.opMarkets.forEach(market => {
-      results.push({
-        numNativeLikes: market.data.Likes.size,
-        numNativeComments: market.data.CommentCount,
-        opMarket: market
-      })
-    })
+    // data.opMarkets.forEach(market => {
+    //   results.push({
+    //     numNativeLikes: market.data.Likes.size,
+    //     numNativeComments: market.data.CommentCount,
+    //     opMarket: market
+    //   })
+    // })
 
-    data.pmMarkets.forEach(market => {
-      results.push({
-        numNativeComments: faker.datatype.number({ min: 0, max: 20 }),
-        numNativeLikes: faker.datatype.number({ min: 0, max: 20 }),
-        pmMarket: market
-      })
-    })
+    // data.pmMarkets.forEach(market => {
+    //   results.push({
+    //     numNativeComments: faker.datatype.number({ min: 0, max: 20 }),
+    //     numNativeLikes: faker.datatype.number({ min: 0, max: 20 }),
+    //     pmMarket: market
+    //   })
+    // })
 
     return <{
       markets: MarketSearchResult[],

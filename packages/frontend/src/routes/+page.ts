@@ -14,16 +14,23 @@ export type TPageData = {
 export const ssr = true;
 
 export async function load() {
-  const data: TPageData = await api.searchMarkets.query({
-    term: "",
-    limit: 10,
-    skip: 0
+  const data: TPageData = {}
+
+  await api.searchMarkets.query({
+    "orderBy": "recent", 
+    "limit": 10, 
+    "term": "", 
+    "skip": 0
+  }).then(r => {
+    // data
   }).catch((e: any) => {
     console.error(e);
-    return {
-      error: e
-    }
+    data.error = e
+  
   })
+
+
+  console.log("data",data)
 
   if (data.markets) {
     data.markets.sort((a, b) => Number(b.numNativeLikes - a.numNativeLikes))

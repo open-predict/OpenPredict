@@ -9,6 +9,7 @@ export default defineConfig({
         sveltekit(),
         nodePolyfills()
     ],
+    logLevel: "info",
     ssr: { noExternal: ["svelte-headlessui"] },
     resolve: {
         alias: {
@@ -16,19 +17,22 @@ export default defineConfig({
         },
     },
     optimizeDeps: {
-        esbuildOptions: {
-            // Node.js global to browser globalThis
-            define: {
-                global: 'globalThis'
-            },
-            // Enable esbuild polyfill plugins
-            plugins: [
-                NodeGlobalsPolyfillPlugin({
-                    buffer: true
-                }),
-            ]
-        }
+        'disabled': true
     },
+    // optimizeDeps: {
+    //     esbuildOptions: {
+    //         // Node.js global to browser globalThis
+    //         define: {
+    //             global: 'globalThis'
+    //         },
+    //         // Enable esbuild polyfill plugins
+    //         plugins: [
+    //             NodeGlobalsPolyfillPlugin({
+    //                 buffer: true
+    //             }),
+    //         ]
+    //     }
+    // },
     build: {
         target: "esnext", // or "es2019"
         rollupOptions: {
