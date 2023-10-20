@@ -1,6 +1,5 @@
-import {z} from 'zod';
 import {procedure, router} from '../trpc.js';
-import {commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getPmMarket, getPmPriceHistorySchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata, pmUserMap} from '../../types/market.js';
+import {commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getMarketSchemaV0, getPmMarket, getPmPriceHistorySchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata, pmUserMap, searchMarketsSchemaV0} from '../../types/market.js';
 import {checkoutWithChangenowSchemaV0, makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0} from '../../types/user.js';
 import {_MarketSearchResult, getAllMarketMeta, getHelia, getMarketFulldata, marketByAddress, searchMarkets} from '../../amclient/index.js';
 import * as nodeCache from "node-cache";
@@ -681,12 +680,7 @@ export const appRouter = router({
   }),
 
   searchMarkets: procedure.input(
-    z.object({
-      term: z.string().optional(),
-      skip: z.number().optional(),
-      limit: z.number().optional(),
-      orderBy: z.enum(["recent", "volume"]),
-    }),
+    searchMarketsSchemaV0,
   ).query(async (opts) => {
     const results = await searchMarkets({
       term: opts.input.term,
@@ -703,9 +697,7 @@ export const appRouter = router({
   }),
 
   getMarket: procedure.input(
-    z.object({
-      id: z.string().min(32).max(44),
-    }),
+    getMarketSchemaV0,
   ).query(async (opts) => {
     const resp = await marketByAddress(opts.input.id)
     if (resp == null) {
