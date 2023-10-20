@@ -688,14 +688,18 @@ export const appRouter = router({
       orderBy: z.enum(["recent", "volume"]),
     }),
   ).query(async (opts) => {
-    return await getAllMarketMeta({
-      results: await searchMarkets({
-        term: opts.input.term,
-        skip: opts.input.skip,
-        limit: opts.input.limit,
-        orderBy: opts.input.orderBy,
-      })
+    const results = await searchMarkets({
+      term: opts.input.term,
+      skip: opts.input.skip,
+      limit: opts.input.limit,
+      orderBy: opts.input.orderBy,
     })
+    return {
+      meta: await getAllMarketMeta({
+        results: results,
+      }),
+      data: results,
+    }
   }),
 
   getMarket: procedure.input(
