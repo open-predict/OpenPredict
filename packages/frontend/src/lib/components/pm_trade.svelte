@@ -20,7 +20,7 @@
         getUserShares,
         buySharesInstruction,
     } from "$lib/web3_utils";
-    import { usdFormatter, Errors, TxStatus, delay } from "$lib/utils";
+    import { usdFormatter, Errors, TxStatus, delay, getTokenColor } from "$lib/utils";
     import confetti from "canvas-confetti";
     import { web3Store } from "$lib/web3Store";
     import LoadingOverlay from "$lib/components/loading_overlay.svelte";
@@ -29,7 +29,6 @@
         pmTokenData,
         pmTokenOrderdata,
     } from "@am/backend/types/market";
-    import colors from "tailwindcss/colors";
     import { fade, scale, slide } from "svelte/transition";
     import "$lib/styles/range.css";
     import Toggle from "$lib/elements/toggle.svelte";
@@ -181,19 +180,8 @@
                 {#each Array.from(Object.entries(market.data.tokens)) as token}
                     <button
                         on:click={() => selectToken(token[0])}
-                        class={`h-10 text-sm w-full rounded-xl font-semibold mt-auto ring-2 ${
-                            token[1].outcome === "Yes"
-                                ? `ring-emerald-400 ${
-                                      selectedToken?.id === token[0]
-                                          ? "bg-green-400 text-white"
-                                          : "text-green-400"
-                                  }`
-                                : `ring-red-500 ${
-                                      selectedToken?.id === token[0]
-                                          ? "bg-red-500 text-white"
-                                          : "text-red-500"
-                                  }`
-                        }`}
+                        class={`h-10 text-sm w-full rounded-xl font-semibold mt-auto border-2`}
+                        style={`border-color: ${getTokenColor(token[1].outcome)[1]['600']}; ${selectedToken?.id === token[0] ? `color: white; background-color: ${getTokenColor(token[1].outcome)[1]['600']};` : `color: ${getTokenColor(token[1].outcome)[1]['400']};`}`}
                     >
                         {token[1].outcome}
                     </button>

@@ -121,3 +121,36 @@ export function timeAgo(date: Date) {
     }
   }
 }
+
+function computeHash(s: string): number {
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) {
+      hash = (hash << 5) - hash + s.charCodeAt(i);
+      hash |= 0;
+  }
+  return hash;
+}
+
+import * as twColors from "tailwindcss/colors";
+
+export type TColor =  [keyof typeof twColors, Record<string, string>];
+
+const colors: (keyof typeof twColors)[] = ['blue', 'fuchsia', 'lime', 'orange', 'pink', 'purple', 'sky', 'teal']
+
+export function getColor(id: string): TColor {
+  const hash = computeHash(id);
+  const index = Math.abs(hash) % colors.length;
+  return [colors[index], twColors[colors[index]] as Record<string, string>];
+}
+
+export function getTokenColor(outcome: string): TColor {
+  const _outcome = outcome.toLowerCase();
+  if(_outcome === "yes"){
+    return ["green", twColors.green];
+  } else if (_outcome === "no") {
+    return ["red", twColors.red];
+  } else {
+    const c = getColor(_outcome)
+    return c;
+  }
+}

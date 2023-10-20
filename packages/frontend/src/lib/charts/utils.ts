@@ -179,19 +179,19 @@ export function resamplePmPriceHistory(rawData: MarketPrice[], term: PriceHistor
 	}
 
 	// fill start & end date
-	const firstDp: pmPriceHistoryPoint =
+	const firstDp: MarketPrice =
 		data.length > 0
 			? {...data[0], t: start.getTime()}
 			: {
 				t: start.getTime(),
-				price: 0
+				p: 0
 			};
-	const lastDp: pmPriceHistoryPoint =
+	const lastDp: MarketPrice =
 		data.length > 0
 			? {...data[data.length - 1], t: end.getTime()}
 			: {
 				t: end.getTime(),
-				price: 0
+				p: 0
 			};
 
 	data.unshift(firstDp);

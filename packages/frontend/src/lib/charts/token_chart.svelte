@@ -21,7 +21,7 @@
         PriceHistoryTerm,
         resamplePmPriceHistory,
     } from "$lib/charts/utils";
-    import { dateFormatter } from "$lib/utils";
+    import { dateFormatter, getTokenColor } from "$lib/utils";
     import colors from "tailwindcss/colors";
     import { api } from "$lib/api";
     import { PriceHistoryInterval, type MarketPrice } from "$lib/clob";
@@ -41,15 +41,7 @@
                     .then((ph) => ({
                         ...t,
                         data: resamplePmPriceHistory(ph, term),
-                        color:
-                            t.outcome === "Yes"
-                                ? colors.green[400]
-                                : t.outcome === "No"
-                                ? colors.red[400]
-                                : Object.entries(colors).filter(
-                                      ([name, value]) =>
-                                          acceptableColors.includes(name)
-                                  )[i][1]["500"],
+                        color: getTokenColor(t.outcome)['400'],
                     }));
             })
         ).then((res) => {

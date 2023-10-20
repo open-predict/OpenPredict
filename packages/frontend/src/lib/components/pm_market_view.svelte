@@ -91,7 +91,7 @@
             class="bg-neutral-950/90 min-h-[300px] max-h-[400px] h-[300px] overflow-y-scroll scrollbar_hide"
         >
             {#if selectedView === "chart"}
-                <TokenChart {market} />
+                <!-- <TokenChart {market} /> -->
                 <div />
             {:else if selectedView === "orderbook"}
                 <Orderbook {market} {updateMarket} />
