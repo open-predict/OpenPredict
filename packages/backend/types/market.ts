@@ -6,6 +6,17 @@ export const getPmMarket = z.object({
   condition_id: z.string()
 })
 
+export const searchMarketsSchemaV0 = z.object({
+  term: z.string().optional(),
+  skip: z.number().optional(),
+  limit: z.number().optional(),
+  orderBy: z.enum(["recent", "volume"]),
+})
+
+export const getMarketSchemaV0 = z.object({
+  id: z.string().min(32).max(44),
+})
+
 export const getPmPriceHistorySchemaV0 = z.object({
   interval: z.enum([
     PriceHistoryInterval.ONE_HOUR,
@@ -110,7 +121,7 @@ export type pmUserMap = Map<string, {
 
 export type pmTokenPriceHistoryPoint = {
   t: number,
-  price: number,    
+  price: number,
 }
 
 export type pmTokenOrderdata = {
