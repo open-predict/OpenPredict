@@ -64,19 +64,21 @@ function createWeb3Store() {
     }
 
     function upsertBalance(value: Partial<Record<TAddressKey, bigint>>) {
-        const balances = (Object.entries(value) as [TAddressKey, bigint][]).map(a => {
+        let ns: TWeb3Store = {}
+        if (ns === undefined) return;
+        Object.entries(value).map(a => {
             let b;
             switch (a[0]) {
                 case "polygonAddress":
-                    b = { polygonBalance: a[1] }
+                    if (ns) ns.polygonBalance = a[1]
                     break;
                 case 'polygonUsdcAddress':
-                    b = { polygonUsdcBalance: a[1] }
+                    if (ns) ns.polygonUsdcBalance = a[1]
                     break;
                 case 'solanaAddress':
-                    b = { solanaBalance: a[1] }
+                    if (ns) ns.solanaBalance = a[1]
                 case 'solanaUsdcAddress':
-                    b = { solanaUsdcBalance: a[1] }
+                    if (ns) ns.solanaUsdcBalance = a[1]
                 default:
                     break;
             }
@@ -85,7 +87,7 @@ function createWeb3Store() {
         update(store => {
             store = {
                 ...store,
-                ...balances
+                ...ns
             }
             return store
         })
@@ -102,7 +104,7 @@ function createWeb3Store() {
         })
     }
 
-    function updatePolyClobApiKeys(keys: ApiKeyCreds){
+    function updatePolyClobApiKeys(keys: ApiKeyCreds) {
         update(store => {
             return {
                 ...store,

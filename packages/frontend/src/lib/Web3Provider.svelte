@@ -98,7 +98,7 @@
       );
     }
 
-    let keys: ApiKeyCreds | undefined = $web3Store.polyClobApiKeys;
+    let keys: ApiKeyCreds | undefined = $web3Store?.polyClobApiKeys;
 
     if (!keys) {
       const pc = await getClobClient();

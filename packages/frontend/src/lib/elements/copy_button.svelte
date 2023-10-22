@@ -14,7 +14,7 @@
 
 <button
     on:click={copy}
-    class="action_icon h-5 w-5"
+    class="action_icon h-5 w-5 inline-flex"
 >
     {#if copied}
         <IconCheck size={14} class="stroke-green-500" />

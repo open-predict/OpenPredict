@@ -43,23 +43,23 @@
         }
     }
 
-    $: spread = selectedToken
-        ? Math.abs(
-              50 -
-                  selectedToken.token.book.bids.sort(
-                      (a, b) => b[0] - a[0]
-                  )[0][0] +
-                  (50 -
-                      selectedToken.token.book.asks.sort(
-                          (a, b) => a[0] - b[0]
-                      )[0][0])
-          )
-        : null;
-    $: midpoint =
-        selectedToken && spread
-            ? selectedToken.token.book.asks.sort((a, b) => a[0] - b[0])[0][0] +
-              spread / 2
-            : null;
+    // $: spread = selectedToken
+    //     ? Math.abs(
+    //           50 -
+    //               selectedToken.token.book.bids.sort(
+    //                   (a, b) => b[0] - a[0]
+    //               )[0][0] +
+    //               (50 -
+    //                   selectedToken.token.book.asks.sort(
+    //                       (a, b) => a[0] - b[0]
+    //                   )[0][0])
+    //       )
+    //     : null;
+    // $: midpoint =
+    //     selectedToken && spread
+    //         ? selectedToken.token.book.asks.sort((a, b) => a[0] - b[0])[0][0] +
+    //           spread / 2
+    //         : null;
 
     onMount(async () => {
         if (market.data.tokens[0]) {
@@ -67,25 +67,25 @@
         }
     });
 
-    $: askRows = selectedToken
-        ? selectedToken.token.book.asks
-              .sort((a, b) => a[0] - b[0])
-              .reduce((acc: { p: number; s: number; t: number }[], val) => {
-                  return [
-                      ...acc,
-                      {
-                          p: val[0],
-                          s: val[1],
-                          t:
-                              acc.length > 0
-                                  ? acc[acc.length - 1].t + val[0] * val[1]
-                                  : val[0] * val[1],
-                      },
-                  ];
-              }, [])
-              .reverse()
-        : [];
-    $: askTotal = askRows.length > 0 ? askRows[0].t : 1;
+    // $: askRows = selectedToken
+    //     ? selectedToken.token.book.asks
+    //           .sort((a, b) => a[0] - b[0])
+    //           .reduce((acc: { p: number; s: number; t: number }[], val) => {
+    //               return [
+    //                   ...acc,
+    //                   {
+    //                       p: val[0],
+    //                       s: val[1],
+    //                       t:
+    //                           acc.length > 0
+    //                               ? acc[acc.length - 1].t + val[0] * val[1]
+    //                               : val[0] * val[1],
+    //                   },
+    //               ];
+    //           }, [])
+    //           .reverse()
+    //     : [];
+    // $: askTotal = askRows.length > 0 ? askRows[0].t : 1;
 
     $: bidRows = selectedToken
         ? selectedToken.token.book.bids
@@ -105,6 +105,7 @@
               }, [])
         : [];
     $: bidTotal = bidRows.length > 0 ? bidRows[bidRows.length - 1].t : 1;
+    $: console.log(bidTotal, bidRows, selectedToken)
 </script>
 
 <div
@@ -112,7 +113,6 @@
 >
     {#each market.data.tokens as token}
         <button
-            on:click={() => selectToken(token.token_id)}
             class={`h-12 border-b-2 font-semibold text-sm ${
                 token.token_id === selectedToken?.id
                     ? "text-white border-neutral-400"
@@ -121,6 +121,16 @@
         >
             {`Trade ${token.outcome}`}
         </button>
+        <!-- <button
+            on:click={() => selectToken(token.token_id)}
+            class={`h-12 border-b-2 font-semibold text-sm ${
+                token.token_id === selectedToken?.id
+                    ? "text-white border-neutral-400"
+                    : "text-neutral-300 border-transparent"
+            }`}
+        >
+            {`Trade ${token.outcome}`}
+        </button> -->
     {/each}
 </div>
 <div
@@ -143,7 +153,7 @@
         id="order_book"
         class="flex flex-col divide-y divide-neutral-800 text-sm text-neutral-400 h-full"
     >
-        <div class="flex flex-col">
+        <!-- <div class="flex flex-col">
             {#each askRows as ask}
                 <div class="flex h-8 relative">
                     <div
@@ -167,8 +177,8 @@
                     </div>
                 </div>
             {/each}
-        </div>
-        <div class="flex h-8 relative text-neutral-200" id="midpoint">
+        </div> -->
+        <!-- <div class="flex h-8 relative text-neutral-200" id="midpoint">
             <div class="w-1/3 px-4 py-2 flex justify-center items-center">
                 Midpoint {midpoint
                     ? usdFormatter.format(midpoint / 100)
@@ -178,7 +188,7 @@
                 Spread {spread ? usdFormatter.format(spread / 100) : "N/A"}
             </div>
             <div class="w-1/3" />
-        </div>
+        </div> -->
         <div class="flex flex-col">
             {#each bidRows as bid}
                 <div class="flex h-8 relative">

@@ -122,10 +122,10 @@
 		{/if}
 	</div>
 	<div slot="right">
-		{#if $web3Store?.polygonAddress}
-			<div class="bg-white ring-1 rounded-3xl ring-gray-200">
+		<!-- {#if $web3Store?.polygonAddress}
+			<div class="bg-white dark:bg-neutral-950 rounded-2xl">
 				<AccountSummary />
 			</div>
-		{/if}
+		{/if} -->
 	</div>
 </ColumnLayout>
