@@ -10,7 +10,7 @@
     export let id: string;
 
     $: userResponse = api.getUser.query({userId: [id]}).then(res => {
-        return Array.from(res.entries())[0][1]
+        return res.get(id)
     })
     
 </script>

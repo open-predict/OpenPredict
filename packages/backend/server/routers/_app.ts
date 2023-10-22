@@ -13,6 +13,7 @@ import base58 from 'bs58';
 import SuperJSON from 'superjson';
 import fetch from "node-fetch";
 import {ClobClient, Chain} from '@polymarket/clob-client';
+import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 
 declare global {
   var loginChallengeCache: nodeCache
@@ -687,6 +688,7 @@ export const appRouter = router({
       skip: opts.input.skip,
       limit: opts.input.limit,
       orderBy: opts.input.orderBy,
+      tradable: opts.input.tradeable
     })
     return {
       meta: await getAllMarketMeta({
@@ -722,3 +724,5 @@ export type MarketSearchResult = ({
 
 // export type definition of API
 export type AppRouter = typeof appRouter;
+export type AppRouterOutputs = inferRouterOutputs<AppRouter>;
+export type AppRouterInputs = inferRouterInputs<AppRouter>;

@@ -19,7 +19,7 @@
 
 	export let data;
 	$: pageData = superjson.deserialize<TPageData>(data)
-	$: ({markets} = pageData);
+	$: markets = pageData.searchResults?.data ?? []
 
 	function updateMarket(
 		id: string,

@@ -17,22 +17,19 @@ export default defineConfig({
         },
     },
     optimizeDeps: {
-        'disabled': true
+        esbuildOptions: {
+            // Node.js global to browser globalThis
+            define: {
+                global: 'globalThis'
+            },
+            // Enable esbuild polyfill plugins
+            plugins: [
+                NodeGlobalsPolyfillPlugin({
+                    buffer: true
+                }),
+            ]
+        }
     },
-    // optimizeDeps: {
-    //     esbuildOptions: {
-    //         // Node.js global to browser globalThis
-    //         define: {
-    //             global: 'globalThis'
-    //         },
-    //         // Enable esbuild polyfill plugins
-    //         plugins: [
-    //             NodeGlobalsPolyfillPlugin({
-    //                 buffer: true
-    //             }),
-    //         ]
-    //     }
-    // },
     build: {
         target: "esnext", // or "es2019"
         rollupOptions: {

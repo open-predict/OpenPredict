@@ -11,6 +11,7 @@ export const searchMarketsSchemaV0 = z.object({
   skip: z.number().optional(),
   limit: z.number().optional(),
   orderBy: z.enum(["recent", "volume"]),
+  tradeable: z.boolean().optional()
 })
 
 export const getMarketSchemaV0 = z.object({

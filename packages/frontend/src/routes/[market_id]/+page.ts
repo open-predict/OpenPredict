@@ -15,10 +15,6 @@ export type TMarketIdPageData = {
 
 export async function load({ params }) {
 
-  // const trpc = browser
-  //   ? (await import("$lib/trpc.js")).trpcc
-  //   : (await import("$lib/btrpc.js")).btrpc;
-
   let data: TMarketIdPageData = {
     id: params.market_id ?? "",
   }
