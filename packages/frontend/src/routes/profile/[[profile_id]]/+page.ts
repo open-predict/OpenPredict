@@ -1,4 +1,3 @@
-import SuperJSON from 'superjson';
 import type { extMarketChaindata, marketFulldata, marketUserChaindata } from '@am/backend/types/market.js';
 import type { TUser } from '@am/backend/types/user.js';
 import { web3StoreLsKey } from '$lib/web3Store.js';
@@ -6,6 +5,7 @@ import { PublicKey } from '@solana/web3.js';
 import { goto } from '$app/navigation';
 import { redirect } from '@sveltejs/kit';
 import { browser } from '$app/environment';
+import { superjson } from '$lib/superjson.js';
 
 export type TProfilePageData = {
 	id: string | null;
@@ -55,6 +55,6 @@ export async function load({ data: server_data, params }) {
 	// 	return SuperJSON.serialize(data);
 	// } catch (e) {
 	// 	console.error(e);
-	return SuperJSON.serialize({ id: null })
+	return superjson.serialize({ id: null })
 	// }
 }

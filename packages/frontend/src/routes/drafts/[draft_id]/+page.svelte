@@ -7,11 +7,11 @@
         PUBLIC_USDC_MINT_ADDR,
     } from "$env/static/public";
     import { PublicKey } from "@solana/web3.js";
-    import {
-        Dialog,
-        DialogDescription,
-        DialogOverlay,
-    } from "@rgossiaux/svelte-headlessui";
+    // import {
+    //     Dialog,
+    //     DialogDescription,
+    //     DialogOverlay,
+    // } from "@rgossiaux/svelte-headlessui";
     import { web3Store } from "$lib/web3Store.js";
     import { goto } from "$app/navigation";
     import { autoresizeTextarea, usdFormatter } from "$lib/utils.js";
@@ -323,7 +323,7 @@
         </div>
     </div>
 </ColumnLayout>
-
+<!-- 
 <Dialog
     open={deleteModal}
     on:close={() => (deleteModal = false)}
@@ -353,4 +353,4 @@
             </button>
         </div>
     </div>
-</Dialog>
+</Dialog> -->

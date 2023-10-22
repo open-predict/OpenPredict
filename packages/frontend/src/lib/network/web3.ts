@@ -9,7 +9,6 @@ import { SolanaWalletConnectorPlugin } from "@web3auth/solana-wallet-connector-p
 import type { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import type { Transaction, TransactionInstruction } from "@solana/web3.js";
-import type { Errors } from "$lib/utils";
 import type { TransactionRequest } from "ethers6"
 
 export abstract class Web3 {

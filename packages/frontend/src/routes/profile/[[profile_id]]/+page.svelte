@@ -3,7 +3,7 @@
     import { PublicKey } from "@solana/web3.js";
     import { web3Workspace } from "$lib/web3Workspace";
     import { web3Store } from "$lib/web3Store";
-    import { Dialog, DialogOverlay } from "@rgossiaux/svelte-headlessui";
+    // import { Dialog, DialogOverlay } from "@rgossiaux/svelte-headlessui";
     import { PUBLIC_MAIN_PROGRAM_ID } from "$env/static/public";
     import {
         autoresizeTextarea,
@@ -17,7 +17,6 @@
         USDC_PER_DOLLAR,
     } from "$lib/web3_utils.js";
     // import { trpcc } from "$lib/trpc.js";
-    import SuperJSON from "superjson";
     import { Modal, modalStore } from "$lib/modals/modalStore.js";
     import AccountSummary from "$lib/components/account_summary.svelte";
     import { page } from "$app/stores";
@@ -28,10 +27,11 @@
     import { goto } from "$app/navigation";
     import { browser } from "$app/environment";
     import type { TProfilePageData } from "./+page.js";
+    import { superjson } from "$lib/superjson.js";
 
     export let data;
     let { profile, markets, id, positions } =
-        SuperJSON.deserialize<TProfilePageData>(data);
+        superjson.deserialize<TProfilePageData>(data);
 
     enum Tabs {
         // Activity = "activity",
@@ -351,7 +351,7 @@
         {/if}
     </div>
 </ColumnLayout>
-
+<!-- 
 <Dialog
     open={creatingUsername}
     on:close={() => (creatingUsername = false)}
@@ -473,4 +473,4 @@
             </button>
         </div>
     </div>
-</Dialog>
+</Dialog> -->

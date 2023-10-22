@@ -411,15 +411,6 @@ export const appRouter = router({
     return map
   }),
 
-  getPmPriceHistory: procedure.input(
-    getPmPriceHistorySchemaV0,
-  ).query(async (opts) => {
-    return await pmclient.getPricesHistory({
-      interval: opts.input.interval,
-      market: opts.input.asset_id,
-    })
-  }),
-
   getMarketAccounts: procedure.input(
     getMarketAccountsSchemaV0,
   ).query(async (opts) => {

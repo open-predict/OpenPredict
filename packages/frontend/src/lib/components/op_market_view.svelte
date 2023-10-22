@@ -24,7 +24,6 @@
     import { api } from "$lib/api";
     import type { pmMarketFulldata } from "@am/backend/types/market";
     import Trade from "$lib/modals/trade.svelte";
-    import { Dialog, DialogOverlay } from "@rgossiaux/svelte-headlessui";
     import UserPill from "./user_pill.svelte";
     import TradersPill from "$lib/elements/traders_pill.svelte";
     import OpChart from "$lib/charts/op_chart.svelte";

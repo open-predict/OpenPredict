@@ -174,7 +174,6 @@
             : `bg-indigo-600 text-white`
         : `bg-indigo-600 text-white`;
 
-    $: console.log(market.data.tokens);
 </script>
 
 <div class="flex flex-col gap-4">

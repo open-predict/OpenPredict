@@ -1,6 +1,8 @@
 //import axios, {type AxiosRequestHeaders, type Method} from "axios";
-import type {OrdersScoringParams} from "../types";
-import {isBrowser} from "browser-or-node";
+import type { Method } from "axios";
+import type { OrdersScoringParams } from "../types";
+import { isBrowser } from "browser-or-node";
+import axios from "axios";
 
 export const GET = "GET";
 export const POST = "POST";
@@ -35,26 +37,25 @@ export const request = async (
   data?: any,
   params?: any,
 ): Promise<any> => {
-  //try {
-  //    overloadHeaders(method, headers);
-  //    const response = await axios({ method, url: endpoint, headers, data, params });
-  //    return response;
-  //} catch (err) {
-  //    if (axios.isAxiosError(err)) {
-  //        if (err.response) {
-  //            console.error("request error", {
-  //                status: err.response?.status,
-  //                statusText: err.response?.statusText,
-  //                data: err.response?.data,
-  //            });
-  //            return err.response?.data;
-  //        } else {
-  //            return { error: "connection error" };
-  //        }
-  //    }
-
-  //    return { error: err };
-  //}
+  try {
+    overloadHeaders(method, headers);
+    const response = await axios({ method, url: endpoint, headers, data, params });
+    return response;
+  } catch (err) {
+    if (axios.isAxiosError(err)) {
+      if (err.response) {
+        console.error("request error", {
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          data: err.response?.data,
+        });
+        return err.response?.data;
+      } else {
+        return { error: "connection error" };
+      }
+    }
+    return { error: err };
+  }
 };
 
 export type QueryParams = Record<string, any>;

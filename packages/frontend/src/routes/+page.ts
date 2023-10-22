@@ -13,11 +13,7 @@ export async function load() {
   const data: TPageData = {};
   try {
     data.searchResults = await api.searchMarkets.query({
-      "orderBy": "recent",
-      "limit": 10,
-      "term": "",
-      "skip": 0,
-      "tradeable": true
+      "term": "musk",
     })
   } catch (e) {
     console.error(e)

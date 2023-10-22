@@ -201,7 +201,7 @@ export function resamplePmPriceHistory(rawData: MarketPrice[], term: PriceHistor
 	let endTime = moment(end)
 	let datesResampled = data.map(value => {
 		let resampled = moment(value.t).startOf(period)
-		return {date: resampled, price: value.p}
+		return {date: resampled, price: value.p * 100}
 	})
 
 	type DPWithMoment = {

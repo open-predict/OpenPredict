@@ -14,21 +14,21 @@
   import ToastsProvider from "$lib/toasts/toastsProvider.svelte";
   import "$lib/styles/nprogress.css";
 
-  NProgress.configure({
-    minimum: 0.16,
-    showSpinner: false,
-  });
+  // NProgress.configure({
+  //   minimum: 0.16,
+  //   showSpinner: false,
+  // });
 
-  $: {
-    if (browser) {
-      if ($navigating) {
-        NProgress.start();
-      }
-      if (!$navigating) {
-        NProgress.done();
-      }
-    }
-  }
+  // $: {
+  //   if (browser) {
+  //     if ($navigating) {
+  //       NProgress.start();
+  //     }
+  //     if (!$navigating) {
+  //       NProgress.done();
+  //     }
+  //   }
+  // }
 
   // for the ported polyclob lib
   globalThis.Buffer = Buffer;

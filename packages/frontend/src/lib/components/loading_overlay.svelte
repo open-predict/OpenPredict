@@ -1,6 +1,5 @@
 <script lang="ts">
     import { IconCircleCheck, IconCircleX } from "@tabler/icons-svelte";
-    import { Spinner } from "flowbite-svelte";
     export let loadingMessage = "";
     export let errorMessage = "";
     export let completedMessage = "";
@@ -34,7 +33,7 @@
             </button>
         {:else if loadingMessage}
             <div class="text-gray-700">
-                <Spinner color={variant ?? "gray"} />
+                <!-- <Spinner color={variant ?? "gray"} /> -->
             </div>
             <p class=" text-gray-700">
                 {loadingMessage}

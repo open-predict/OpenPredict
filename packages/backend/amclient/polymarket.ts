@@ -3,7 +3,6 @@ import {pmMarketData, pmMarketFulldata, pmTokenFilledOrder} from "../types/marke
 import {WebSocket} from "ws";
 import fetch from "node-fetch";
 import {ethers} from "ethers";
-import {searchMarkets} from "./index.js";
 import {msearch} from "../index.js";
 
 const tempwallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey);
