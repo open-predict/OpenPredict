@@ -1,5 +1,17 @@
 version: '3'
 services:
+  search:
+    image: getmeili/meilisearch:latest
+    environment:
+      - MEILI_HTTP_ADDR=0.0.0.0:7700
+      - MEILI_NO_ANALYTICS=true
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+      - MEILI_ENV=production
+      - MEILI_DB_PATH=/data.ms
+      - MEILI_LOG_LEVEL=INFO
+    volumes:
+      - ./data.ms:/data.ms
+  
   db:
     image: postgres:latest
     environment:
@@ -20,9 +32,12 @@ services:
       - MAIN_PROGRAM_ID=${MAIN_PROGRAM_ID}
       - USDC_MINT_ADDR=${USDC_MINT_ADDRESS}
       - FEE_PAYER_PRIVKEY=${FEE_PAYER_PRIVKEY}
+      - MEILI_HTTP_ADDR=http://search:7700
+      - MEILI_API_KEY=${MEILI_MASTER_KEY}
     ports:
       - 3000:3000
     depends_on:
+      - search
       - db
 
   frontend:
