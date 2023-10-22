@@ -8,10 +8,11 @@ import {exec} from "child_process"
 import {startMaintainingAccountState} from "./amclient/globals.js";
 import {appRouter} from './server/routers/_app.js';
 import {createContext} from './server/trpc.js';
-import {getHelia} from './amclient/index.js';
 import {webcrypto} from 'node:crypto';
 import {readFile} from 'fs/promises';
 import {startAndMaintainPmList} from './amclient/polymarket.js';
+import * as meilisearch from 'meilisearch';
+import fetch from 'cross-fetch';
 
 // @ts-ignore
 if (!globalThis.crypto) globalThis.crypto = webcrypto
@@ -28,6 +29,14 @@ declare global {
   }
   var instanceId: Buffer | null //AMM address prefix that hints that this is the relevant instance.
 };
+
+export function msearch() {
+  return new meilisearch.MeiliSearch({
+    "host": process.env.MEILI_HTTP_ADDR ?? "localhost:7700",
+    "apiKey": process.env.MEILI_API_KEY,
+    "httpClient": ((host, init) => fetch(host, init).then(resp => resp.json()))
+  });
+}
 
 // when using middleware `hostname` and `port` must be provided below
 
@@ -72,12 +81,9 @@ const start = async () => {
   startAndMaintainPmList().then(_ => {})
   startMaintainingAccountState(rpcUrl).then((_: any) => {
     console.log("Chain cache initted; starting helia")
-    getHelia().then(_ => {
-      console.log("Helia up")
-    })
     const server = createHTTPServer({
       middleware: cors({
-        origin: ["http://127.0.0.1:5173", "http://localhost:5173", "http://frontend:5173", "https://openpredict.org", /\.openpredict\.org$/ ],
+        origin: ["http://127.0.0.1:5173", "http://localhost:5173", "http://frontend:5173", "https://openpredict.org", /\.openpredict\.org$/],
         methods: ["GET", "POST"],
         credentials: true
       }),

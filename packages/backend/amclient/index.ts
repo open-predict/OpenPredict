@@ -9,6 +9,7 @@ import {FsBlockstore} from 'blockstore-fs'
 import {FsDatastore} from 'datastore-fs'
 import {Mutex} from 'async-mutex'
 import {TUser, userMetadataSchemaV0} from "../types/user.js"
+import {msearch} from "../index.js"
 
 declare global {
   var _helia: any
@@ -16,9 +17,10 @@ declare global {
   var heliaBlockstore: FsBlockstore | null
   var heliaDatastore: FsDatastore | null
   var heliaM: Mutex
+  var heliaCache: Map<string, unknown>
 }
 
-export async function getHelia() {
+async function getHelia() {
   await globalThis.heliaM.runExclusive(async () => {
     if (globalThis.helia == null) {
       globalThis.heliaBlockstore = new FsBlockstore('/opt/ipfs/blocks')
@@ -33,6 +35,21 @@ export async function getHelia() {
     console.log("helia addresses", globalThis._helia.libp2p.getMultiaddrs());
   })
   return globalThis.helia!;
+}
+
+export async function heliaAdd(data: unknown): Promise<multiformats.CID> {
+  return getHelia().then(helia => helia.add(data, {
+    signal: AbortSignal.timeout(500),
+  }))
+}
+
+export async function heliaGet(cid: multiformats.CID): Promise<unknown> {
+  if (globalThis.heliaCache.has(cid.toString())) {
+    return globalThis.heliaCache.get(cid.toString())
+  }
+  return getHelia().then(helia => helia.get(cid, {
+    signal: AbortSignal.timeout(500)
+  }))
 }
 
 export async function marketByAddress(amm_address: string): Promise<[marketFulldata, Map<string, {
@@ -52,9 +69,8 @@ export async function marketByAddress(amm_address: string): Promise<[marketFulld
       username: globalThis.chainCache.usernames.get(entry[0]) ?? null
     })
   }
-  const helia = await getHelia();
   const mfcid = multiformats.CID.decode(data.data.IPFS_Cid)
-  const result = await helia.get(mfcid)
+  const result = await heliaGet(mfcid)
   const metadata = await marketMetadataSchemaV0.safeParseAsync(result);
   return [{
     data: data,
@@ -105,15 +121,12 @@ export async function alertNewConfirmedTransaction(sig: string) {
 }
 
 export async function getMarketFulldata(data: extMarketChaindata): Promise<marketFulldata> {
-  const helia = await getHelia();
   var ipfs_ln = data.data.IPFS_Cid.length;
   if (globalThis.instanceId == null || data.data.AmmAddress.slice(0, 16).equals(globalThis.instanceId!)) {
     try {
       if (ipfs_ln > 0) {
         const mfcid = multiformats.CID.decode(data.data.IPFS_Cid)
-        const result = await helia.get(mfcid, {
-          signal: AbortSignal.timeout(500)
-        })
+        const result = await heliaGet(mfcid)
         const metadata = await marketMetadataSchemaV0.safeParseAsync(result);
         if (metadata.success) {
           return {
@@ -231,7 +244,8 @@ export async function getAllMarketMeta(data: {
       })
     }
   })
-  const helia = await getHelia()
+
+
   var retrievingOpUser = new Set<string>()
   const getOpUser = async (key: string) => {
     if (!retrievingOpUser.has(key) && !opUsers.has(key)) {
@@ -242,9 +256,7 @@ export async function getAllMarketMeta(data: {
         if (maybe_profile != null) {
           var js;
           try {
-            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid), {
-              signal: AbortSignal.timeout(500),
-            })
+            js = await heliaGet(multiformats.CID.decode(maybe_profile.IPFS_Cid))
           } catch (err) {
             console.log("error getting ipfs data: ", err)
           }
@@ -259,7 +271,6 @@ export async function getAllMarketMeta(data: {
       }
     }
   }
-
   //Do all of this at once.
   await Promise.allSettled([
     //Get all openpredict users
@@ -267,7 +278,6 @@ export async function getAllMarketMeta(data: {
       return [
         ...prev,
         ...[...m.data.UserAccounts.keys()].map(v => getOpUser(v)),
-        ...[...m.data.Likes.values()].map(v => getOpUser(v)),
         getOpUser(m.data.data.OperatorKey.toBase58()),
       ]
     }, <Promise<void>[]>[]),
@@ -318,7 +328,7 @@ export async function searchMarkets(
     limit?: number,
     skip?: number,
     tradable?: boolean,
-    orderBy: "volume" | "recent",
+    orderBy?: "volume" | "recent",
   },
 ): Promise<_MarketSearchResult[]> {
   var _ret: Promise<marketFulldata>[] = []
@@ -333,59 +343,36 @@ export async function searchMarkets(
       )
     }
   }
-  var results: _MarketSearchResult[] = []
-  await Promise.allSettled(_ret).then(result => {
-    var ret = result.filter(v => v.status == "fulfilled").map(v => (v as PromiseFulfilledResult<marketFulldata>).value);
-    console.log(`Did not find metadata for ${ret.filter(r => r.metadata === null).length} of ${result.length} markets`)
-    if (options.term != null) {
-      ret = ret.filter(v => v.metadata && JSON.stringify(v.metadata).includes(options.term!))
-    }
-    results.push(...ret.map(v => {
-      return {
-        opMarket: v,
-        pmMarket: undefined,
-      }
-    }))
+  var meilisearchResult = await msearch().index('markets').search(options.term, {
+    limit: options.limit,
+    offset: options.skip,
   })
-  results.push(...globalThis.pmChainCache.searchMarkets(options).map(market => {
-    return {
-      opMarket: undefined,
-      pmMarket: market,
-    }
-  }))
-  switch (options.orderBy) {
-    case "recent":
-      results.sort((a, b) => {
-        const getLatestTrade = (result: _MarketSearchResult): number => {
-          var latestOrder = 0;
-          if (result.opMarket == null) {
-            var _orderdata = [...result.pmMarket.orderdata.values()]
-            for (var orderdata of _orderdata) {
-              for (var filledOrder of orderdata.filledOrders) {
-                if (latestOrder > filledOrder.ts) {
-                  latestOrder = filledOrder.ts;
-                }
-              }
-            }
-          } else {
-            for (var historyPoint of result.opMarket.data.PriceHistory) {
-              var t = historyPoint.At.getTime()
-              if (t > latestOrder) {
-                latestOrder = t;
-              }
-            }
+  var results: Promise<_MarketSearchResult>[] = []
+  if (meilisearchResult.hits != null) {
+    console.log("found search result data:", meilisearchResult)
+    for (var i = 0; i < meilisearchResult.hits.length; i++) {
+      var data = meilisearchResult.hits[i];
+      console.log("meili search data:", data)
+      if (data['kind'] == "openpredict") {
+        results.push(getMarketFulldata(globalThis.chainCache.markets.get(data['id'])!).then(fulldata => {
+          return {
+            opMarket: fulldata,
+            pmMarket: undefined,
           }
-          return latestOrder;
-        }
-        return getLatestTrade(b) - getLatestTrade(a)
-      })
-      break;
-    case "volume":
-      break;
+        }))
+      } else if (data['kind'] == 'polymarket') {
+        results.push((async () => {
+          return {
+            opMarket: undefined,
+            pmMarket: globalThis.pmChainCache.getMarket(data['id'])!,
+          }
+        })())
+      }
+    }
+  } else {
+    console.log("search result:", meilisearchResult)
   }
-  var start = options.skip ?? 0;
-  results = results.slice(start, start + (options.limit != null && options.limit < 50 ? options.limit : 50));
-  return results;
+  return Promise.all(results);
 }
 
 export async function alertNewTransaction(sig: string) {

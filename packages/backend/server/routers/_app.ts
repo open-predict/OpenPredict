@@ -1,7 +1,7 @@
 import {procedure, router} from '../trpc.js';
 import {commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getMarketSchemaV0, getPmMarket, getPmPriceHistorySchemaV0, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata, pmUserMap, searchMarketsSchemaV0} from '../../types/market.js';
 import {checkoutWithChangenowSchemaV0, makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0} from '../../types/user.js';
-import {_MarketSearchResult, getAllMarketMeta, getHelia, getMarketFulldata, marketByAddress, searchMarkets} from '../../amclient/index.js';
+import {_MarketSearchResult, getAllMarketMeta, getMarketFulldata, heliaAdd, heliaGet, marketByAddress, searchMarkets} from '../../amclient/index.js';
 import * as nodeCache from "node-cache";
 import {createHash, randomBytes} from "crypto";
 import * as web3 from "@solana/web3.js";
@@ -328,8 +328,7 @@ export const appRouter = router({
         }
       }
       if (opts.input.liked) {
-        const start = new Date();
-        const x = await globalThis.chainCache.prisma.marketLike.upsert({
+        await globalThis.chainCache.prisma.marketLike.upsert({
           where: {
             ammAddress_userKey: {
               userKey: resp.key,
@@ -342,23 +341,13 @@ export const appRouter = router({
             ammAddress: marketAddr,
           },
         })
-        if (opts.input.openPredictMarketAddress != null && start < x.createdAt) {
-          var market = globalThis.chainCache.markets.get(opts.input.openPredictMarketAddress)!
-          market.Likes.add(base58.encode(resp.key));
-          globalThis.chainCache.markets.set(opts.input.openPredictMarketAddress, market);
-        }
       } else {
-        const res = await globalThis.chainCache.prisma.marketLike.deleteMany({
+        await globalThis.chainCache.prisma.marketLike.deleteMany({
           where: {
             ammAddress: marketAddr,
             userKey: resp.key,
           },
         })
-        if (opts.input.openPredictMarketAddress != null && res.count > 0) {
-          var market = globalThis.chainCache.markets.get(opts.input.openPredictMarketAddress)!
-          market.Likes.delete(base58.encode(resp.key));
-          globalThis.chainCache.markets.set(opts.input.openPredictMarketAddress, market);
-        }
       }
     }
   }),
@@ -374,7 +363,6 @@ export const appRouter = router({
   ).query(async (opts) => {
     var ret = new Map<string, TUser>();
     console.log("Starting getUser request", opts.input.userId)
-    const helia = await getHelia()
     await Promise.allSettled(opts.input.userId.map(async (v: string) => {
       var maybe_username = globalThis.chainCache.usernames.get(v);
       console.log("Got following username for user ", v, ":", maybe_username)
@@ -384,9 +372,7 @@ export const appRouter = router({
         if (maybe_profile != null) {
           var js;
           try {
-            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid), {
-              signal: AbortSignal.timeout(500),
-            })
+            js = await heliaGet(multiformats.CID.decode(maybe_profile.IPFS_Cid))
           } catch (err) {
             console.log("Couldn't get ipfs data: ", err)
             return;
@@ -479,7 +465,6 @@ export const appRouter = router({
         }
       })
     }
-    const helia = await getHelia()
     const keys = comments.map(v => base58.encode(v.userKey))
     await Promise.allSettled(keys.map(async (k: string) => {
       var maybe_username = globalThis.chainCache.usernames.get(k);
@@ -488,9 +473,7 @@ export const appRouter = router({
         if (maybe_profile != null) {
           var js;
           try {
-            js = await helia.get(multiformats.CID.decode(maybe_profile.IPFS_Cid), {
-              signal: AbortSignal.timeout(500),
-            })
+            js = await heliaGet(multiformats.CID.decode(maybe_profile.IPFS_Cid))
           } catch (err) {
             console.log("Couldn't get ipfs data: ", err)
             return;
@@ -540,8 +523,6 @@ export const appRouter = router({
           }
         } else {
           buf = Buffer.from(base58.decode(opts.input.openPredictMarketAddress));
-          maybe_market!.CommentCount += 1;
-          globalThis.chainCache.markets.set(opts.input.openPredictMarketAddress, maybe_market!);
         }
       } else {
         var maybe_pmmarket = globalThis.pmChainCache.getMarket(opts.input.polymarketConditionId)
@@ -652,8 +633,7 @@ export const appRouter = router({
   storeUserProfileIpfs: procedure.input(
     userMetadataSchemaV0,
   ).mutation(async (opts) => {
-    const helia = await getHelia();
-    const result = await helia.add(opts.input);
+    const result = await heliaAdd(opts.input);
     return {
       cid: result.toV1().bytes,
     }
@@ -674,7 +654,7 @@ export const appRouter = router({
   storeMarketIpfs: procedure.input(
     marketMetadataSchemaV0
   ).mutation(async (opts) => {
-    const result = await (await getHelia()).add(opts.input);
+    const result = await heliaAdd(opts.input);
     return {
       cid: result.toV1().bytes,
     }
@@ -688,7 +668,6 @@ export const appRouter = router({
       skip: opts.input.skip,
       limit: opts.input.limit,
       orderBy: opts.input.orderBy,
-      tradable: opts.input.tradeable
     })
     return {
       meta: await getAllMarketMeta({

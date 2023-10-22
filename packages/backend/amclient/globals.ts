@@ -1,11 +1,13 @@
 import * as web3 from '@solana/web3.js'
 import {MarketDataSnapshot, PrismaClient} from "@prisma/client"
 import * as helia from 'helia'
-import {extMarketChaindata, marketChaindata, marketPricePoint, profileChaindata} from '../types/market.js'
+import {extMarketChaindata, marketChaindata, marketFulldata, marketPricePoint, profileChaindata} from '../types/market.js'
 import NodeCache from 'node-cache';
 import {Mutex} from "async-mutex";
 import base58 from 'bs58';
 import * as multiformats from "multiformats"
+import {getMarketFulldata} from './index.js';
+import {msearch} from '../index.js';
 
 export type ChainCache = {
   markets: Map<string, extMarketChaindata>,
@@ -21,36 +23,42 @@ declare global {
   var chainCache: ChainCache;
 };
 
+function toMarketChaindata(vdata: Buffer): [Buffer, marketChaindata] {
+  var Version = vdata.readUInt8(1);
+  if (Version != 1) {
+    throw "unsupported market data version"
+  }
+  console.log(vdata)
+  var ipfs_len = vdata.readUint8(3 + 8 * 3);
+  var amm_address = vdata.slice(1 + 1 + 1 + 8 * 3 + 1 + ipfs_len + 32, 1 + 1 + 1 + 8 * 3 + 1 + ipfs_len + 32 + 32)
+  var newData: marketChaindata = {
+    Version: 1,
+    AmmAddress: amm_address,
+    Resolved: vdata.readUInt8(2) == 0 ? null : vdata.readUint8(2) == 2,
+    Subsidy: vdata.readBigUint64LE(3),
+    Yes: vdata.readBigUInt64LE(3 + 8),
+    No: vdata.readBigUint64LE(3 + 8 + 8),
+    IPFS_Cid: vdata.slice(3 + 8 * 3 + 1, 3 + 8 * 3 + 1 + ipfs_len),
+    OperatorKey: new web3.PublicKey(vdata.slice(3 + 8 * 3 + 1 + ipfs_len, 3 + 8 * 3 + 1 + ipfs_len + 32)),
+  }
+  console.log(base58.encode(amm_address), newData.Subsidy, newData.No, newData.Yes);
+  return [amm_address, newData]
+}
+
 async function handleAccountChanges(accounts: web3.AccountInfo<Buffer>[], retrieved: Date) {
   console.log(new Date(), "Handling account changes...")
   if (accounts.length > 0) {
-    const toMarket = (vdata: Buffer): [Buffer, marketChaindata] => {
-      var Version = vdata.readUInt8(1);
-      if (Version != 1) {
-        throw "unsupported market data version"
-      }
-      console.log(vdata)
-      var ipfs_len = vdata.readUint8(3 + 8 * 3);
-      var amm_address = vdata.slice(1 + 1 + 1 + 8 * 3 + 1 + ipfs_len + 32, 1 + 1 + 1 + 8 * 3 + 1 + ipfs_len + 32 + 32)
-      var newData: marketChaindata = {
-        Version: 1,
-        AmmAddress: amm_address,
-        Resolved: vdata.readUInt8(2) == 0 ? null : vdata.readUint8(2) == 2,
-        Subsidy: vdata.readBigUint64LE(3),
-        Yes: vdata.readBigUInt64LE(3 + 8),
-        No: vdata.readBigUint64LE(3 + 8 + 8),
-        IPFS_Cid: vdata.slice(3 + 8 * 3 + 1, 3 + 8 * 3 + 1 + ipfs_len),
-        OperatorKey: new web3.PublicKey(vdata.slice(3 + 8 * 3 + 1 + ipfs_len, 3 + 8 * 3 + 1 + ipfs_len + 32)),
-      }
-      console.log(base58.encode(amm_address), newData.Subsidy, newData.No, newData.Yes);
-      return [amm_address, newData]
-    }
+
+    //List of ipfs objects to pin at end.
     var pins: Buffer[] = []
+    //All jobs to do at the end
+    var jobs: Promise<void>[] = []
+
     const marketAccounts = accounts.filter(v => v.data.readUInt8(0) == 1)
     var newMarketAccounts: [Buffer, marketChaindata][] = []
     var updateMarketAccounts: [Buffer, marketChaindata][] = []
     marketAccounts.forEach(v => {
-      var [amm_address, newData] = toMarket(v.data)
+      var [amm_address, newData] = toMarketChaindata(v.data)
       pins.push(newData.IPFS_Cid)
       var maybe_market = globalThis.chainCache.markets.get(base58.encode(amm_address));
       if (maybe_market) {
@@ -60,27 +68,55 @@ async function handleAccountChanges(accounts: web3.AccountInfo<Buffer>[], retrie
       } else {
         newMarketAccounts.push([amm_address, newData])
       }
+      //Add markets to index
     })
     if (newMarketAccounts.length > 0 || updateMarketAccounts.length > 0) {
       var snapshots = new Map<string, marketPricePoint[]>();
       if (newMarketAccounts.length > 0) {
-        //TODO: Move this to search
-        const resp = await globalThis.chainCache.prisma.$transaction([
-          ...newMarketAccounts.map(([ammAddress, _]) => {
-            return globalThis.chainCache.prisma.marketComment.count({where: {ammAddress: ammAddress}})
-          }),
-          ...newMarketAccounts.map(([ammAddress, _]) => {
-            return globalThis.chainCache.prisma.marketLike.findMany({where: {ammAddress: ammAddress}, select: {userKey: true}})
-          }),
-          globalThis.chainCache.prisma.marketDataSnapshot.findMany({
-            where: {
-              ammAddress: {
-                in: newMarketAccounts.map(v => v[0]),
-              },
+        //Queue job to all new markets to search index
+        var _ret: Promise<marketFulldata>[] = []
+        const iter = chainCache.markets.values();
+        while (true) {
+          const nxt = iter.next();
+          if (nxt.done) {
+            break;
+          } else {
+            _ret.push(
+              getMarketFulldata(nxt.value),
+            )
+          }
+        }
+        jobs.push(
+          Promise.all(_ret).then(async markets => {
+            await msearch().index('markets').updateDocuments(
+              markets.map(v => {
+                return {
+                  id: base58.encode(v.data.data.AmmAddress),
+                  kind: "openpredict",
+                  ...(v.metadata == null ? {} : {
+                    title: v.metadata.title,
+                    description: v.metadata.description,
+                  })
+                }
+              }),
+              {
+                primaryKey: "id",
+              }
+            ).catch(err => {
+              console.log("meilisearch err on op market update: ", err)
+            })
+          })
+        )
+
+        //Set ChainCache with appropriate price histories.
+        const resp = await globalThis.chainCache.prisma.marketDataSnapshot.findMany({
+          where: {
+            ammAddress: {
+              in: newMarketAccounts.map(v => v[0]),
             },
-          }),
-        ]);
-        var mdsnapshots: MarketDataSnapshot[] = <MarketDataSnapshot[]>resp[resp.length - 1]
+          },
+        })
+        var mdsnapshots: MarketDataSnapshot[] = <MarketDataSnapshot[]>resp
         mdsnapshots.forEach(v => {
           const newPoint = {
             Yes: v.yes,
@@ -95,19 +131,14 @@ async function handleAccountChanges(accounts: web3.AccountInfo<Buffer>[], retrie
             snapshots.set(base58.encode(v.ammAddress), [..._snapshots, newPoint])
           }
         });
-        var commentCounts: number[] = <number[]>resp.slice(0, newMarketAccounts.length)
-        var likes: {userKey: Buffer}[][] = <{userKey: Buffer}[][]>resp.slice(0, resp.length - 1)
-        newMarketAccounts.forEach(([ammAddress, newData], i) => {
+        newMarketAccounts.forEach(([ammAddress, newData]) => {
           const _snapshots = snapshots.get(base58.encode(ammAddress));
           globalThis.chainCache.markets.set(base58.encode(ammAddress), {
             data: newData,
-            CommentCount: commentCounts[i],
-            Likes: likes[newMarketAccounts.length + i].reduce((prev, cur) => prev.add(base58.encode(cur.userKey)), new Set<string>()),
             UserAccounts: new Map(),
             PriceHistory: _snapshots ? _snapshots.sort((a, b) => a.At.getTime() - b.At.getTime()) : [],
             Trades: [],
           })
-
         })
       }
       updateMarketAccounts.forEach(([ammAddress, newData]) => {
@@ -241,9 +272,12 @@ async function handleAccountChanges(accounts: web3.AccountInfo<Buffer>[], retrie
       globalThis.chainCache.usernames.set(key.toBase58(), username)
       console.log("New profiles: ", globalThis.chainCache.profiles, globalThis.chainCache.usernames);
     })
-    await Promise.allSettled(pins.map(async v => {
-      return globalThis._helia.pins.add(multiformats.CID.decode(v))
-    }))
+    await Promise.allSettled([
+      ...pins.map(async v => {
+        return globalThis._helia.pins.add(multiformats.CID.decode(v))
+      }),
+      ...jobs,
+    ])
   }
 }
 

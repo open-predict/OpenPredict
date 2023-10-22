@@ -43,3 +43,5 @@ next-env.d.ts
 
 /target
 db_data
+.data.ms
+data.ms

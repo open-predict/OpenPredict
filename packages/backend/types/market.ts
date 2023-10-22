@@ -10,8 +10,7 @@ export const searchMarketsSchemaV0 = z.object({
   term: z.string().optional(),
   skip: z.number().optional(),
   limit: z.number().optional(),
-  orderBy: z.enum(["recent", "volume"]),
-  tradeable: z.boolean().optional()
+  orderBy: z.enum(["recent", "volume"]).optional(),
 })
 
 export const getMarketSchemaV0 = z.object({
@@ -191,8 +190,6 @@ export type marketFulldata = {
 
 export type extMarketChaindata = {
   data: marketChaindata,
-  CommentCount: number,
-  Likes: Set<string>,
   UserAccounts: Map<string, marketUserChaindata>
   PriceHistory: marketPricePoint[]
   Trades: marketTradeChaindata[]

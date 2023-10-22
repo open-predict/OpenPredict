@@ -3,7 +3,8 @@ import {pmMarketData, pmMarketFulldata, pmTokenFilledOrder} from "../types/marke
 import {WebSocket} from "ws";
 import fetch from "node-fetch";
 import {ethers} from "ethers";
-//import {Mutex} from "async-mutex";
+import {searchMarkets} from "./index.js";
+import {msearch} from "../index.js";
 
 const tempwallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey);
 const pmclient = new ClobClient(process.env.CLOB_HOST || "https://polyclob.openpredict.org", Chain.POLYGON, tempwallet);
@@ -181,8 +182,21 @@ class PmChainCache {
     var activeAndNew = active.filter(v => !this.marketData.has(v.condition_id))
     active.forEach(v => this.marketData.set(v.condition_id, v))
 
-    var tradableTokens: string[] = []
+    //Add to search index
+    msearch().index('markets').updateDocuments(activeAndNew.map(v => {
+      return {
+        id: v.condition_id,
+        kind: "polymarket",
+        title: v.question,
+        description: v.description,
+      }
+    }), {
+      "primaryKey": "id",
+    }).catch(err => {
+      console.log("meilisearch error updating pm documents: ", err)
+    })
 
+    var tradableTokens: string[] = []
     activeAndNew.forEach(v => {
       if (!v.accepting_orders || v.closed) {
         v.tokens.forEach(v => {
@@ -260,7 +274,7 @@ class PmChainCache {
     return this.marketData.has(condition_id)
   }
 
-  private toFulldata(data: pmMarketData): pmMarketFulldata {
+  public toFulldata(data: pmMarketData): pmMarketFulldata {
     return {
       data: data,
       orderdata: new Map(data.tokens.map(t => t.token_id).map(t => {
@@ -298,45 +312,9 @@ class PmChainCache {
     if (data == null) {
       return null;
     } else {
-      var pmM = new Map()
-      var opM = new Map()
       var _data = this.toFulldata(data);
-      return {
-        pmUserM: pmM,
-        opUserM: opM,
-        data: _data,
-      }
+      return _data;
     }
-  }
-
-  public searchMarkets(options: {
-    term?: string,
-    skip?: number,
-    limit?: number,
-    tradable?: boolean,
-  }): pmMarketFulldata[] {
-    if (options.limit == null) {
-      options.limit = 50;
-    }
-    var marketData: pmMarketData[] = []
-    const iter = pmChainCache.marketData.values();
-    while (true) {
-      const nxt = iter.next();
-      if (nxt.done) {
-        break;
-      } else {
-        marketData.push(
-          nxt.value,
-        )
-      }
-    }
-    if (options.term != null) {
-      marketData = marketData.filter(v => v.question.includes(options.term!))
-    }
-    if (options.tradable != null) {
-      marketData = marketData.filter(v => options.tradable == !v.closed);
-    }
-    return marketData.map(data => this.toFulldata(data));
   }
 }
 
