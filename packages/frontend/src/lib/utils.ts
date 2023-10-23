@@ -86,7 +86,7 @@ export function generateProfileImage(publicKey: string) {
 }
 
 export function readableAddress(address: string) {
-  return `${address.substring(0, 4)}...${address.slice(-4)}`;
+  return `${address.substring(0, 6)}...`;
 }
 
 export function timeAgo(date: Date) {

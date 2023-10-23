@@ -1,13 +1,13 @@
 <script lang="ts">
     import { Modal, modalStore } from "$lib/modals/modalStore";
-    import {
-        Dialog,
-        DialogDescription,
-        DialogOverlay,
-        DialogTitle,
-    } from "@rgossiaux/svelte-headlessui";
+    // import {
+    //     Dialog,
+    //     DialogDescription,
+    //     DialogOverlay,
+    //     DialogTitle,
+    // } from "@rgossiaux/svelte-headlessui";
 </script>
-
+<!-- 
 <Dialog open={$modalStore.backend_auth} class="modal_root">
     <DialogOverlay class="modal_overlay" />
     <div class="modal_card">
@@ -25,4 +25,4 @@
             </div>
         </div>
     </div>
-</Dialog>
+</Dialog> -->

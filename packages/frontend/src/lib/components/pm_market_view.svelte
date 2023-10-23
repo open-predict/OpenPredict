@@ -152,7 +152,7 @@
         <p
             class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
         >
-            {market.data.description.replaceAll("\n", "\n\n")}
+            {market.data.description}
         </p>
     </div>
     <div class="flex flex-col gap-2 mb-8">
@@ -174,7 +174,7 @@
                 <div class="w-full flex flex-col gap-2">
                     <div class="flex justify-between flex-nowrap items-center">
                         <h4 class="text-md font-semibold text-neutral-200">
-                            {`${tokens[tokenOrderdata[0]].outcome} holders`}
+                            {`${tokens[tokenOrderdata[0]].outcome}`}
                         </h4>
                         <span class="text-neutral-400 text-xs">POSITION</span>
                     </div>

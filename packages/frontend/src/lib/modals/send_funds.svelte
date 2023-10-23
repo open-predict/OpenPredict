@@ -1,11 +1,5 @@
 <script lang="ts">
   import { Modal, modalStore } from "$lib/modals/modalStore";
-  import {
-    Dialog,
-    DialogDescription,
-    DialogOverlay,
-    DialogTitle,
-  } from "@rgossiaux/svelte-headlessui";
   import { web3Workspace } from "$lib/web3Workspace";
   import { web3Store } from "$lib/web3Store";
   import {
@@ -116,8 +110,7 @@
   //   }
   // }
 </script>
-
-<Dialog
+<!--  <Dialog
   open={$modalStore.send_funds}
   on:close={() => modalStore.closeModal(Modal.send_funds)}
   class="modal_root"
@@ -206,15 +199,15 @@
         class="mt-2 w-full rounded-xl border-0 py-1.5 px-3 text-gray-900 bg-gray-100 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500"
       />
     </div>
-    <!-- <div class="flex flex-col gap-2.5 p-6">
+    <div class="flex flex-col gap-2.5 p-6">
       <button on:click={execute} class="btn_primary">
         {`Send ${
           token === "SOL"
             ? solFormatter.format(lamports / LAMPORTS_PER_SOL) + " SOL"
             : usdFormatter.format(microUsdc / USDC_PER_DOLLAR)
         }`}
-      </button> -->
-    <!-- <p class="text-sm text-gray-500 whitespace-pre-wrap mt-4">
+      </button>
+    <p class="text-sm text-gray-500 whitespace-pre-wrap mt-4">
         {`You have ${usdFormatter.format(
           token === "USDC"
             ? $web3Store?.usdc?.uiAmount ?? 0
@@ -223,7 +216,7 @@
         <span class="text-yellow-600">
           {`\nPlease double check the address before sending.`}
         </span>
-      </p> -->
-    <!-- </div> -->
+      </p> 
+    </div>
   </div>
-</Dialog>
+</Dialog> -->

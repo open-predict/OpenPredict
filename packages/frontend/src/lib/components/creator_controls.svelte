@@ -13,12 +13,12 @@
     import { web3Store } from "$lib/web3Store";
     import type { marketFulldata } from "@am/backend/types/market";
     import { PublicKey } from "@solana/web3.js";
-    import {
-        Dialog,
-        DialogDescription,
-        DialogOverlay,
-        DialogTitle,
-    } from "@rgossiaux/svelte-headlessui";
+    // import {
+    //     Dialog,
+    //     DialogDescription,
+    //     DialogOverlay,
+    //     DialogTitle,
+    // } from "@rgossiaux/svelte-headlessui";
     import LoadingOverlay from "./loading_overlay.svelte";
 
     export let updateMarket: (market: marketFulldata) => void;
@@ -53,7 +53,7 @@
             const instructions = await subsidizeMarketInstruction(
                 new PublicKey(PUBLIC_USDC_MINT_ADDR),
                 new PublicKey(PUBLIC_MAIN_PROGRAM_ID),
-                new PublicKey($web3Store.solanaAddress!),
+                new PublicKey($web3Store?.solanaAddress!),
                 ammAddressBytes,
                 microUsdc
             );
@@ -186,7 +186,7 @@
         </div>
     </div>
 {/if}
-
+<!-- 
 <Dialog
     open={resolveMarketModal}
     on:close={() => (resolveMarketModal = false)}
@@ -301,4 +301,4 @@
             </button>
         </div>
     </div>
-</Dialog>
+</Dialog> -->

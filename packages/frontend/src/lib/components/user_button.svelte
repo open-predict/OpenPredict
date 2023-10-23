@@ -12,14 +12,6 @@
         readableAddress,
         usdFormatter,
     } from "$lib/utils";
-    import {
-        Dialog,
-        DialogOverlay,
-        DialogTitle,
-        Popover,
-        PopoverButton,
-        PopoverPanel,
-    } from "@rgossiaux/svelte-headlessui";
     import { web3Store } from "$lib/web3Store";
     import { toastsStore } from "$lib/toasts/toastsStore";
     import { PublicKey } from "@solana/web3.js";

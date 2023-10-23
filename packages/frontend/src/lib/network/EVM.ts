@@ -2,7 +2,6 @@
 import { ethers, BrowserProvider, type TransactionRequest } from "ethers6";
 import { Web3 } from "./web3"
 import type { Network } from "./networks"
-import type { Errors } from "$lib/utils";
 import type { TransactionInstruction, Transaction } from "@solana/web3.js";
 
 export class EVM extends Web3 {
@@ -28,6 +27,9 @@ export class EVM extends Web3 {
       const signer = await this.rpc.getSigner();
       const address = signer.getAddress();
       const balance = await this.rpc.getBalance(address)
+      // const otherBalance = await this.
+      // const contract = new ethers.Contract(tokenContract, abi, provider);
+      // const balance = await contract.balanceOf(tokenHolder)
       return balance;
     } catch (error) {
       console.error(error);

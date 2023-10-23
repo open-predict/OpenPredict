@@ -24,36 +24,38 @@
     import { dateFormatter } from "$lib/utils";
     import colors from "tailwindcss/colors";
     import { api } from "$lib/api";
-    import { PriceHistoryInterval, type MarketPrice } from "$lib/clob";
+    import {
+        PriceHistoryInterval,
+        type MarketPrice,
+        ClobClient,
+        Chain,
+    } from "$lib/clob";
 
     export let market: pmMarketFulldata;
-    export let term: PriceHistoryTerm = PriceHistoryTerm.WEEK;
+    export let term: PriceHistoryTerm = PriceHistoryTerm.DAY;
 
     async function getMarketPriceHistory(m: pmMarketFulldata) {
+
+        const clobClient = new ClobClient(
+            "https://polyclob.openpredict.org",
+            Chain.POLYGON
+        );
+
         return await Promise.all(
             m.data.tokens.map((t, i) => {
-                return api.getPmPriceHistory
-                    .query({
-                        interval: PriceHistoryInterval.ONE_DAY,
-                        asset_id: market.data.condition_id,
-                        start: new Date(Date.now() - 7 * (24 * 60 * 60 * 1000)),
+                return clobClient
+                    .getPricesHistory({
+                        interval: PriceHistoryInterval.ONE_WEEK,
+                        market: t.token_id,
+                        fidelity: 4,
                     })
                     .then((ph) => ({
                         ...t,
-                        data: resamplePmPriceHistory(ph, term),
-                        color:
-                            t.outcome === "Yes"
-                                ? colors.green[400]
-                                : t.outcome === "No"
-                                ? colors.red[400]
-                                : Object.entries(colors).filter(
-                                      ([name, value]) =>
-                                          acceptableColors.includes(name)
-                                  )[i][1]["500"],
+                        data: resamplePmPriceHistory((ph as unknown as {history: MarketPrice[]}).history, term),
+                        color: colors.indigo[500], //getTokenColor(t.outcome)['400'],
                     }));
             })
         ).then((res) => {
-            console.log("RES", res);
             return res.reduce(
                 (
                     acc: Record<
@@ -91,9 +93,7 @@
     const curve = curveLinear; // method of interpolation between points
 
     let width = 600;
-    let height = 204;
-
-    const acceptableColors = ["indigo", "sky", "blue", "orange", "yellow"];
+    let height = 240;
 
     $: workingWidth = width - inset - marginLeft - marginRight + 50;
     $: xScaledDotInfo = dotInfo ? xScale(aggPoints[dotInfo.i].x) : undefined;
@@ -247,20 +247,18 @@
     }
 </script>
 
-<div class="min-h-200 min-w-full block relative" bind:clientWidth={width}>
+<div class="min-w-full h-full block relative" bind:clientWidth={width}>
     <div class="flex items-center overflow-hidden p-3 h-14 gap-1">
         {#await tokenDataPromise}
-                {#each market.data.tokens as token}
-                    <div
-                        class="animate-pulse text-xs flex items-center font-medium h-7 gap-2 min-w-[5rem] bg-neutral-900/70 py-0.5 pl-2.5 pr-2.5 text-neutral-200 ring-neutral-800 rounded-md"
-                    >
-                        <div
-                            class={`h-1.5 w-1.5 rounded-full bg-neutral-600`}
-                        />
-                        {token.outcome}
-                        {"-- ¢"}
-                    </div>
-                {/each}
+            {#each market.data.tokens as token}
+                <div
+                    class="animate-pulse text-xs flex items-center font-medium h-7 gap-2 min-w-[5rem] bg-neutral-900/70 py-0.5 pl-2.5 pr-2.5 text-neutral-200 ring-neutral-800 rounded-md"
+                >
+                    <div class={`h-1.5 w-1.5 rounded-full bg-neutral-600`} />
+                    {token.outcome}
+                    {"-- ¢"}
+                </div>
+            {/each}
         {:then tokenData}
             {#if tokenData}
                 {#each Object.entries(tokenData) as token}
@@ -282,7 +280,7 @@
             {/if}
         {/await}
         <nav
-            class="flex justify-end ml-auto gap-1 bg-neutral-900/50 rounded-lg px-1.5"
+            class="hidden lg:flex justify-end ml-auto gap-1 bg-neutral-900/50 rounded-lg px-1.5"
         >
             {#each Object.values(PriceHistoryTerm) as v}
                 <button
@@ -297,7 +295,11 @@
         </nav>
     </div>
     {#await tokenDataPromise}
-        <div class={`bg-neutral-900 animate-pulse h-[${height}px] w-[${width}px]`}>Loading</div>
+        <div
+            class={`bg-neutral-900 animate-pulse h-full w-full`}
+        >
+            Loading
+        </div>
     {:then tokens}
         {#if graphReady && tokens}
             <svg

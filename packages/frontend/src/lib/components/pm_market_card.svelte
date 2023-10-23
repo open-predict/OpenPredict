@@ -104,10 +104,10 @@
     </div>
 </MarketCardLayout>
 
-<ImageChecker url={market.data.image} ratio={1.5} resolution={200}>
+<!-- <ImageChecker url={market.data.image} ratio={1.5} resolution={200}>
     <img
         src={market.data.image}
         class={`w-full h-72 rounded-lg object-cover object-center`}
         alt="market cover"
     />
-</ImageChecker>
+</ImageChecker> -->

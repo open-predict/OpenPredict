@@ -5,12 +5,12 @@
     import { web3Store } from "$lib/web3Store";
     import { TxStatus, usdFormatter } from "$lib/utils";
     import { getUserShares, redeemSharesInstruction } from "$lib/web3_utils";
-    import {
-        Dialog,
-        DialogDescription,
-        DialogOverlay,
-        DialogTitle,
-    } from "@rgossiaux/svelte-headlessui";
+    // import {
+    //     Dialog,
+    //     DialogDescription,
+    //     DialogOverlay,
+    //     DialogTitle,
+    // } from "@rgossiaux/svelte-headlessui";
     import {
         PUBLIC_MAIN_PROGRAM_ID,
         PUBLIC_USDC_MINT_ADDR,
@@ -216,7 +216,7 @@
         </button>
     {/if}
 {/if}
-
+<!-- 
 <Dialog
     open={tradeModal}
     on:close={() => (tradeModal = false)}
@@ -279,4 +279,4 @@
             </div>
         </div>
     </Dialog>
-{/if}
+{/if} -->

@@ -1,33 +1,25 @@
 import { api } from '$lib/api';
 import { superjson } from '$lib/superjson';
-import type { MarketSearchResult } from '@am/backend/server/routers/_app';
-import type { pmUserMap } from '@am/backend/types/market';
-import type { TUser } from '@am/backend/types/user';
+import type { AppRouterOutputs } from '@am/backend/server/routers/_app';
 
 export type TPageData = {
-  error?: any,
-  markets?: MarketSearchResult[];
-  opUsers?: Map<string, TUser | null>;
-  pmMarketUsers?: pmUserMap;
+  searchResults?: AppRouterOutputs['searchMarkets'],
+  error?: any;
 }
 
 export const ssr = true;
 
 export async function load() {
-  const data: TPageData = await api.searchMarkets.query({
-    term: "",
-    limit: 10,
-    skip: 0
-  }).catch((e: any) => {
-    console.error(e);
-    return {
-      error: e
-    }
-  })
-
-  if (data.markets) {
-    data.markets.sort((a, b) => Number(b.numNativeLikes - a.numNativeLikes))
+  const data: TPageData = {};
+  try {
+    data.searchResults = await api.searchMarkets.query({
+      "term": "musk",
+    })
+  } catch (e) {
+    console.error("Error searching markets:", e);
+    data.error = e;
   }
-
+  
+  console.log("Data", data)
   return superjson.serialize(data);
 }

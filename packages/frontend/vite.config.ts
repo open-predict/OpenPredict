@@ -3,12 +3,18 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import inject from '@rollup/plugin-inject';
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
 import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import EntryShakingPlugin from 'vite-plugin-entry-shaking';
 
 export default defineConfig({
     plugins: [
         sveltekit(),
-        nodePolyfills()
+        nodePolyfills(),
+        await EntryShakingPlugin({
+			targets: ['@tabler/icons-svelte'],
+			extensions: ['svelte'],
+		})
     ],
+    logLevel: "info",
     ssr: { noExternal: ["svelte-headlessui"] },
     resolve: {
         alias: {

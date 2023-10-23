@@ -3,8 +3,7 @@
     import { web3Workspace } from "$lib/web3Workspace";
     import { web3Store } from "$lib/web3Store";
     import { PublicKey } from "@solana/web3.js";
-    import { Dialog, DialogOverlay } from "@rgossiaux/svelte-headlessui";
-    import SuperJSON from "superjson";
+    // import { Dialog, DialogOverlay } from "@rgossiaux/svelte-headlessui";
     import MarketActions from "$lib/components/market_actions.svelte";
     import type { TMarketIdPageData } from "./+page.js";
     import PositionCard from "$lib/components/position_card.svelte";
@@ -28,8 +27,6 @@
 
     $: ({ pmMarket, opMarket, id } =
         superjson.deserialize<TMarketIdPageData>(data));
-
-    $: title = opMarket?.metadata?.title ?? pmMarket?.data.question;
 
     enum Tabs {
         Comments = "comments",

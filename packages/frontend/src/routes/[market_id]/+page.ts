@@ -15,26 +15,22 @@ export type TMarketIdPageData = {
 
 export async function load({ params }) {
 
-  // const trpc = browser
-  //   ? (await import("$lib/trpc.js")).trpcc
-  //   : (await import("$lib/btrpc.js")).btrpc;
-
   let data: TMarketIdPageData = {
     id: params.market_id ?? "",
   }
 
   if (params.market_id.startsWith("0x")) {
     const res = await api.getPmMarket.query({ condition_id: params.market_id });
-    data.pmMarket = res.data.data;
+    data.pmMarket = res.data ?? undefined;
     data.comments = res.comments;
-    data.users = res.data.users;
-    data.likes;
+    data.users = new Map();
+    data.likes = res.likes;
   } else {
     const res = await api.getMarket.query({ id: params.market_id });
     data.opMarket = res.market;
     data.comments = res.comments;
     data.users = res.users;
-    data.likes;
+    data.likes = res.likes;
   }
 
   return superjson.serialize(data);
