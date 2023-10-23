@@ -1,15 +1,15 @@
 import * as helia from "helia"
 import * as pb from './oppb.js'
 import base58 from 'bs58'
-import {extMarketChaindata, marketFulldata, marketMetadataSchemaV0, pmMarketFulldata, pmUserMap, profileChaindata} from '../types/market.js'
+import { extMarketChaindata, marketFulldata, marketMetadataSchemaV0, pmMarketFulldata, pmUserMap, profileChaindata } from '../types/market.js'
 import './globals.js'
 import * as multiformats from "multiformats"
-import {json as hJson, JSON as hJsonI} from "@helia/json"
-import {FsBlockstore} from 'blockstore-fs'
-import {FsDatastore} from 'datastore-fs'
-import {Mutex} from 'async-mutex'
-import {TUser, userMetadataSchemaV0} from "../types/user.js"
-import {msearch} from "../index.js"
+import { json as hJson, JSON as hJsonI } from "@helia/json"
+import { FsBlockstore } from 'blockstore-fs'
+import { FsDatastore } from 'datastore-fs'
+import { Mutex } from 'async-mutex'
+import { TUser, userMetadataSchemaV0 } from "../types/user.js"
+import { msearch } from "../index.js"
 
 declare global {
   var _helia: any
@@ -59,7 +59,7 @@ export async function marketByAddress(amm_address: string): Promise<[marketFulld
   if (!data) {
     return null
   };
-  var users = new Map<string, {username: string | null}>
+  var users = new Map<string, { username: string | null }>
   users.set(data.data.OperatorKey.toBase58(), {
     username: globalThis.chainCache.usernames.get(data.data.OperatorKey.toBase58()) ?? null
   })
@@ -191,14 +191,14 @@ export async function getAllMarketMeta(data: {
 }): Promise<{
   pmUsers: pmUserMap,
   opUsers: Map<string, TUser>,
-  commentNo: {[market_id: string]: number},
-  likeNo: {[market_id: string]: number},
+  commentNo: { [market_id: string]: number },
+  likeNo: { [market_id: string]: number },
 }> {
   var pmUsers: pmUserMap = new Map();
   var opUsers: Map<string, TUser> = new Map();
 
-  var commentNo: {[market_id: string]: number} = {}
-  var likeNo: {[market_id: string]: number} = {}
+  var commentNo: { [market_id: string]: number } = {}
+  var likeNo: { [market_id: string]: number } = {}
 
   var opMarkets: marketFulldata[] = data.opMarkets ?? []
   var pmMarkets: pmMarketFulldata[] = data.pmMarkets ?? []
@@ -206,7 +206,7 @@ export async function getAllMarketMeta(data: {
     for (var result of data.results) {
       if (result.opMarket != null) {
         opMarkets.push(result.opMarket);
-      } else {
+      } else if (result.pmMarket) {
         pmMarkets.push(result.pmMarket);
       }
     }

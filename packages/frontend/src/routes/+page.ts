@@ -16,9 +16,10 @@ export async function load() {
       "term": "musk",
     })
   } catch (e) {
-    console.error(e)
+    console.error("Error searching markets:", e);
     data.error = e;
   }
-
+  
+  console.log("Data", data)
   return superjson.serialize(data);
 }

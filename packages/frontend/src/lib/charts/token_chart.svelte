@@ -32,7 +32,7 @@
     } from "$lib/clob";
 
     export let market: pmMarketFulldata;
-    export let term: PriceHistoryTerm = PriceHistoryTerm.WEEK;
+    export let term: PriceHistoryTerm = PriceHistoryTerm.DAY;
 
     async function getMarketPriceHistory(m: pmMarketFulldata) {
 
@@ -45,9 +45,9 @@
             m.data.tokens.map((t, i) => {
                 return clobClient
                     .getPricesHistory({
-                        interval: PriceHistoryInterval.SIX_HOURS,
+                        interval: PriceHistoryInterval.ONE_WEEK,
                         market: t.token_id,
-                        fidelity: 3,
+                        fidelity: 4,
                     })
                     .then((ph) => ({
                         ...t,

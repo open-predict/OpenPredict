@@ -27,6 +27,9 @@ export class EVM extends Web3 {
       const signer = await this.rpc.getSigner();
       const address = signer.getAddress();
       const balance = await this.rpc.getBalance(address)
+      // const otherBalance = await this.
+      // const contract = new ethers.Contract(tokenContract, abi, provider);
+      // const balance = await contract.balanceOf(tokenHolder)
       return balance;
     } catch (error) {
       console.error(error);
