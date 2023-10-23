@@ -349,10 +349,8 @@ export async function searchMarkets(
   })
   var results: Promise<_MarketSearchResult>[] = []
   if (meilisearchResult.hits != null) {
-    console.log("found search result data:", meilisearchResult)
     for (var i = 0; i < meilisearchResult.hits.length; i++) {
       var data = meilisearchResult.hits[i];
-      console.log("meili search data:", data)
       if (data['kind'] == "openpredict") {
         results.push(getMarketFulldata(globalThis.chainCache.markets.get(data['id'])!).then(fulldata => {
           return {
@@ -369,8 +367,6 @@ export async function searchMarkets(
         })())
       }
     }
-  } else {
-    console.log("search result:", meilisearchResult)
   }
   return Promise.all(results);
 }

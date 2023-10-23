@@ -178,10 +178,62 @@ export const appRouter = router({
   getPmMarket: procedure.input(
     getPmMarket,
   ).query(async (opts) => {
-    return {
-      data: global.pmChainCache.getMarket(opts.input.condition_id),
-      comments: [],
-      likes: [],
+    var market = global.pmChainCache.getMarket(opts.input.condition_id);
+    if (market == null) {
+      return {
+        data: null,
+        comments: [],
+        likes: [],
+      }
+    } else {
+      const [comments, likes] = await globalThis.chainCache.prisma.$transaction([
+        globalThis.chainCache.prisma.marketComment.findMany({
+          where: {
+            ammAddress: Buffer.from(market.data.question_id.slice(2), 'hex')
+          },
+          select: {
+            userKey: true,
+            content: true,
+            createdAt: true,
+          },
+        }),
+        globalThis.chainCache.prisma.marketLike.findMany({
+          where: {
+            ammAddress: Buffer.from(market.data.question_id.slice(2), 'hex')
+          },
+          select: {
+            userKey: true,
+            createdAt: true,
+          },
+        })
+      ])
+      const getPmUser = (key: string) => {
+        if (!pmUsers.has(key) && globalThis.pmChainCache.users.has(key)) {
+          pmUsers.set(key, globalThis.pmChainCache.users.get(key)!);
+        }
+      }
+      var pmUsers: pmUserMap = new Map();
+      for (var orderMap of market.orderdata.values()) {
+        orderMap.filledOrders.forEach(v => {
+          getPmUser(v.maker)
+          if (v.taker != null) {
+            getPmUser(v.taker)
+          }
+        })
+        orderMap.positions.forEach(v => {
+          getPmUser(v.address);
+        })
+      }
+      [
+        ...comments.map(v => v.userKey),
+        ...likes.map(v => v.userKey),
+      ].map(v => "0x" + v.toString('hex')).forEach(v => getPmUser(v))
+      return {
+        data: global.pmChainCache.getMarket(opts.input.condition_id),
+        comments: comments,
+        likes: likes,
+        pmUsers,
+      }
     }
   }),
 
@@ -666,7 +718,6 @@ export const appRouter = router({
       term: opts.input.term,
       skip: opts.input.skip,
       limit: opts.input.limit,
-      orderBy: opts.input.orderBy,
     })
     return {
       meta: await getAllMarketMeta({
@@ -685,11 +736,34 @@ export const appRouter = router({
         resp: null,
       }
     } else {
+      var [market, users] = resp;
+      //TODO: Amalgamate these into one Promise.all() call
+      const [comments, likes] = await globalThis.chainCache.prisma.$transaction([
+        globalThis.chainCache.prisma.marketComment.findMany({
+          where: {
+            ammAddress: market.data.data.AmmAddress,
+          },
+          select: {
+            userKey: true,
+            content: true,
+            createdAt: true,
+          },
+        }),
+        globalThis.chainCache.prisma.marketLike.findMany({
+          where: {
+            ammAddress: market.data.data.AmmAddress,
+          },
+          select: {
+            userKey: true,
+            createdAt: true,
+          },
+        })
+      ])
       return {
         market: resp[0],
-        users: new Map<string, TUser>(),
-        comments: [],
-        likes: []
+        comments,
+        likes,
+        users,
       }
     }
   }),
