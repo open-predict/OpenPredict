@@ -96,7 +96,8 @@ async function handleAccountChanges(accounts: web3.AccountInfo<Buffer>[], retrie
                   ...(v.metadata == null ? {} : {
                     title: v.metadata.title,
                     description: v.metadata.description,
-                  })
+                  }),
+                  tradable: v.data.data.Resolved == null,
                 }
               }),
               {

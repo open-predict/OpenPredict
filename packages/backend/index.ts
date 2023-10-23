@@ -57,6 +57,9 @@ const start = async () => {
     globalThis.instanceId = null;
   }
 
+  //Set filterable attributes for index
+  msearch().index('markets').updateFilterableAttributes(["tradable"]).then(_ => {})
+
   const isLocalRPC = rpcUrl.includes("127.0.0.1") || rpcUrl.includes("localhost");
   if (dev && isLocalRPC) {
     const {mint: _mint, mainProgramId: _mainProgramId, feePayerKey: _feePayerKey} = await setupLocalEnvironment(rpcUrl);

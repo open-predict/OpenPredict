@@ -10,6 +10,7 @@ export const searchMarketsSchemaV0 = z.object({
   term: z.string().optional(),
   skip: z.number().optional(),
   limit: z.number().optional(),
+  tradable: z.boolean().optional(),
   orderBy: z.enum(["recent", "volume"]).optional(),
 })
 

@@ -188,6 +188,7 @@ class PmChainCache {
         kind: "polymarket",
         title: v.question,
         description: v.description,
+        tradable: v.active && !v.closed,
       }
     }), {
       "primaryKey": "id",
