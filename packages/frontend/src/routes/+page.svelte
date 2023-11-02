@@ -16,6 +16,7 @@
 	import MobileMenuButton from "$lib/elements/mobile_menu_button.svelte";
     import { PublicKey } from "@solana/web3.js";
     import type { MarketSearchResult } from "@am/backend/server/routers/_app";
+    import IntroCard from "$lib/components/intro_card.svelte";
 
 	export let data;
 	$: pageData = superjson.deserialize<TPageData>(data)
@@ -96,11 +97,12 @@
 	</MainHeader>
 	<div
 		slot="main"
-		class="divide-y w-full max-w-full divide-gray-200 dark:divide-neutral-900"
+		class="divide-y w-full max-w-full divide-neutral-200 dark:divide-neutral-900"
 	>
-		<!-- <IntroCard /> -->
 		{#if markets && markets.length > 0}
-			<div id="top_indicator" class="opacity-0 border-0 ring-0" />
+			<!-- <div id="top_indicator">
+				<IntroCard />
+			</div> -->
 			{#each markets as {opMarket, pmMarket}}
 				{#if opMarket}
 					<OpMarketCard

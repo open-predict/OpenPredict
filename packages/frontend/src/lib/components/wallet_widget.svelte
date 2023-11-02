@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { usdFormatter } from "$lib/utils";
     import { web3Store } from "$lib/web3Store";
     import { Modal, modalStore } from "$lib/modals/modalStore";
     import {
@@ -8,6 +7,9 @@
         IconPlus,
         IconTriangleFilled,
     } from "@tabler/icons-svelte";
+    import { usd } from "$lib/utils/format";
+
+    $: funds = ($web3Store?.solanaUsdc?.balances.USDC?.ui ?? 0) + ($web3Store?.polymarket?.balances.USDC?.ui ?? 0) + ($web3Store?.polygon?.balances.USDC?.ui ?? 0);
 </script>
 
 <!-- {#if $web3Store?.solanaAddress} -->
@@ -19,7 +21,7 @@
     <p class="text-[10px] font-semibold text-neutral-500">Positions</p>
     <div class="flex flex-nowrap justify-center items-center gap-2">
         <p class="text-xs font-medium">
-            {usdFormatter.format(Number($web3Store?.solanaUsdcBalance ?? 0))}
+            <!-- {usd.format(Number($web3Store ?? 0))} -->
         </p>
         <!-- <IconTriangleFilled size={8} class="rotate-180" /> -->
     </div>
@@ -31,7 +33,7 @@
     <p class="text-[10px] font-semibold text-neutral-500">Orders</p>
     <div class="flex flex-nowrap justify-center items-center gap-2">
         <p class="text-xs font-medium">
-            {usdFormatter.format(Number($web3Store?.solanaUsdcBalance ?? 0))}
+            {usd.format(Number($web3Store?.solanaUsdc?.balances.USDC ?? 0))}
         </p>
         <!-- <IconTriangleFilled size={8} class="rotate-180" /> -->
     </div>
@@ -43,7 +45,7 @@
     <p class="text-[10px] font-semibold text-neutral-500">Funds</p>
     <div class="flex flex-nowrap justify-center items-center gap-2">
         <p class="text-xs font-medium">
-            {usdFormatter.format(Number($web3Store?.solanaUsdcBalance ?? 0))}
+            {usd.format(funds)}
         </p>
         <!-- <IconTriangleFilled size={8} class="rotate-180" /> -->
     </div>

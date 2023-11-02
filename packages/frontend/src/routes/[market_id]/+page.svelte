@@ -22,7 +22,7 @@
     import ShareButton from "$lib/elements/share_button.svelte";
     import LikeButton from "$lib/elements/like_button.svelte";
     import type { MarketSearchResult } from "@am/backend/server/routers/_app.js";
-
+    
     export let data;
 
     $: ({ pmMarket, opMarket, id } =

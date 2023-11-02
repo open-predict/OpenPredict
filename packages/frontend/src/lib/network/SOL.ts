@@ -1,14 +1,15 @@
 
-import { Connection, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js"
+import { Connection, LAMPORTS_PER_SOL, PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js"
 import { Network } from "./networks"
 import { Web3 } from "./web3"
-import { PUBLIC_FEE_PAYER_KEY, PUBLIC_SOLANA_RPC_URL, PUBLIC_USDC_MINT_ADDR } from "$env/static/public";
+import { PUBLIC_OP_FEE_PAYER_ADDR, PUBLIC_SOLANA_RPC_URL, PUBLIC_SOLANA_USDC_ADDR } from "$env/static/public";
 import { SolanaWallet } from "@web3auth/solana-provider";
 import * as web3spl from "@solana/spl-token";
+import type { TBalance } from "$lib/web3Store";
 // import { trpcc } from "$lib/trpc";
 
-const usdcMintAddr = new PublicKey(PUBLIC_USDC_MINT_ADDR);
-const payerKey = new PublicKey(PUBLIC_FEE_PAYER_KEY);
+const usdcMintAddr = new PublicKey(PUBLIC_SOLANA_USDC_ADDR);
+const payerKey = new PublicKey(PUBLIC_OP_FEE_PAYER_ADDR);
 
 export class SOL extends Web3 {
 
@@ -27,22 +28,26 @@ export class SOL extends Web3 {
     this.solanaWallet = new SolanaWallet(this.provider!)
   }
 
-  public async getBalance(): Promise<bigint | undefined> {
+  public async getWallet(): Promise<SolanaWallet | null> {
+    return this.solanaWallet
+  }
+
+  public async getBalance(): Promise<TBalance> {
     const address = await this.getAddress();
     if (!address) {
       return;
     }
     const balance = await this.connection.getBalance(new PublicKey(address))
-    return BigInt(balance);
+    return { amount: BigInt(balance), decimals: LAMPORTS_PER_SOL / 10 };
   }
 
-  public async getUsdcBalance(): Promise<bigint | undefined> {
+  public async getUsdcBalance(): Promise<TBalance> {
     const address = await this.getUsdcAddress();
     if (!address) {
       console.error("Cannot get solana usdc account balance, no account")
     }
     const balance = await this.connection.getTokenAccountBalance(new PublicKey(address!));
-    return BigInt(balance.value.amount)
+    return { amount: BigInt(balance.value.amount), decimals: balance.value.decimals }
   }
 
   public async getAddress(): Promise<string | undefined> {
@@ -87,7 +92,7 @@ export class SOL extends Web3 {
       //     return res.address as unknown as string
       //   }
       // } else {
-        console.error("Unable to create USDC wallet", err);
+      console.error("Unable to create USDC wallet", err);
       // }
     }
   }

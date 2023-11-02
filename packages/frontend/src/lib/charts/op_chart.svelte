@@ -1,8 +1,6 @@
 <script lang="ts">
     import type {
-        marketFulldata,
-        marketPricePoint,
-        pmTokenData,
+        marketFulldata
     } from "@am/backend/types/market";
     import {
         line,
@@ -19,12 +17,10 @@
 
     import {
         PriceHistoryTerm,
-        resamplePmPriceHistory,
     } from "$lib/charts/utils";
-    import { dateFormatter } from "$lib/utils";
-    import type { pmTokenOrderdata } from "@am/backend/types/market";
     import colors from "tailwindcss/colors";
-    import { USDC_PER_DOLLAR } from "$lib/web3_utils";
+    import { USDC_PER_DOLLAR } from "$lib/utils/op";
+    import utils from "$lib/utils";
 
     export let market: marketFulldata | undefined = undefined;
     export let term: PriceHistoryTerm = PriceHistoryTerm.ALL;
@@ -346,7 +342,7 @@
                                 : undefined}
                             class="fill-black font-semibold text-xs w-14"
                         >
-                            {`${dateFormatter.format(aggPoints[dotInfo.i].x)}`}
+                            {`${utils.format.date.format(aggPoints[dotInfo.i].x)}`}
                         </text>
                     </g>
                 {/if}

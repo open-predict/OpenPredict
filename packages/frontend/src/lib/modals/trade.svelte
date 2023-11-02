@@ -1,211 +1,211 @@
 <script lang="ts">
-  import {
-    PUBLIC_MAIN_PROGRAM_ID,
-    PUBLIC_USDC_MINT_ADDR,
-  } from "$env/static/public";
-  import { web3Workspace } from "$lib/web3Workspace";
-  import type {
-    marketChaindata,
-    marketFulldata,
-  } from "@am/backend/types/market";
-  import { PublicKey } from "@solana/web3.js";
-  import { onMount } from "svelte";
-  import { USDC_PER_DOLLAR } from "$lib/web3_utils";
-  import { browser } from "$app/environment";
-  import {
-    getBuyShareAmount,
-    getChance,
-    getSellUsdcLimit,
-    getUserShares,
-    buySharesInstruction,
-  } from "$lib/web3_utils";
-  import {
-    usdFormatter,
-    Errors,
-    TxStatus,
-  } from "$lib/utils"
-  import confetti from "canvas-confetti";
-  import { web3Store } from "$lib/web3Store";
-  import LoadingOverlay from "$lib/components/loading_overlay.svelte";
-    import { IconMinus, IconPlus, IconSwitchVertical } from "@tabler/icons-svelte";
+  // import {
+  //   PUBLIC_OP_MAIN_PROGRAM_ADDR,
+  //   PUBLIC_SOLANA_USDC_ADDR,
+  // } from "$env/static/public";
+  // import { web3Workspace } from "$lib/web3Workspace";
+  // import type {
+  //   marketChaindata,
+  //   marketFulldata,
+  // } from "@am/backend/types/market";
+  // import { PublicKey } from "@solana/web3.js";
+  // import { onMount } from "svelte";
+  // import { USDC_PER_DOLLAR } from "$lib/web3_utils";
+  // import { browser } from "$app/environment";
+  // import {
+  //   getBuyShareAmount,
+  //   getChance,
+  //   getSellUsdcLimit,
+  //   getUserShares,
+  //   buySharesInstruction,
+  // } from "$lib/web3_utils";
+  // import {
+  //   usd,
+  //   Errors,
+  //   TxStatus,
+  // } from "$lib/utils"
+  // import confetti from "canvas-confetti";
+  // import { web3Store } from "$lib/web3Store";
+  // import LoadingOverlay from "$lib/components/loading_overlay.svelte";
+  //   import { IconMinus, IconPlus, IconSwitchVertical } from "@tabler/icons-svelte";
 
-  export let market: marketFulldata;
-  export let direction: boolean;
-  export let onClose: () => void;
-  export let updateMarket: (market: marketFulldata) => void;
+  // export let market: marketFulldata;
+  // export let direction: boolean;
+  // export let onClose: () => void;
+  // export let updateMarket: (market: marketFulldata) => void;
 
-  const step = 0.1 * USDC_PER_DOLLAR;
-  const chance = getChance(market.data.data.Yes, market.data.data.No);
+  // const step = 0.1 * USDC_PER_DOLLAR;
+  // const chance = getChance(market.data.data.Yes, market.data.data.No);
 
-  $: ({ solanaAddress } = $web3Workspace);
-  $: userShares = getUserShares(
-    market.data,
-    $web3Store?.solanaAddress ? new PublicKey($web3Store.solanaAddress) : null
-  );
-  $: buying =
-    userShares.sharesUI === 0 ||
-    (userShares.shares > 0 && direction) ||
-    (userShares.shares < 0 && !direction);
-  $: summary = buying
-    ? `Buy ${direction ? "'Yes'" : "'No'"} Shares`
-    : `Sell ${userShares.shares < 0 ? "'No'" : "'Yes'"} Shares`;
+  // $: ({ solanaAddress } = $web3Workspace);
+  // $: userShares = getUserShares(
+  //   market.data,
+  //   $web3Store?.solanaAddress ? new PublicKey($web3Store.solanaAddress) : null
+  // );
+  // $: buying =
+  //   userShares.sharesUI === 0 ||
+  //   (userShares.shares > 0 && direction) ||
+  //   (userShares.shares < 0 && !direction);
+  // $: summary = buying
+  //   ? `Buy ${direction ? "'Yes'" : "'No'"} Shares`
+  //   : `Sell ${userShares.shares < 0 ? "'No'" : "'Yes'"} Shares`;
 
-  let defaultMicroUsd = 100;
-  let microUsd = 0;
-  let expectedShares: bigint = 0n;
-  let expectedChance = 0;
-  let expectedYes: bigint = 0n;
-  let expectedNo: bigint = 0n;
-  let maxSell = 0;
+  // let defaultMicroUsd = 100;
+  // let microUsd = 0;
+  // let expectedShares: bigint = 0n;
+  // let expectedChance = 0;
+  // let expectedYes: bigint = 0n;
+  // let expectedNo: bigint = 0n;
+  // let maxSell = 0;
 
-  let loadingMessage = "";
-  let errorMessage = "";
-  let completedMessage = "";
+  // let loadingMessage = "";
+  // let errorMessage = "";
+  // let completedMessage = "";
 
-  let slider: HTMLInputElement;
+  // let slider: HTMLInputElement;
 
-  // capped in beta
-  // $: maxBuy = microUsd + maxGap;
-  $: maxBuy = 10 * USDC_PER_DOLLAR;
-  $: slider
-    ? slider.style.setProperty(
-        "--background-size",
-        `${((microUsd - 0) / ((buying ? maxBuy : maxSell) - 0)) * 100}%`
-      )
-    : undefined;
-  $: browser
-    ? recalc(
-        market.data.data,
-        userShares.shares,
-        userShares.sharesUI,
-        microUsd,
-        direction
-      )
-    : undefined;
+  // // capped in beta
+  // // $: maxBuy = microUsd + maxGap;
+  // $: maxBuy = 10 * USDC_PER_DOLLAR;
+  // $: slider
+  //   ? slider.style.setProperty(
+  //       "--background-size",
+  //       `${((microUsd - 0) / ((buying ? maxBuy : maxSell) - 0)) * 100}%`
+  //     )
+  //   : undefined;
+  // $: browser
+  //   ? recalc(
+  //       market.data.data,
+  //       userShares.shares,
+  //       userShares.sharesUI,
+  //       microUsd,
+  //       direction
+  //     )
+  //   : undefined;
 
-  onMount(async () => {
-    slider = document.getElementById("cents_slider") as HTMLInputElement;
-  });
+  // onMount(async () => {
+  //   slider = document.getElementById("cents_slider") as HTMLInputElement;
+  // });
 
-  function recalc(
-    data: marketChaindata,
-    userShares: bigint,
-    userSharesNumber: number,
-    microUsdc: number,
-    direction: boolean
-  ) {
-    const expected = getBuyShareAmount(data, Math.round(microUsdc), direction);
-    expectedShares = BigInt(expected.shares.toString());
-    expectedChance = expected.newRatio;
-    expectedYes = BigInt(expected.newYes.toString());
-    expectedNo = BigInt(expected.newNo.toString());
-    if (userSharesNumber !== 0)
-      maxSell = Number(getSellUsdcLimit(data, userShares));
-  }
+  // function recalc(
+  //   data: marketChaindata,
+  //   userShares: bigint,
+  //   userSharesNumber: number,
+  //   microUsdc: number,
+  //   direction: boolean
+  // ) {
+  //   const expected = getBuyShareAmount(data, Math.round(microUsdc), direction);
+  //   expectedShares = BigInt(expected.shares.toString());
+  //   expectedChance = expected.newRatio;
+  //   expectedYes = BigInt(expected.newYes.toString());
+  //   expectedNo = BigInt(expected.newNo.toString());
+  //   if (userSharesNumber !== 0)
+  //     maxSell = Number(getSellUsdcLimit(data, userShares));
+  // }
 
-  async function executeTrade() {
-    loadingMessage = "Creating instructions...";
+  // async function executeTrade() {
+  //   loadingMessage = "Creating instructions...";
 
-    if (!solanaAddress) {
-      throw new Error(Errors.LOGGED_OUT);
-    }
+  //   if (!solanaAddress) {
+  //     throw new Error(Errors.LOGGED_OUT);
+  //   }
 
-    const instructions = await buySharesInstruction(
-      new PublicKey(PUBLIC_USDC_MINT_ADDR),
-      new PublicKey(PUBLIC_MAIN_PROGRAM_ID),
-      new PublicKey(solanaAddress),
-      new PublicKey(market.data.data.AmmAddress).toBytes(),
-      microUsd,
-      direction,
-      microUsd,
-      0
-    );
+  //   const instructions = await buySharesInstruction(
+  //     new PublicKey(PUBLIC_SOLANA_USDC_ADDR),
+  //     new PublicKey(PUBLIC_OP_MAIN_PROGRAM_ADDR),
+  //     new PublicKey(solanaAddress),
+  //     new PublicKey(market.data.data.AmmAddress).toBytes(),
+  //     microUsd,
+  //     direction,
+  //     microUsd,
+  //     0
+  //   );
 
-    const usdcSwapNeeded = !$web3Store.solanaUsdcAddress
-      ? microUsd
-      : Number($web3Store.solanaUsdcBalance) - microUsd < 0
-      ? microUsd - Number($web3Store.solanaUsdcBalance)
-      : undefined;
+  //   const usdcSwapNeeded = !$web3Store.solanaUsdcAddress
+  //     ? microUsd
+  //     : Number($web3Store.solanaUsdcBalance) - microUsd < 0
+  //     ? microUsd - Number($web3Store.solanaUsdcBalance)
+  //     : undefined;
 
-    if (usdcSwapNeeded) {
-      alert("need usdc");
-    } else {
-      $web3Workspace.handleTransaction(
-        [instructions],
-        (s) => {
-          switch (s) {
-            case TxStatus.SWAPPING:
-              loadingMessage = "Preparing SOL-USDC swap...";
-              break;
-            case TxStatus.SIGNING:
-              loadingMessage = "Waiting for signature...";
-              break;
-            case TxStatus.SENDING:
-              loadingMessage = "Sending transaction...";
-              break;
-            case TxStatus.CONFIRMING:
-              loadingMessage = "Confirming transaction...";
-              break;
-          }
-        },
-        (s, h) => {
-          const publicKey = $web3Store?.solanaAddress;
+  //   if (usdcSwapNeeded) {
+  //     alert("need usdc");
+  //   } else {
+  //     $web3Workspace.handleTransaction(
+  //       [instructions],
+  //       (s) => {
+  //         switch (s) {
+  //           case TxStatus.SWAPPING:
+  //             loadingMessage = "Preparing SOL-USDC swap...";
+  //             break;
+  //           case TxStatus.SIGNING:
+  //             loadingMessage = "Waiting for signature...";
+  //             break;
+  //           case TxStatus.SENDING:
+  //             loadingMessage = "Sending transaction...";
+  //             break;
+  //           case TxStatus.CONFIRMING:
+  //             loadingMessage = "Confirming transaction...";
+  //             break;
+  //         }
+  //       },
+  //       (s, h) => {
+  //         const publicKey = $web3Store?.solanaAddress;
 
-          market.data.PriceHistory.push({
-            Yes: expectedYes,
-            No: expectedNo,
-            Subsidy: market.data.data.Subsidy,
-            At: new Date(Date.now() - 1000),
-          });
-          market.data.data.Yes = expectedYes;
-          market.data.data.No = expectedNo;
-          if (publicKey) {
-            const userAccount = market.data.UserAccounts.get(publicKey);
-            if (userAccount) {
-              market.data.UserAccounts.set(publicKey, {
-                ...userAccount,
-                Shares:
-                  userAccount?.Shares +
-                  (direction ? expectedShares : -1n * expectedShares),
-              });
-            }
-          }
-          updateMarket(market);
+  //         market.data.PriceHistory.push({
+  //           Yes: expectedYes,
+  //           No: expectedNo,
+  //           Subsidy: market.data.data.Subsidy,
+  //           At: new Date(Date.now() - 1000),
+  //         });
+  //         market.data.data.Yes = expectedYes;
+  //         market.data.data.No = expectedNo;
+  //         if (publicKey) {
+  //           const userAccount = market.data.UserAccounts.get(publicKey);
+  //           if (userAccount) {
+  //             market.data.UserAccounts.set(publicKey, {
+  //               ...userAccount,
+  //               Shares:
+  //                 userAccount?.Shares +
+  //                 (direction ? expectedShares : -1n * expectedShares),
+  //             });
+  //           }
+  //         }
+  //         updateMarket(market);
 
-          loadingMessage = "";
-          completedMessage = "Trade executed!";
+  //         loadingMessage = "";
+  //         completedMessage = "Trade executed!";
 
-          var myCanvas = document.createElement("canvas");
-          myCanvas.className =
-            "absolute top-0 left-0 w-full h-full z-20 pointer-events-none";
-          document.body.appendChild(myCanvas);
-          var myConfetti = confetti.create(myCanvas, { resize: true });
+  //         var myCanvas = document.createElement("canvas");
+  //         myCanvas.className =
+  //           "absolute top-0 left-0 w-full h-full z-20 pointer-events-none";
+  //         document.body.appendChild(myCanvas);
+  //         var myConfetti = confetti.create(myCanvas, { resize: true });
 
-          myConfetti({
-            particleCount: 200,
-          });
+  //         myConfetti({
+  //           particleCount: 200,
+  //         });
 
-          setTimeout(() => {
-            completedMessage = "";
-            myConfetti.reset();
-            document.body.removeChild(myCanvas);
-            onClose();
-          }, 5000);
-        },
-        (e) => {
-          if (e instanceof Error) {
-            errorMessage = e.message;
-          } else {
-            errorMessage = "Couldn't execute your trade, please try again.";
-          }
-        }
-      );
-    }
-  }
+  //         setTimeout(() => {
+  //           completedMessage = "";
+  //           myConfetti.reset();
+  //           document.body.removeChild(myCanvas);
+  //           onClose();
+  //         }, 5000);
+  //       },
+  //       (e) => {
+  //         if (e instanceof Error) {
+  //           errorMessage = e.message;
+  //         } else {
+  //           errorMessage = "Couldn't execute your trade, please try again.";
+  //         }
+  //       }
+  //     );
+  //   }
+  // }
 </script>
 
 <div class="modal_card gap-4 p-4">
-  <LoadingOverlay
+  <!-- <LoadingOverlay
     variant={direction ? "green" : "red"}
     {loadingMessage}
     {errorMessage}
@@ -255,7 +255,7 @@
     </button>
     <input
       type="string"
-      value={usdFormatter.format(
+      value={usd.format(
         (buying
           ? microUsd
           : Number(expectedShares) *
@@ -268,7 +268,7 @@
           microUsd = defaultMicroUsd;
         } else {
           microUsd = num * USDC_PER_DOLLAR;
-          e.currentTarget.value = usdFormatter.format(
+          e.currentTarget.value = usd.format(
             microUsd / USDC_PER_DOLLAR
           ); // sometimes wasn't updating
         }
@@ -332,7 +332,7 @@
             class={`font-semibold  ${
               direction ? "text-green-500" : "text-rose-600"
             }`}
-            >{`+ ${usdFormatter.format(
+            >{`+ ${usd.format(
               Number((BigInt(expectedShares) - BigInt(microUsd)) / 10000n) / 100
             )}`}</span
           >
@@ -372,7 +372,7 @@
   </button>
   <p class="text-sm text-gray-500 whitespace-pre-wrap">
     {#if buying}
-      {`You have ${usdFormatter.format(
+      {`You have ${usd.format(
         Number($web3Store?.solanaUsdcBalance ?? 0) ?? 0
       )} available for trading`}
     {:else}
@@ -382,7 +382,7 @@
         userShares.shares > 0 ? "'No'" : "'Yes'"
       } shares`}
     {/if}
-  </p>
+  </p> -->
 </div>
 
 <style>

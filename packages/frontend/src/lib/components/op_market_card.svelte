@@ -6,7 +6,7 @@
     import ShareButton from "$lib/elements/share_button.svelte";
     import CommentButton from "$lib/elements/comment_button.svelte";
     import { PublicKey } from "@solana/web3.js";
-    import { getChance } from "$lib/web3_utils";
+    import { getChance } from "$lib/utils/op";
     import ChangeIndicator from "$lib/elements/change_indicator.svelte";
     import SubsidyPill from "$lib/elements/subsidy_pill.svelte";
     import VolumePill from "$lib/elements/volume_pill.svelte";

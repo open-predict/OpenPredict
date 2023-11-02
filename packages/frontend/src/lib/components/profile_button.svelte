@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { generateProfileImage, readableAddress } from "$lib/utils";
+    import { readableAddress } from "$lib/utils/format";
+    import { generateProfileImage } from "$lib/utils/mics";
     import type { TUser, TUserMetadataSchemaV0 } from "@am/backend/types/user";
     import type { PublicKey } from "@solana/web3.js";
     import base58 from "bs58";

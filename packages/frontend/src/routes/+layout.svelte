@@ -8,16 +8,16 @@
   import { Buffer } from "buffer";
   import { browser } from "$app/environment";
   import NProgress from "nprogress";
-  import { navigating } from "$app/stores";
+  // import { navigating } from "$app/stores";
   import "@fontsource-variable/open-sans";
   import "@fontsource-variable/inter";
   import ToastsProvider from "$lib/toasts/toastsProvider.svelte";
   import "$lib/styles/nprogress.css";
 
-  // NProgress.configure({
-  //   minimum: 0.16,
-  //   showSpinner: false,
-  // });
+  NProgress.configure({
+    minimum: 0.16,
+    showSpinner: false,
+  });
 
   // $: {
   //   if (browser) {
@@ -40,10 +40,11 @@
 
 <svelte:head>
   <script lang="ts">
-    const theme = document.cookie
+    const uiStoreCookie = document.cookie
       .split("; ")
       .find((row) => row.startsWith("theme="))
-      ?.split("=")[1];
+      ?.split("=")[1];    
+    const { theme } = superjson.parse<TUiStore>(uiStoreCookie)
     switch (theme) {
       case "dark":
         document.documentElement.classList.add("dark");

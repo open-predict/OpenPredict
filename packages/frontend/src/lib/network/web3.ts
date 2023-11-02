@@ -2,14 +2,15 @@ import { Web3AuthNoModal } from "@web3auth/no-modal"
 import { Network } from "./networks"
 import { WALLET_ADAPTERS, type IProvider } from "@web3auth/base";
 import { PUBLIC_POLYGON_RPC_URL, PUBLIC_SOLANA_RPC_URL, PUBLIC_WEB3AUTH_ID } from "$env/static/public";
-import { SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
+import { SolanaPrivateKeyProvider, SolanaWallet } from "@web3auth/solana-provider";
 import createOpenloginAdapter from "./openLoginAdapter";
 import { TorusWalletConnectorPlugin } from "@web3auth/torus-wallet-connector-plugin";
 import { SolanaWalletConnectorPlugin } from "@web3auth/solana-wallet-connector-plugin";
 import type { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { EthereumPrivateKeyProvider } from "@web3auth/ethereum-provider";
 import type { Transaction, TransactionInstruction } from "@solana/web3.js";
-import type { TransactionRequest } from "ethers6"
+import type { JsonRpcSigner, TransactionRequest } from "ethers6"
+import type { TBalance } from "$lib/web3Store";
 
 export abstract class Web3 {
 
@@ -205,9 +206,9 @@ export abstract class Web3 {
 
   public abstract initRPC(): void
 
-  public abstract getBalance(): Promise<bigint | undefined>
+  public abstract getBalance(): Promise<TBalance | undefined>
 
-  public abstract getUsdcBalance(): Promise<bigint | undefined>
+  public abstract getUsdcBalance(): Promise<TBalance | undefined>
 
   public abstract getAddress(): Promise<string | undefined>
 
@@ -220,5 +221,7 @@ export abstract class Web3 {
   public abstract sendTransaction(tx: string | Transaction): Promise<boolean>
 
   public abstract confirmTransaction(tx: string): Promise<boolean>
+
+  public abstract getWallet(): Promise<SolanaWallet | JsonRpcSigner | null>
 
 }

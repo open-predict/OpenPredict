@@ -21,7 +21,7 @@
         PriceHistoryTerm,
         resamplePmPriceHistory,
     } from "$lib/charts/utils";
-    import { dateFormatter } from "$lib/utils";
+    import { format } from "$lib/utils";
     import colors from "tailwindcss/colors";
     import { api } from "$lib/api";
     import {
@@ -52,7 +52,7 @@
                     .then((ph) => ({
                         ...t,
                         data: resamplePmPriceHistory((ph as unknown as {history: MarketPrice[]}).history, term),
-                        color: colors.indigo[500], //getTokenColor(t.outcome)['400'],
+                        color: t.outcome === "Yes" ? colors.emerald[500] : t.outcome === "No" ? colors.red[500] : colors.indigo[500], //getTokenColor(t.outcome)['400'],
                     }));
             })
         ).then((res) => {
@@ -270,10 +270,10 @@
                             style={`background-color: ${token[1].color};`}
                         />
                         {token[1].outcome}
-                        {(dotInfo?.tokenPoints[token[0]].y ??
+                        {(dotInfo?.tokenPoints[token[0]].y.toFixed(0) ??
                             tokenPoints[token[0]][
                                 tokenPoints[token[0]].length - 1
-                            ].y ??
+                            ].y.toFixed(0) ??
                             "--") + "¢"}
                     </button>
                 {/each}
@@ -390,7 +390,7 @@
                                     : undefined}
                                 class="fill-black font-semibold text-xs w-14"
                             >
-                                {`${dateFormatter.format(
+                                {`${format.date.format(
                                     aggPoints[dotInfo.i].x
                                 )}`}
                             </text>

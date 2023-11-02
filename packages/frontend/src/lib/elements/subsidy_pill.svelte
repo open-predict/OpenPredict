@@ -1,10 +1,10 @@
 <script lang="ts">
     import type { marketFulldata } from "@am/backend/types/market";
     import Pill from "$lib/elements/pill.svelte";
-    import { usdFormatter } from "$lib/utils";
-    import { USDC_PER_DOLLAR } from "$lib/web3_utils"
+    import { usd } from "$lib/utils/format";
     import type { pmMarketFulldata } from "@am/backend/types/market";
     import { IconMoneybag } from "@tabler/icons-svelte";
+    import { USDC_PER_DOLLAR } from "$lib/utils/op";
 
     export let opMarket: marketFulldata | undefined = undefined;
     export let pmMarket: pmMarketFulldata | undefined = undefined;
@@ -22,7 +22,7 @@
         : pmMarket
         ? getPmSubsidy(pmMarket)
         : null;
-    $: subsidyDisplay = subsidy ? usdFormatter.format(subsidy) : null;
+    $: subsidyDisplay = subsidy ? usd.format(subsidy) : null;
 </script>
 
 {#if subsidyDisplay}

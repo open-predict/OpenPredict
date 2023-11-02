@@ -1,7 +1,9 @@
 <script lang="ts">
     import {
-        PUBLIC_MAIN_PROGRAM_ID,
-        PUBLIC_USDC_MINT_ADDR,
+        PUBLIC_OP_MAIN_PROGRAM_ADDR,
+        PUBLIC_PM_PROXY_WALLET_FACTORY,
+        PUBLIC_POLYGON_TESTNET,
+        PUBLIC_SOLANA_USDC_ADDR,
     } from "$env/static/public";
     import { web3Workspace } from "$lib/web3Workspace";
     import type {
@@ -11,7 +13,7 @@
     import { PublicKey } from "@solana/web3.js";
     import { IconMinus, IconPlus, IconRefresh } from "@tabler/icons-svelte";
     import { onMount, tick } from "svelte";
-    import { USDC_PER_DOLLAR } from "$lib/web3_utils";
+    import { USDC_PER_DOLLAR } from "$lib/utils/op";
     import { browser } from "$app/environment";
     import {
         getBuyShareAmount,
@@ -19,8 +21,8 @@
         getSellUsdcLimit,
         getUserShares,
         buySharesInstruction,
-    } from "$lib/web3_utils";
-    import { usdFormatter, Errors, TxStatus, delay } from "$lib/utils";
+    } from "$lib/utils/op";
+    import { delay } from "$lib/utils/mics";
     import confetti from "canvas-confetti";
     import { web3Store } from "$lib/web3Store";
     import LoadingOverlay from "$lib/components/loading_overlay.svelte";
@@ -40,6 +42,45 @@
     } from "@tabler/icons-svelte";
     import PmPosition from "./pm_position.svelte";
     import Slider from "$lib/elements/slider.svelte";
+    import {
+        Chain,
+        ClobClient,
+        OrderType,
+        type BalanceAllowanceParams,
+        AssetType,
+        Side,
+    } from "$lib/clob";
+    import {
+        Interface,
+        MaxUint256,
+        Transaction,
+        accessListify,
+        ethers,
+        getCreate2Address,
+        keccak256,
+        toBigInt,
+    } from "ethers6";
+    import { superjson } from "$lib/superjson";
+    import { usd } from "$lib/utils/format";
+    import Orderbook from "./orderbook.svelte";
+    import {
+        getAllowances,
+        getCtfContract,
+        getOrderbookSummary,
+        getUsdcContract,
+        setAllowances,
+    } from "$lib/utils/pm";
+    import { SignatureType, getContracts } from "@polymarket/order-utils";
+    import { defaultAbiCoder, solidityKeccak256 } from "ethers5/lib/utils";
+    import { proxyWalletFactoryAbi } from "$lib/abi/pwfAbi";
+    import { erc20Abi } from "$lib/abi/erc20Abi";
+    import { ctfAbi } from "$lib/abi/ctfAbi";
+    import { usdcAbi } from "$lib/abi/usdcAbi";
+    import {
+        erc1155ApprovalTransaction,
+        erc20ApprovalTransaction,
+    } from "@polymarket/sdk/lib/utils";
+    import InputWithSlider from "./input_with_slider.svelte";
 
     export let market: pmMarketFulldata;
     export let direction: boolean;
@@ -72,7 +113,7 @@
     const step = 0.1 * USDC_PER_DOLLAR;
     const chance = 0.5;
 
-    $: ({ solanaAddress } = $web3Workspace);
+    $: ({ solana } = $web3Workspace);
     let userShares = {
         shares: 0n,
         sharesUI: 0,
@@ -85,6 +126,20 @@
     $: summary = buying
         ? `Buy ${direction ? "'Yes'" : "'No'"} Shares`
         : `Sell ${userShares.shares < 0 ? "'No'" : "'Yes'"} Shares`;
+
+    async function getPrices(td: pmTokenData[]) {
+        let _prices: Record<string, { b: number; s: number }> = {};
+        for (const t of td) {
+            const summary = await getOrderbookSummary(t.token_id, market);
+            _prices[t.token_id] = {
+                b: summary?.buy ?? 0.5,
+                s: summary?.sell ?? 0.5,
+            };
+        }
+        return _prices;
+    }
+
+    $: pricesPromise = getPrices(market.data.tokens);
 
     let limitPrice = 50;
     let defaultMicroUsd = 100;
@@ -115,25 +170,126 @@
     //       )
     //     : undefined;
 
-    function recalc(
-        data: marketChaindata,
-        userShares: bigint,
-        userSharesNumber: number,
-        microUsdc: number,
-        direction: boolean
-    ) {
-        const expected = getBuyShareAmount(
-            data,
-            Math.round(microUsdc),
-            direction
+    // function recalc(
+    //     data: marketChaindata,
+    //     userShares: bigint,
+    //     userSharesNumber: number,
+    //     microUsdc: number,
+    //     direction: boolean
+    // ) {
+    //     const expected = getBuyShareAmount(
+    //         data,
+    //         Math.round(microUsdc),
+    //         direction
+    //     );
+    //     expectedShares = BigInt(expected.shares.toString());
+    //     expectedChance = expected.newRatio;
+    //     expectedYes = BigInt(expected.newYes.toString());
+    //     expectedNo = BigInt(expected.newNo.toString());
+    //     if (userSharesNumber !== 0)
+    //         maxSell = Number(getSellUsdcLimit(data, userShares));
+    // }
+
+    let price: number;
+    let shares: number;
+    $: total = usd.format((price ?? 0) * (shares ?? 0));
+
+    const onPriceChange = (
+        e: Event & {
+            currentTarget: EventTarget & HTMLInputElement;
+        }
+    ) => {
+        const allowed = e.currentTarget.value.replace(/[^0-9.]+/g, "");
+        const num = parseFloat(allowed);
+        if (isNaN(num)) {
+            price = 0; // change this
+        } else {
+            price = num;
+            e.currentTarget.value = usd.format(price); // wasn't updating
+        }
+    };
+
+    const onSharesChange = (
+        e: Event & {
+            currentTarget: EventTarget & HTMLInputElement;
+        }
+    ) => {
+        const allowed = e.currentTarget.value.replace(/[^0-9.]+/g, "");
+        const num = parseFloat(allowed) ?? 0;
+        if (isNaN(num)) {
+            shares = 0; // change this
+        } else {
+            shares = num;
+            e.currentTarget.value = shares.toFixed(2); // wasn't updating
+        }
+    };
+
+    async function buyShares() {
+        if (!$web3Workspace.polyClob) alert("login");
+        if (!selectedToken) return;
+
+        const wallet = await $web3Workspace.web3Evm.getWallet();
+        const rpc = $web3Workspace.web3Evm.rpc;
+
+        if (!wallet) {
+            console.log("Missing wallet");
+            return;
+        }
+        if (!rpc) {
+            alert("Missing rpc.");
+            return;
+        }
+
+        const proxyAddress = await $web3Store?.polymarket?.address;
+        if (!proxyAddress) {
+            alert("Missing proxy address.");
+            return;
+        }
+
+        const allowances = await getAllowances(rpc, proxyAddress);
+        if (!allowances) {
+            alert("Unable to get allowances");
+            return;
+        }
+
+        setAllowances(proxyAddress, allowances, wallet, rpc);
+
+        const polyProxyClient = new ClobClient(
+            "https://clob.polymarket.com",
+            Chain.POLYGON,
+            $web3Workspace.polyClob.signer,
+            $web3Workspace.polyClobApiKeys,
+            SignatureType.POLY_PROXY,
+            proxyAddress
         );
-        expectedShares = BigInt(expected.shares.toString());
-        expectedChance = expected.newRatio;
-        expectedYes = BigInt(expected.newYes.toString());
-        expectedNo = BigInt(expected.newNo.toString());
-        if (userSharesNumber !== 0)
-            maxSell = Number(getSellUsdcLimit(data, userShares));
+
+        const order = await polyProxyClient.createMarketBuyOrder({
+            tokenID: selectedToken?.token_id,
+            price: price,
+            amount: shares,
+        });
+
+        const resp = await polyProxyClient.postOrder(order, OrderType.FOK);
+
+        alert("Done");
     }
+
+    const getOrders = async (id: string) => {
+        if ($web3Workspace.polyClob) {
+            console.log($web3Workspace.polyClobApiKeys);
+            const openOrders = await $web3Workspace.polyClob.getOpenOrders({
+                market: id,
+                owner: $web3Workspace.polyClobApiKeys?.key,
+            });
+            console.log("openOrders", openOrders);
+            const balanceAllowed =
+                await $web3Workspace.polyClob.getBalanceAllowance({
+                    token_id: id,
+                    asset_type: AssetType.CONDITIONAL,
+                });
+            console.log("balanceAllowed", balanceAllowed);
+        }
+    };
 
     const tokenBtnClass = (
         token: pmTokenData,
@@ -173,7 +329,6 @@
             ? `bg-red-500 text-white`
             : `bg-indigo-600 text-white`
         : `bg-indigo-600 text-white`;
-
 </script>
 
 <div class="flex flex-col gap-4">
@@ -193,7 +348,17 @@
                 >
                     <span class="opacity-40">Buy</span>
                     {token.outcome}
-                    <span class="ml-auto">$50</span>
+                    <span class="ml-auto">
+                        {#await pricesPromise}
+                            {"--"}
+                        {:then prices}
+                            {#if prices[token.token_id]}
+                                {prices[token.token_id].b * 100 + "¢"}
+                            {:else}
+                                {"--"}
+                            {/if}
+                        {/await}
+                    </span>
                 </button>
             {/each}
         </div>
@@ -240,103 +405,16 @@
                             >
                                 {"Limit price"}
                             </label>
-                            <div
-                                class="block overflow-hidden text-sm w-full rounded-xl ring-neutral-900/80 bg-white dark:bg-neutral-900/50"
-                            >
-                                <div
-                                    class="w-full h-12 flex justify-between items-center p-2 gap-2 bg-neutral-900/80 rounded-xl ring-neutral-900 ring-inset"
-                                >
-                                    <button
-                                        on:click={() =>
-                                            (microUsd = Math.max(
-                                                Math.round(microUsd / step) *
-                                                    step -
-                                                    step,
-                                                0
-                                            ))}
-                                        class="action_icon opacity-60 hover:opacity-100"
-                                    >
-                                        <IconMinus size={16} />
-                                    </button>
-                                    <input
-                                        type="string"
-                                        value={usdFormatter.format(
-                                            (buying
-                                                ? microUsd
-                                                : Number(expectedShares) *
-                                                  (userShares.shares > 0
-                                                      ? chance
-                                                      : 1 - chance)) /
-                                                USDC_PER_DOLLAR
-                                        )}
-                                        on:change={(e) => {
-                                            const allowed =
-                                                e.currentTarget.value.replace(
-                                                    /[^0-9.]+/g,
-                                                    ""
-                                                );
-                                            const num = parseFloat(allowed);
-                                            if (isNaN(num)) {
-                                                microUsd = defaultMicroUsd;
-                                            } else {
-                                                microUsd =
-                                                    num * USDC_PER_DOLLAR;
-                                                e.currentTarget.value =
-                                                    usdFormatter.format(
-                                                        microUsd /
-                                                            USDC_PER_DOLLAR
-                                                    ); // sometimes wasn't updating
-                                            }
-                                        }}
-                                        class="text-lg max-w-[10rem] text-center text-neutral-300 outline-none bg-transparent"
-                                    />
-                                    <button
-                                        class="action_icon opacity-60 hover:opacity-100"
-                                        on:click={() =>
-                                            (microUsd = buying
-                                                ? Math.round(microUsd / step) *
-                                                      step +
-                                                  step
-                                                : Math.min(
-                                                      microUsd + step,
-                                                      maxSell
-                                                  ))}
-                                    >
-                                        <IconPlus size={20} />
-                                    </button>
-                                </div>
-                                <div
-                                    class="h-9 flex justify-center items-stretch rounded-full p-2 w-full gap-4"
-                                >
-                                    <div
-                                        class="flex justify-center items-center w-full px-1 py-1"
-                                    >
-                                        <Slider
-                                            extraClass={selectedToken
-                                                ? selectedToken.outcome.toLowerCase() ===
-                                                  "yes"
-                                                    ? "yes"
-                                                    : selectedToken.outcome.toLowerCase() ===
-                                                      "no"
-                                                    ? "no"
-                                                    : ""
-                                                : ""}
-                                            bind:value={limitPrice}
-                                            max={100}
-                                            min={0}
-                                        />
-                                    </div>
-                                    {#if !buying}
-                                        <button
-                                            on:click={() =>
-                                                (microUsd = maxSell)}
-                                            class={`rounded-lg font-semibold whitespace-nowrap bg-white text-black ring-1 ring-gray-300 text-xs px-2.5 hover:shadow-md`}
-                                        >
-                                            Sell Max
-                                        </button>
-                                    {/if}
-                                </div>
-                            </div>
+                            <InputWithSlider
+                                step={0.01}
+                                setSliderStep
+                                outcome={selectedToken.outcome.toLowerCase()}
+                                bind:value={price}
+                                onChange={onPriceChange}
+                                formatted={usd.format(price)}
+                                max={1}
+                                min={0}
+                            />
                         </div>
                     {/if}
                     <div
@@ -348,99 +426,14 @@
                         >
                             {"Shares"}
                         </label>
-                        <div
-                            class="block overflow-hidden text-sm w-full rounded-xl ring-neutral-900/80 bg-white dark:bg-neutral-900/50"
-                        >
-                            <div
-                                class="w-full h-12 flex justify-between items-center p-2 gap-2 bg-neutral-900/80 rounded-xl ring-neutral-900 ring-inset"
-                            >
-                                <button
-                                    on:click={() =>
-                                        (microUsd = Math.max(
-                                            Math.round(microUsd / step) * step -
-                                                step,
-                                            0
-                                        ))}
-                                    class="action_icon opacity-60 hover:opacity-100"
-                                >
-                                    <IconMinus size={16} />
-                                </button>
-                                <input
-                                    type="string"
-                                    value={usdFormatter.format(
-                                        (buying
-                                            ? microUsd
-                                            : Number(expectedShares) *
-                                              (userShares.shares > 0
-                                                  ? chance
-                                                  : 1 - chance)) /
-                                            USDC_PER_DOLLAR
-                                    )}
-                                    on:change={(e) => {
-                                        const allowed =
-                                            e.currentTarget.value.replace(
-                                                /[^0-9.]+/g,
-                                                ""
-                                            );
-                                        const num = parseFloat(allowed);
-                                        if (isNaN(num)) {
-                                            microUsd = defaultMicroUsd;
-                                        } else {
-                                            microUsd = num * USDC_PER_DOLLAR;
-                                            e.currentTarget.value =
-                                                usdFormatter.format(
-                                                    microUsd / USDC_PER_DOLLAR
-                                                ); // sometimes wasn't updating
-                                        }
-                                    }}
-                                    class="text-lg max-w-[10rem] text-center text-neutral-300 outline-none bg-transparent"
-                                />
-                                <button
-                                    class="action_icon opacity-60 hover:opacity-100"
-                                    on:click={() =>
-                                        (microUsd = buying
-                                            ? Math.round(microUsd / step) *
-                                                  step +
-                                              step
-                                            : Math.min(
-                                                  microUsd + step,
-                                                  maxSell
-                                              ))}
-                                >
-                                    <IconPlus size={20} />
-                                </button>
-                            </div>
-                            <div
-                                class="h-9 flex justify-center items-stretch rounded-full p-2 w-full gap-4"
-                            >
-                                <div
-                                    class="flex justify-center items-center w-full px-1 py-1"
-                                >
-                                    <Slider
-                                        extraClass={selectedToken
-                                            ? selectedToken.outcome.toLowerCase() ===
-                                              "yes"
-                                                ? "yes"
-                                                : selectedToken.outcome.toLowerCase() ===
-                                                  "no"
-                                                ? "no"
-                                                : ""
-                                            : ""}
-                                        bind:value={microUsd}
-                                        max={buying ? maxBuy : maxSell}
-                                        min={0}
-                                    />
-                                </div>
-                                {#if !buying}
-                                    <button
-                                        on:click={() => (microUsd = maxSell)}
-                                        class={`rounded-lg font-semibold whitespace-nowrap bg-white text-black ring-1 ring-gray-300 text-xs px-2.5 hover:shadow-md`}
-                                    >
-                                        Sell Max
-                                    </button>
-                                {/if}
-                            </div>
-                        </div>
+                        <InputWithSlider
+                            max={100}
+                            min={0}
+                            bind:value={shares}
+                            outcome={selectedToken.outcome.toLocaleLowerCase()}
+                            formatted={(shares ?? 0).toFixed(2)}
+                            onChange={onSharesChange}
+                        />
                     </div>
                     <div class="text-neutral-400">
                         {#if !buying}
@@ -460,25 +453,10 @@
                         <div
                             class="py-2 text-sm flex justify-between items-center"
                         >
-                            {#if buying}
-                                <span class="">Total</span>
-                                <span>
-                                    {(
-                                        Number(expectedShares) / USDC_PER_DOLLAR
-                                    ).toFixed(2)}
-                                </span>
-                            {:else}
-                                <span class="">
-                                    {`${
-                                        userShares.shares > 0 ? "'Yes'" : "'No'"
-                                    } shares to sell`}
-                                </span>
-                                <span class="">
-                                    {(
-                                        Number(expectedShares) / USDC_PER_DOLLAR
-                                    ).toFixed(2)}
-                                </span>
-                            {/if}
+                            <span class="">Total</span>
+                            <span>
+                                {total}
+                            </span>
                         </div>
                         <div
                             class="py-2 text-sm flex justify-between items-center"
@@ -488,38 +466,34 @@
                                 >{`${(expectedChance * 100).toFixed(1)}%`}</span
                             >
                         </div>
-                        {#if buying}
-                            <div
-                                class="py-2 text-sm flex justify-between items-center"
+                        <div
+                            class="py-2 text-sm flex justify-between items-center"
+                        >
+                            <span class="font-semibold"
+                                >{`Payout if ${direction ? "Yes" : "No"}`}</span
                             >
-                                <span class="font-semibold"
-                                    >{`Payout if ${
-                                        direction ? "Yes" : "No"
-                                    }`}</span
-                                >
-                                <span
-                                    class={`font-semibold ${
-                                        selectedToken.outcome.toLowerCase() ===
-                                        "no"
-                                            ? "text-red-400"
-                                            : selectedToken.outcome.toLowerCase() ===
-                                              "yes"
-                                            ? "text-emerald-400"
-                                            : "text-indigo-400"
-                                    }`}
-                                    >{`+ ${usdFormatter.format(
-                                        Number(
-                                            (BigInt(expectedShares) -
-                                                BigInt(microUsd)) /
-                                                10000n
-                                        ) / 100
-                                    )}`}</span
-                                >
-                            </div>
-                        {/if}
+                            <span
+                                class={`font-semibold ${
+                                    selectedToken.outcome.toLowerCase() === "no"
+                                        ? "text-red-400"
+                                        : selectedToken.outcome.toLowerCase() ===
+                                          "yes"
+                                        ? "text-emerald-400"
+                                        : "text-indigo-400"
+                                }`}
+                                >{`+ ${usd.format(
+                                    Number(
+                                        (BigInt(expectedShares) -
+                                            BigInt(microUsd)) /
+                                            10000n
+                                    ) / 100
+                                )}`}</span
+                            >
+                        </div>
                     </div>
                     <div class="hidden 2xl:flex" />
                     <button
+                        on:click={() => buyShares()}
                         class={`h-10 rounded-xl font-semibold cursor-pointer text-white ${tradeButtonClass}`}
                     >
                         {`${summary}`}

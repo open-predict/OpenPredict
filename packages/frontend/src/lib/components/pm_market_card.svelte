@@ -34,7 +34,7 @@
         <VolumePill pmMarket={market} />
         <SubsidyPill pmMarket={market} />
         <Pill>
-            <IconCalendar size={14} class="text-red-400/50" />
+            <IconCalendar size={14} class="text-orange-500 dark:text-orange-400/80" />
             {`${new Date(market.data.end_date_iso).toLocaleDateString("en-us", {
                 year: "numeric",
                 month: "numeric",
@@ -96,7 +96,7 @@
         <CommentButton pmMarket={market} />
         <LikeButton pmMarket={market} {updateMarket} />
         <button
-            class="flex items-center justify-center rounded-lg text-sm gap-1 py-1.5 px-2.5 ring-1 ring-transparent shadow-lg bg-neutral-900 text-indigo-400/80 hover:text-indigo-300 hover:ring-indigo-800 hover:shadow-indigo-500/10"
+            class="flex items-center justify-center rounded-lg text-sm gap-1 py-1.5 px-2.5 transition-all ring-1 dark:ring-transparent dark:shadow-lg dark:bg-neutral-900 dark:text-indigo-400/80 dark:hover:text-indigo-300 dark:hover:ring-indigo-800 dark:hover:shadow-indigo-500/10 shadow-sm bg-white text-indigo-700/90 hover:text-indigo-700 ring-indigo-200 hover:ring-indigo-300 hover:shadow-lg"
         >
             <IconArrowsUpDown size={16} />
             Trade

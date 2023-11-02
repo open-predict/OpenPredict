@@ -3,9 +3,9 @@
     import ProfileButton from "./profile_button.svelte";
     import type { TUser } from "@am/backend/types/user";
     import type { marketUserChaindata } from "@am/backend/types/market";
-    import { USDC_PER_DOLLAR } from "$lib/web3_utils";
+    import { USDC_PER_DOLLAR } from "$lib/utils/op";
 
-    export let publicKey: PublicKey;
+    export let publicKey: string;
     export let profile: undefined | TUser = undefined;
     export let marketUserChaindata: marketUserChaindata;
 </script>

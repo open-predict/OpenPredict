@@ -4,18 +4,7 @@
     import { web3Workspace } from "$lib/web3Workspace";
     import { web3Store } from "$lib/web3Store";
     // import { Dialog, DialogOverlay } from "@rgossiaux/svelte-headlessui";
-    import { PUBLIC_MAIN_PROGRAM_ID } from "$env/static/public";
-    import {
-        autoresizeTextarea,
-        generateProfileImage,
-        readableAddress,
-        TxStatus,
-    } from "$lib/utils";
-    import {
-        createProfileInstruction,
-        getChance,
-        USDC_PER_DOLLAR,
-    } from "$lib/web3_utils.js";
+    import { PUBLIC_OP_MAIN_PROGRAM_ADDR } from "$env/static/public";
     // import { trpcc } from "$lib/trpc.js";
     import { Modal, modalStore } from "$lib/modals/modalStore.js";
     import AccountSummary from "$lib/components/account_summary.svelte";
@@ -28,6 +17,9 @@
     import { browser } from "$app/environment";
     import type { TProfilePageData } from "./+page.js";
     import { superjson } from "$lib/superjson.js";
+    import { generateProfileImage } from "$lib/utils/mics.js";
+    import { readableAddress } from "$lib/utils/format.js";
+    import { USDC_PER_DOLLAR, getChance } from "$lib/utils/op.js";
 
     export let data;
     let { profile, markets, id, positions } =
@@ -129,7 +121,7 @@
         // const instructions = await createProfileInstruction(
         //     new PublicKey(solanaAddress),
         //     initUsername ? username : (profile?.username as string),
-        //     new PublicKey(PUBLIC_MAIN_PROGRAM_ID),
+        //     new PublicKey(PUBLIC_OP_MAIN_PROGRAM_ADDR),
         //     ipfsResponse.cid
         // );
 

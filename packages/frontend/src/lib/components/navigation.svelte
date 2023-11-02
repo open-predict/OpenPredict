@@ -1,6 +1,6 @@
 <script lang="ts">
     import { browser } from "$app/environment";
-    import { IconActivity, IconCards, IconPlus, IconSearch, IconUser } from "@tabler/icons-svelte";
+    import { IconActivity, IconCards, IconPencil, IconPlus, IconSearch, IconUser, IconWallet } from "@tabler/icons-svelte";
     import { goto } from "$app/navigation";
     import { draftsStore } from "$lib/marketDraftStore";
     import NavItem from "$lib/elements/nav_item.svelte";
@@ -18,10 +18,10 @@
     }[] = [
         { name: "Home", href: "/", Icon: IconCards },
         { name: "Search", href: "#search", Icon: IconSearch },
-        { name: "Activity", href: "/activity", Icon: IconActivity },
         { name: "Profile", href: `/profile`, Icon: IconUser },
-        // { name: "Wallet", href: `/wallet`, Icon: IconWallet },
-        // { name: "Drafts", href: "/drafts", Icon: IconPencil },
+        { name: "Drafts", href: "/drafts", Icon: IconPencil },
+        { name: "Activity", href: "/activity", Icon: IconActivity },
+        { name: "Wallet", href: `/wallet`, Icon: IconWallet },
     ];
 </script>
 
@@ -42,13 +42,13 @@
             >
                 <div class={`h-10 w-10 flex justify-center items-center`}>
                     <div
-                        class={`h-8 w-8 flex justify-center items-center rounded-xl ring-inset ring-2 bg-gradient-to-br ring-indigo-500 dark:from-indigo-500 dark:via-violet-500 dark:to-indigo-500 text-white shadow-md group-hover:shadow-indigo-800/80`}
+                        class={`h-8 w-8 flex justify-center items-center rounded-xl ring-inset ring-1 bg-gradient-to-br ring-indigo-300 from-indigo-50 via-violet-100  to-indigo-50 text-indigo-600 group-hover:ring-indigo-400 dark:ring-indigo-500 dark:from-indigo-500 dark:via-violet-500 dark:to-indigo-500 dark:text-white`}
                     >
-                        <IconPlus />
+                        <IconPlus size={18} />
                     </div>
                 </div>
                 <span
-                    class={`hidden lg:block text-md text-indigo-400 font-medium group-hover:text-white`}
+                    class={`hidden lg:block text-md font-medium text-indigo-600 group-hover:text-indigo-900 dark:text-indigo-400 dark:group-hover:text-white`}
                 >
                     Create
                 </span>

@@ -1,8 +1,11 @@
 
-import { ethers, BrowserProvider, type TransactionRequest } from "ethers6";
+import { ethers, BrowserProvider, type TransactionRequest, JsonRpcSigner } from "ethers6";
 import { Web3 } from "./web3"
 import type { Network } from "./networks"
 import type { TransactionInstruction, Transaction } from "@solana/web3.js";
+import { PUBLIC_POLYGON_USDC_ADDR } from "$env/static/public";
+import type { TBalance } from "$lib/web3Store";
+import { erc20Abi } from "$lib/abi/erc20Abi";
 
 export class EVM extends Web3 {
 
@@ -19,18 +22,24 @@ export class EVM extends Web3 {
     this.rpc = new ethers.BrowserProvider(this.provider!);
   }
 
-  public async getBalance(): Promise<bigint | undefined> {
+  public async getWallet(): Promise<JsonRpcSigner | null> {
+    if (!this.rpc || !this.provider) {
+      return null
+    }
+    return await this.rpc?.getSigner()
+  }
+
+  public async getBalance(address?: string): Promise<TBalance | undefined> {
     if (!this.provider || !this.rpc) {
       return;
     }
     try {
       const signer = await this.rpc.getSigner();
-      const address = signer.getAddress();
-      const balance = await this.rpc.getBalance(address)
-      // const otherBalance = await this.
-      // const contract = new ethers.Contract(tokenContract, abi, provider);
-      // const balance = await contract.balanceOf(tokenHolder)
-      return balance;
+      if (!address) {
+        address = await signer.getAddress();
+      }
+      const amount = await this.rpc.getBalance(address)
+      return { amount, decimals: 18 };
     } catch (error) {
       console.error(error);
       return;
@@ -43,7 +52,6 @@ export class EVM extends Web3 {
     }
     try {
       const signer = await this.rpc.getSigner();
-      console.log
       const address = signer.getAddress();
       return address;
     } catch (error) {
@@ -53,13 +61,23 @@ export class EVM extends Web3 {
   }
 
   public async getUsdcAddress(): Promise<string | undefined> {
-    console.error("evm getUsdcAddress not implemented")
-    return "abc";
+    return await this.getAddress()
   }
 
-  public async getUsdcBalance(): Promise<bigint | undefined> {
-    console.error("evm getUsdcBalance not implemented")
-    return 0n;
+  public async getUsdcBalance(address?: string): Promise<TBalance | undefined> {
+    if (!this.provider || !this.rpc) {
+      return;
+    }
+    try {
+      if (!address) address = await this.getAddress();
+      const contract = new ethers.Contract(PUBLIC_POLYGON_USDC_ADDR, erc20Abi, this.rpc);
+      const amount = await contract.balanceOf(address)
+      const decimals = Number(await contract.decimals());
+      return { amount, decimals };
+    } catch (e) {
+      console.error(e);
+      return;
+    }
   }
 
   public async signTransaction(tx: TransactionRequest): Promise<undefined | string> {

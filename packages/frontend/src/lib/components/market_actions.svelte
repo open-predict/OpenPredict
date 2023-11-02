@@ -1,10 +1,10 @@
 <script lang="ts">
     import type { marketFulldata } from "@am/backend/types/market";
     import Trade from "$lib/modals/trade.svelte";
-    import { web3Workspace } from "$lib/web3Workspace";
+    import { TxStatus, web3Workspace } from "$lib/web3Workspace";
     import { web3Store } from "$lib/web3Store";
-    import { TxStatus, usdFormatter } from "$lib/utils";
-    import { getUserShares, redeemSharesInstruction } from "$lib/web3_utils";
+    import { usd } from "$lib/utils/format";
+    import { getUserShares, redeemSharesInstruction } from "$lib/utils/op";
     // import {
     //     Dialog,
     //     DialogDescription,
@@ -12,8 +12,8 @@
     //     DialogTitle,
     // } from "@rgossiaux/svelte-headlessui";
     import {
-        PUBLIC_MAIN_PROGRAM_ID,
-        PUBLIC_USDC_MINT_ADDR,
+        PUBLIC_OP_MAIN_PROGRAM_ADDR,
+        PUBLIC_SOLANA_USDC_ADDR,
     } from "$env/static/public";
     import { PublicKey } from "@solana/web3.js";
     import LoadingOverlay from "./loading_overlay.svelte";
@@ -36,11 +36,10 @@
 
     $: userShares = getUserShares(
         market.data,
-        $web3Store?.solanaAddress
-            ? new PublicKey($web3Store.solanaAddress)
+        $web3Store?.solana?.address
+            ? new PublicKey($web3Store.solana?.address)
             : null
     );
-    $: console.log("userShares changed", userShares);
     $: canRedeem =
         isResolved && userShares.shares && resolved === userShares.shares > 0;
 
@@ -60,8 +59,8 @@
             ).toBytes();
 
             const instructions = await redeemSharesInstruction(
-                new PublicKey(PUBLIC_USDC_MINT_ADDR),
-                new PublicKey(PUBLIC_MAIN_PROGRAM_ID),
+                new PublicKey(PUBLIC_SOLANA_USDC_ADDR),
+                new PublicKey(PUBLIC_OP_MAIN_PROGRAM_ADDR),
                 new PublicKey(publicKey),
                 ammAddressBytes
             );
@@ -137,7 +136,7 @@
         }}
         class={reactiveBtn}
     >
-        {`Redeem ${usdFormatter.format(userShares.valueCents / 100)}`}
+        {`Redeem ${usd.format(userShares.valueCents / 100)}`}
     </button>
 {/if}
 {#if !isResolved}

@@ -19,11 +19,11 @@
     import TokenChart from "$lib/charts/token_chart.svelte";
     import Orderbook from "./orderbook.svelte";
     import FilledOrders from "./filled_orders.svelte";
-    import { USDC_PER_DOLLAR } from "$lib/web3_utils";
-    import { usdFormatter } from "$lib/utils";
     import UserPill from "./user_pill.svelte";
     import PmTrade from "./pm_trade.svelte";
     import TradersPill from "$lib/elements/traders_pill.svelte";
+    import { usd } from "$lib/utils/format";
+    import { USDC_PER_DOLLAR } from "$lib/utils/op";
     export let market: pmMarketFulldata;
     export let updateMarket: (
         market?: marketFulldata | pmMarketFulldata
@@ -41,7 +41,7 @@
 <div class="w-full max-w-full p-4 flex flex-col gap-4">
     <div class="flex justify-start items-start">
         <h2
-            class="text-2xl font-semibold text-white flex-grow group-visited/link:text-indigo-300"
+            class="text-2xl font-semibold flex-grow group-visited/link:text-indigo-300"
         >
             {market.data.question}
         </h2>
@@ -141,13 +141,13 @@
     </div>
     <div class="flex flex-col gap-2 mb-8 mt-4">
         <div class="flex justify-between items-center">
-            <h4 class="text-xl font-semibold text-neutral-200">Trade</h4>
+            <h4 class="text-xl font-semibold">Trade</h4>
         </div>
         <div class="w-full border-t border-neutral-900 mb-2" />
         <PmTrade {market} {updateMarket} onClose={() => {}} direction />
     </div>
     <div class="flex flex-col gap-2 mb-8">
-        <h4 class="text-xl font-semibold text-neutral-200">Description</h4>
+        <h4 class="text-xl font-semibold">Description</h4>
         <div class="w-full border-t border-neutral-900 mb-2" />
         <p
             class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
@@ -156,7 +156,7 @@
         </p>
     </div>
     <div class="flex flex-col gap-2 mb-8">
-        <h4 class="text-xl font-semibold text-neutral-200">Resolution</h4>
+        <h4 class="text-xl font-semibold">Resolution</h4>
         <div class="w-full border-t border-neutral-900 mb-2" />
         <p
             class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
@@ -197,7 +197,7 @@
                                             : "text-indigo-400"
                                     }`}
                                 >
-                                    {usdFormatter.format(
+                                    {usd.format(
                                         Number(position.position) /
                                             (USDC_PER_DOLLAR * 10000)
                                     )}

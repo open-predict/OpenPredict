@@ -1,30 +1,40 @@
 import { browser } from '$app/environment'
 import { writable } from 'svelte/store';
-import type { PublicKey, TokenAmount } from '@solana/web3.js';
 import Cookies from 'js-cookie';
 import { web3Workspace } from '$lib/web3Workspace';
 import log from '$lib/log';
 import type { ApiKeyCreds } from '$lib/clob';
 import { superjson } from '$lib/superjson';
+import { usd } from './utils/format';
+import _ from 'lodash';
 
-export type TSol = { amount?: number };
-export type TUsdc = { publicKey?: PublicKey | null, value?: TokenAmount };
-export type TAddressKey = "polygonAddress" | "polygonUsdcAddress" | "solanaAddress" | "solanaUsdcAddress";
+export type TCurrency = "SOL" | "USDC" | "MATIC";
 
-export type TWeb3Store = {
-    polygonAddress?: string | null,
-    solanaAddress?: string | null,
-    polygonUsdcAddress?: string | null,
-    solanaUsdcAddress?: string | null,
+export type TAmount = {
+    amount: bigint,
+    decimals: number
+}
+
+export type TBalance = TAmount & {
+    ui?: number,
+    usd?: string
+}
+
+export type TBalances = Partial<Record<TCurrency, TBalance>>;
+
+export type TAccount = {
+    address: string,
+    balances: TBalances
+}
+
+export type TAccountKey = "polygon" | "solana" | "polymarket" | "solanaUsdc";
+
+export type TWeb3Store = Partial<Record<TAccountKey, TAccount | null>> & {
     authedWithBackend?: boolean;
-    polygonUsdcBalance?: bigint,
-    solanaUsdcBalance?: bigint,
-    solanaBalance?: bigint,
-    polygonBalance?: bigint,
     polyClobApiKeys?: ApiKeyCreds;
 } | undefined;
 
-export const web3StoreLsKey = 'wallet_state';
+export const web3StoreLsKey = 'web3storeV0';
 const FILE = "web3Store";
 
 function createWeb3Store() {
@@ -53,43 +63,62 @@ function createWeb3Store() {
     })
 
 
-    function upsertAddress(value: Partial<Record<TAddressKey, string | null>>) {
+    function upsertAddress(value: Partial<Record<TAccountKey, string | null>>) {
         update(store => {
-            store = {
-                ...store,
-                ...value
+            store = store ? _.clone(store) : {};
+            for (const [_accountKey, address] of Object.entries(value)) {
+                const accountKey = _accountKey as TAccountKey;
+                if (accountKey) {
+                    if (!address) {
+                        delete store[accountKey];
+                    } else {
+                        if (store[accountKey]?.address !== address) {
+                            store[accountKey] = {
+                                address,
+                                balances: {}
+                            }
+                        }
+                    }
+                }
             }
             return store
         })
     }
 
-    function upsertBalance(value: Partial<Record<TAddressKey, bigint>>) {
-        let ns: TWeb3Store = {}
-        if (ns === undefined) return;
-        Object.entries(value).map(a => {
-            let b;
-            switch (a[0]) {
-                case "polygonAddress":
-                    if (ns) ns.polygonBalance = a[1]
-                    break;
-                case 'polygonUsdcAddress':
-                    if (ns) ns.polygonUsdcBalance = a[1]
-                    break;
-                case 'solanaAddress':
-                    if (ns) ns.solanaBalance = a[1]
-                case 'solanaUsdcAddress':
-                    if (ns) ns.solanaUsdcBalance = a[1]
-                default:
-                    break;
-            }
-            return b;
-        })
+    function upsertBalance(value: Partial<Record<TAccountKey, TBalances>>) {
         update(store => {
-            store = {
-                ...store,
-                ...ns
+            let ns = _.clone(store);
+            if (ns) {
+                for (const [_accountKey, balances] of Object.entries(value)) {
+                    const accountKey = _accountKey as TAccountKey;
+                    if (ns[accountKey] && ns[accountKey]?.balances) {
+                        for (const [_currency, balance] of Object.entries(balances)) {
+                            const currency = _currency as TCurrency;
+                            if (currency && balance) {
+                                const ui = Number((balance.amount*100n) / (10n ** BigInt(balance.decimals)))/100;
+                                ((ns[accountKey] as TAccount).balances[currency] as TBalance) = {
+                                    ...balance,
+                                    ui
+                                }
+                                switch (currency) {
+                                    case "MATIC":
+                                        ((ns[accountKey] as TAccount).balances[currency] as TBalance).usd = usd.format(ui * 0.5);
+                                        break;
+                                    case "SOL":
+                                        ((ns[accountKey] as TAccount).balances[currency] as TBalance).usd = usd.format(ui * 15);
+                                        break;
+                                    case "USDC":
+                                        ((ns[accountKey] as TAccount).balances[currency] as TBalance).usd = usd.format(ui * 1);
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            return store
+            return ns;
         })
     }
 
@@ -116,8 +145,10 @@ function createWeb3Store() {
     function clear() {
         update(v => {
             return {
-                solanaAddress: null,
-                polygonAddress: null,
+                solana: null,
+                polygon: null,
+                solanaUsdc: null,
+                polymarket: null,
                 authedWithBackend: false
             };
         })

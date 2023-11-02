@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { marketFulldata } from "@am/backend/types/market";
-    import { usdFormatter } from "$lib/utils";
+    import { usd } from "$lib/utils";
     import SmallChart from "../charts/small_chart.svelte";
     import { IconCurrency, IconUserCheck } from "@tabler/icons-svelte";
     import { USDC_PER_DOLLAR, getChance } from "$lib/web3_utils";

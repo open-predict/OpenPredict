@@ -16,17 +16,14 @@
         var content = document.getElementById(`pos_${token.token_id}`);
         if (content) {
             if (expanded) {
-                console.log("Content", content, expanded);
                 expanded = false;
                 content.style.minHeight = content.scrollHeight + "px";
                 await delay(50);
                 content.style.minHeight = "";
                 content.style.maxHeight = "";
             } else {
-                console.log("Content", content, expanded);
                 expanded = true;
                 await tick();
-                console.log(content.scrollHeight);
                 content.style.maxHeight = content.scrollHeight + "px";
             }
         }

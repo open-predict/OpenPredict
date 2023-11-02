@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { marketFulldata } from "@am/backend/types/market";
     import type { pmMarketFulldata } from "@am/backend/types/market";
-    import { getChance } from "$lib/web3_utils";
+    import { getChance } from "$lib/utils/op";
     import { faker } from "@faker-js/faker";
     import { IconTriangleFilled } from "@tabler/icons-svelte";
     export let opMarket: marketFulldata | undefined = undefined;
@@ -39,18 +39,18 @@
 </script>
 
 <div
-    class={`flex items-center ${size > 0 ? "gap-1.5" : "gap-1"} ${
+    class={`flex items-center font-semibold ${size > 0 ? "gap-1.5" : "gap-1"} ${
         change
             ? change < 0
-                ? "text-red-500"
-                : "text-emerald-500"
+                ? "text-red-600 dark:text-red-500/90"
+                : "text-emerald-600 dark:text-emerald-500/90"
             : "text-neutral-400"
     }`}
 >
     {#if change}
         <IconTriangleFilled
             size={size > 0 ? 10 : 6}
-            class={change < 0 ? "rotate-180 text-red-600" : "text-emerald-500"}
+            class={change < 0 ? "rotate-180 dark:text-red-600" : "dark:text-emerald-500"}
         />
     {/if}
     <span class={size > 0 ? "text-sm" : "text-xs"}>
