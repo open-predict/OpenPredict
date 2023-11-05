@@ -18,7 +18,7 @@
                 >
                     <div class="relative w-9/10 max-w-9/10 grow overflow-hidden">
                         <div
-                            class="absolute h-full w-20 bg-gradient-to-r from-transparent to-neutral-950 right-0"
+                            class="absolute h-full w-20 bg-gradient-to-r from-transparent dark:to-neutral-950 to-white right-0"
                         />
                         <div
                             class="w-full flex justify-start gap-2 items-center overflow-x-scroll scrollbar_hide pr-20"
@@ -43,7 +43,7 @@
                     class="flex w-full min-w-full align-top gap-4 justify-between items-start flex-nowrap"
                 >
                     <h2
-                        class={`font-semibold w-full text-white group-hover:underline group-visited/link:text-indigo-300 ${
+                        class={`font-semibold w-full group-hover:underline group-visited/link:dark:text-indigo-200 group-visited/link:text-indigo-900 ${
                             small ? "text-sm" : "text-lg lg:text-xl"
                         }`}
                     >
@@ -54,7 +54,7 @@
                                 class="ml-3 flex flex-col justify-start items-end"
                             >
                                 <h2
-                                    class={`font-bold text-white ${small ? "text-md" : "text-md lg:text-xl"}`}
+                                    class={`font-bold ${small ? "text-md" : "text-md lg:text-xl"}`}
                                 >
                                     <slot name="chance" />
                                 </h2>
@@ -66,7 +66,7 @@
                     <div
                         class="w-full flex flex-nowrap justify-start items-center"
                     >
-                        <div class="flex flex-nowrap pl-4 p-1">
+                        <div class="flex-nowrap pl-4 p-1 hidden">
                             <slot name="bottom_left" />
                         </div>
                         <div

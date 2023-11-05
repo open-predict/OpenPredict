@@ -6,12 +6,8 @@
         IconMoon,
         IconMenu2,
         IconLoader,
+        IconUser,
     } from "@tabler/icons-svelte";
-    import {
-        generateProfileImage,
-        readableAddress,
-        usdFormatter,
-    } from "$lib/utils";
     import { web3Store } from "$lib/web3Store";
     import { toastsStore } from "$lib/toasts/toastsStore";
     import { PublicKey } from "@solana/web3.js";
@@ -20,6 +16,7 @@
     import Pill from "$lib/elements/pill.svelte";
     import { faker } from "@faker-js/faker";
     import WalletWidget from "./wallet_widget.svelte";
+    import utils from "$lib/utils";
     $: ({ logout } = $web3Workspace);
     let mobileModal = false;
 </script>
@@ -30,30 +27,46 @@
         on:click={() => {
             mobileModal = true;
         }}
-        class="flex p-1.5 flex-nowrap items-center rounded-2xl ring-1 bg-gray-50 ring-gray-200 hover:bg-gray-200 hover:ring-gray-300 dark:bg-neutral-950 dark:ring-neutral-900 dark:text-neutral-300"
+        class="flex p-1.5 flex-nowrap items-center rounded-2xl ring-1 bg-white ring-gray-200 hover:bg-gray-200 hover:ring-gray-300 dark:bg-neutral-950 dark:ring-neutral-900 dark:text-neutral-300"
     >
         <div class="relative inline-block">
             <div class="w-7 h-7 rounded-xl overflow-hidden">
-                <img
-                    src={generateProfileImage("$web3Store.solanaAddress")}
-                    alt="profile"
-                />
+                {#if $web3Store?.solanaAddress}
+                    <img
+                        src={utils.mics.generateProfileImage(
+                            $web3Store?.solanaAddress
+                        )}
+                        alt="profile"
+                    />
+                {:else}
+                    <div
+                        class="bg-indigo-500 text-white w-full h-full flex justify-center items-center"
+                    >
+                        <IconUser size={16} />
+                    </div>
+                {/if}
             </div>
-            <div
-                class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-emerald-400 ring-4 ring-neutral-900"
-            />
+            {#if $web3Store?.solanaAddress}
+                <div
+                    class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-emerald-400 ring-4 ring-white dark:ring-neutral-900"
+                />
+            {/if}
         </div>
         <div
-            class="flex-col gap-0 text-right pl-2 text-[10px] leading-3 pr-1.5 hidden md:flex"
+            class="w-7 h-7 flex-col justify-center items-center gap-0 text-right pl-2 text-[10px] leading-3 pr-1.5 hidden md:flex"
         >
             <IconMenu2 size={16} />
         </div>
     </button>
     <div class="flex flex-col p-1.5 gap-3">
-        <div class="flex justify-start items-start gap-3 hover:bg-neutral-800 rounded-xl p-1.5">
+        <div
+            class="flex justify-start items-start gap-3 hover:bg-neutral-800 rounded-xl p-1.5"
+        >
             <div class="w-10 h-10 rounded-2xl overflow-hidden">
                 <img
-                    src={generateProfileImage("$web3Store.solanaAddress")}
+                    src={utils.mics.generateProfileImage(
+                        "$web3Store.solanaAddress"
+                    )}
                     alt="profile"
                 />
             </div>
@@ -66,7 +79,9 @@
                 </span>
             </div>
         </div>
-        <div class="w-full flex flex-nowrap items-center justify-items-stretch h-10">
+        <div
+            class="w-full flex flex-nowrap items-center justify-items-stretch h-10"
+        >
             <WalletWidget />
         </div>
         <button

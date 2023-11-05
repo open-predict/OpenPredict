@@ -23,7 +23,7 @@ const config = {
 				'script-src': [
 					'self', 
 					'wasm-unsafe-eval', 
-					'sha256-GMaNuNz+3YHnLAQ3KIaMTPsjZNu/LflNPMHDWeGxhSE='
+					'sha256-FrIdau1piysrr6LWXZ7zHrG9aK2XYV2qROddJPZkUxs='
 				],
 				'worker-src' : ['wasm-unsafe-eval']	,
 			},

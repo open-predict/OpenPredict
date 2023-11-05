@@ -1,13 +1,12 @@
 <script lang="ts">
     import type { marketFulldata, pmTokenData } from "@am/backend/types/market";
-    import { getScrollParent, timeAgo, usdFormatter } from "$lib/utils";
+    import { relativeTime, usd } from "$lib/utils/format";
     import { afterUpdate, onMount, tick } from "svelte";
     import type {
         pmTokenFilledOrder,
         pmMarketFulldata,
         pmTokenOrderdata,
     } from "@am/backend/types/market";
-    import { USDC_PER_DOLLAR } from "$lib/web3_utils";
     import Pill from "$lib/elements/pill.svelte";
     import { faker } from "@faker-js/faker";
     export let market: pmMarketFulldata;
@@ -88,7 +87,7 @@
             >
                 <!-- {trade.side === "buy" ? "bought" : "sold"} -->
                 {"who knows"}
-                {usdFormatter.format((trade.price / 100) * Number(trade.size)) + " of "}
+                {usd.format((trade.price / 100) * Number(trade.size)) + " of "}
                 <span
                     class={`${
                         trade.outcome === "yes"
@@ -103,7 +102,7 @@
                 {" at " + trade.price + ""}
             </div>
             <p class="w-2/12 py-2 text-xs px-2 overflow-ellipsis whitespace-nowrap overflow-hidden">
-                {timeAgo(new Date(trade.ts))?.replace("minutes", "min")}
+                {relativeTime(new Date(trade.ts))?.replace("minutes", "min")}
             </p>
         </div>
     {/each}

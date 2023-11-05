@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { readableAddress, usdFormatter } from "$lib/utils";
-  import { getUserShares } from "$lib/web3_utils";
+  import { getUserShares } from "$lib/utils/op";
   import { web3Store } from "$lib/web3Store";
   import CopyButton from "../elements/copy_button.svelte";
   import { Modal, modalStore } from "$lib/modals/modalStore";
@@ -14,6 +13,7 @@
   import { onMount } from "svelte";
   import { PublicKey } from "@solana/web3.js";
   import { api } from "$lib/api";
+    import { readableAddress, usd } from "$lib/utils/format";
 
   let loading = false;
 
@@ -81,19 +81,19 @@
       <div class="flex justify-end items-center py-2 gap-2">
         <p class="text-gray-500 mr-auto">Cash</p>
         <p class="">
-          <!-- {usdFormatter.format($web3Store?.usdc?.uiAmount ?? 0)} -->
+          <!-- {usd.format($web3Store?.usdc?.uiAmount ?? 0)} -->
         </p>
       </div>
       <div class="flex justify-between items-center py-2">
         <p class="text-gray-500">Redeemable</p>
         <p class="">
-          {usdFormatter.format(positions.redeemable / 100)}
+          {usd.format(positions.redeemable / 100)}
         </p>
       </div>
       <div class="flex justify-end items-center py-2 gap-2">
         <p class="text-gray-500 mr-auto">Active Positions</p>
         <p class="">
-          {usdFormatter.format(positions.active / 100)}
+          {usd.format(positions.active / 100)}
         </p>
       </div>
     </div>
@@ -143,10 +143,10 @@
       </div>
       <div class="flex items-center py-2">
         <p class="text-gray-500 mr-auto">Polygon USDC</p>
-        {#if !!$web3Store?.polygonUsdcAddress}
-          <CopyButton value={$web3Store?.polygonUsdcAddress} />
+        {#if !!$web3Store?.polymarketProxyAddress}
+          <CopyButton value={$web3Store?.polymarketProxyAddress} />
           <p class="ml-2">
-            {readableAddress($web3Store?.polygonUsdcAddress)}
+            {readableAddress($web3Store?.polymarketProxyAddress)}
           </p>
         {:else}
           <p class="ml-2">

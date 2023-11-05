@@ -18,19 +18,21 @@
     }
 </script>
 
-<div class="items-center text-center">
-    {#if $web3Store?.solanaAddress === null}
-        <h3 class="font-semibold text-xl text-neutral-800 dark:text-white">Join OpenPredict</h3>
+<div class="items-center">
+    {#if $web3Store?.polygon === null}
+        <h3 class="font-semibold text-lg text-neutral-800 dark:text-white whitespace-pre-wrap">
+            {`Start trading on OpenPredict.`}
+            <span class="text-neutral-500">
+                {` Login with email.`}
+            </span>
+        </h3>
         <div class="mt-2">
-            <p class="text-neutral-400">
-                {"Login with email"}
-            </p>
             <div class="mt-8 flex flex-col gap-4">
                 <input
                     type="email"
                     name="email"
                     id="email"
-                    class="block text-sm w-full rounded-xl border-0 py-2 px-4 ring-1 ring-inset sm:leading-6 bg-white dark:bg-neutral-900 dark:ring-neutral-800 dark:placeholder:text-neutral-500 dark:text-white dark:focus:ring-indigo-900"
+                    class={`basic_input`}
                     placeholder="you@email.com"
                     on:keypress={(e) => {
                         if (e.key === "Enter") handleLogin();
@@ -63,7 +65,7 @@
                 </div>
             </div> -->
         </div>
-    {:else if $web3Store?.solanaAddress === undefined}
+    {:else if $web3Store?.polygon === undefined}
         <IconLoader class="animate-spin text-gray-400" />
         <p class="text-gray-500 text-center">
             {"Loading..."}

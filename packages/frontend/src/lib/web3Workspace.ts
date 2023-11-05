@@ -1,9 +1,17 @@
 import {writable} from 'svelte/store'
 import type {TransactionInstruction, Connection, PublicKey, TokenAmount, VersionedTransaction, Transaction, TransactionError} from '@solana/web3.js';
-import type {Errors, TxStatus} from './utils';
 import type {TWeb3Store} from './web3Store';
-import type { Web3 } from './network';
+import type { EVM, SOL, Web3 } from './network';
 import type { ClobClient } from '$lib/clob';
+import type { Errors } from '$lib/errors';
+
+export enum TxStatus {
+  SIGNING = "SIGNING",
+  SENDING = "SENDING",
+  SWAPPING = "SWAPPING",
+  CONFIRMING = "CONFIRMING",
+  COMPLETE = "COMPLETE"
+}
 
 export type TsignAndSendTxResponse = {txId: string, slot: number, error: null} | {error: unknown, txId: null, slot: null}
 
@@ -12,11 +20,10 @@ export type TWeb3Workspace = {
   login: (email: string) => Promise<boolean>,
   logout: () => Promise<void>,
 
-  web3Evm: Web3,
-  web3Sol: Web3,
+  web3Evm: EVM,
+  web3Sol: SOL,
 
-  polyClob: ClobClient;
-
+  polyClob: ClobClient,
   refreshBalances: () => Promise<void>,
   refreshKeys: () => Promise<void>,
 

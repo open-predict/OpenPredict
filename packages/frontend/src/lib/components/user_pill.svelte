@@ -2,7 +2,7 @@
     import { goto } from "$app/navigation";
     import { api } from "$lib/api";
     import Pill from "$lib/elements/pill.svelte";
-    import { generateProfileImage, readableAddress } from "$lib/utils";
+    import { generateProfileImage, format } from "$lib/utils";
     import { IconLoader } from "@tabler/icons-svelte";
     import { createPopperActions } from "svelte-popperjs";
 
@@ -59,7 +59,7 @@
                 {#if user?.username}
                     {user.username}
                 {:else if id}
-                    {readableAddress(id)}
+                    {format.readableAddress(id)}
                 {:else}
                     {"- -"}
                 {/if}

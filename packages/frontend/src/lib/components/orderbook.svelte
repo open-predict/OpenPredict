@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { marketFulldata } from "@am/backend/types/market";
-    import { usdFormatter } from "$lib/utils";
+    import { usd } from "$lib/utils/format";
     import { afterUpdate, onMount, tick } from "svelte";
     import type { pmMarketFulldata, pmTokenOrderdata } from "@am/backend/types/market";
     export let market: pmMarketFulldata;
@@ -105,7 +105,6 @@
               }, [])
         : [];
     $: bidTotal = bidRows.length > 0 ? bidRows[bidRows.length - 1].t : 1;
-    $: console.log(bidTotal, bidRows, selectedToken)
 </script>
 
 <div
@@ -163,7 +162,7 @@
                     <div
                         class="w-1/3 px-4 py-2 flex justify-center items-center"
                     >
-                        {usdFormatter.format(ask.p / 100)}
+                        {usd.format(ask.p / 100)}
                     </div>
                     <div
                         class="w-1/3 px-4 py-2 flex justify-center items-center"
@@ -173,7 +172,7 @@
                     <div
                         class="w-1/3 px-4 py-2 flex justify-center items-center"
                     >
-                        {usdFormatter.format(ask.t / 100)}
+                        {usd.format(ask.t / 100)}
                     </div>
                 </div>
             {/each}
@@ -181,11 +180,11 @@
         <!-- <div class="flex h-8 relative text-neutral-200" id="midpoint">
             <div class="w-1/3 px-4 py-2 flex justify-center items-center">
                 Midpoint {midpoint
-                    ? usdFormatter.format(midpoint / 100)
+                    ? usd.format(midpoint / 100)
                     : "N/A"}
             </div>
             <div class="w-1/3 px-4 py-2 flex justify-center items-center">
-                Spread {spread ? usdFormatter.format(spread / 100) : "N/A"}
+                Spread {spread ? usd.format(spread / 100) : "N/A"}
             </div>
             <div class="w-1/3" />
         </div> -->
@@ -199,7 +198,7 @@
                     <div
                         class="w-1/3 px-4 py-2 flex justify-center items-center"
                     >
-                        {usdFormatter.format(bid.p)}
+                        {usd.format(bid.p)}
                     </div>
                     <div
                         class="w-1/3 px-4 py-2 flex justify-center items-center"
@@ -209,7 +208,7 @@
                     <div
                         class="w-1/3 px-4 py-2 flex justify-center items-center"
                     >
-                        {usdFormatter.format(bid.t)}
+                        {usd.format(bid.t)}
                     </div>
                 </div>
             {/each}

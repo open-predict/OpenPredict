@@ -20,7 +20,6 @@
     import type { marketFulldata } from "@am/backend/types/market";
     import InteractiveChart from "$lib/charts/interactive_chart.svelte";
     import { PublicKey } from "@solana/web3.js";
-    import { getChance } from "$lib/web3_utils";
     import { api } from "$lib/api";
     import type { pmMarketFulldata } from "@am/backend/types/market";
     import Trade from "$lib/modals/trade.svelte";
@@ -28,6 +27,7 @@
     import TradersPill from "$lib/elements/traders_pill.svelte";
     import OpChart from "$lib/charts/op_chart.svelte";
     import OpTrade from "./op_trade.svelte";
+    import { getChance } from "$lib/utils/op";
     export let market: marketFulldata;
     export let updateMarket: (
         market?: marketFulldata | pmMarketFulldata
@@ -189,7 +189,7 @@
                                             : "text-indigo-400"
                                     }`}
                                 >
-                                    {usdFormatter.format(
+                                    {usd.format(
                                         Number(position.position) /
                                             (USDC_PER_DOLLAR * 10000)
                                     )}

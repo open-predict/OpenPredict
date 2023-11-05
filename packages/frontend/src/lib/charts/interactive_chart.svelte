@@ -14,7 +14,7 @@
     } from "d3";
 
     import { PriceHistoryTerm, resampleOpMarketPricePoints as resample } from "$lib/charts/utils"
-    import { dateFormatter } from "$lib/utils";
+    import { format } from "$lib/utils";
 
     export let priceData: marketPricePoint[] = [];
     export let term: PriceHistoryTerm = PriceHistoryTerm.ALL;
@@ -314,7 +314,7 @@
                                 : undefined}
                             class="fill-gray-700 text-sm font-mono w-14"
                         >
-                            {`${dateFormatter.format(
+                            {`${format.date.format(
                                 points[dotInfo[1]].x
                             )}`}
                         </text>

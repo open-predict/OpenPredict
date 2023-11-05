@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { delay } from "$lib/utils";
+    import { delay } from "$lib/utils/mics";
     import { IconDotsVertical } from "@tabler/icons-svelte";
     import { nanoid } from "nanoid";
     import { tick } from "svelte";

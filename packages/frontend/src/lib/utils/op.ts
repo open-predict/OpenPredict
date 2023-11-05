@@ -2,12 +2,13 @@
 
 import * as web3 from "@solana/web3.js"
 import * as web3spl from "@solana/spl-token"
-import { openpredict } from './pb/oppb.js'
-import { PUBLIC_FEE_PAYER_KEY } from "$env/static/public"
+import { openpredict } from '../pb/oppb.js'
+import { PUBLIC_OP_FEE_PAYER_ADDR } from "$env/static/public"
 import type { extMarketChaindata, marketChaindata } from "@am/backend/types/market.js";
 
 export const USDC_PER_DOLLAR = 1000000;
-const fee_payer = new web3.PublicKey(PUBLIC_FEE_PAYER_KEY);
+
+const fee_payer = new web3.PublicKey(PUBLIC_OP_FEE_PAYER_ADDR);
 
 function sqrt(value: bigint) {
     if (value < 0n) {
@@ -88,10 +89,6 @@ export function getChance(yes: bigint, no: bigint) {
 }
 
 export function getSellUsdcLimit(data: marketChaindata, userShares: bigint) {
-
-    //  yes case
-    // data.yes + D - userShares = S^2 / data.yes + D
-    // console.log(userShares, data.Yes, data.No, data.Subsidy)
 
     userShares = -userShares;
 

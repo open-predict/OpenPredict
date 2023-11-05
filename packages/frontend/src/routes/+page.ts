@@ -13,13 +13,13 @@ export async function load() {
   const data: TPageData = {};
   try {
     data.searchResults = await api.searchMarkets.query({
-      "term": "musk",
+      "tradable": true,
+      "term":"fed"
     })
   } catch (e) {
     console.error("Error searching markets:", e);
     data.error = e;
   }
-  
-  console.log("Data", data)
+
   return superjson.serialize(data);
 }

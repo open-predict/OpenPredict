@@ -7,6 +7,7 @@
     export let max = 100;
     export let min = 0;
     export let value = 0;
+    export let step: number | undefined = undefined;
 
     $: _value = value;
 
@@ -73,5 +74,6 @@
         {max}
         {min}
         bind:this={slider}
+        step={step}
     />
 </div>

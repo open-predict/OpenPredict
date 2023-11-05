@@ -3,8 +3,8 @@
     import { draftsStore } from "$lib/marketDraftStore.js";
     import { onMount } from "svelte";
     import {
-        PUBLIC_MAIN_PROGRAM_ID,
-        PUBLIC_USDC_MINT_ADDR,
+        PUBLIC_OP_MAIN_PROGRAM_ADDR,
+        PUBLIC_SOLANA_USDC_ADDR,
     } from "$env/static/public";
     import { PublicKey } from "@solana/web3.js";
     // import {
@@ -14,7 +14,7 @@
     // } from "@rgossiaux/svelte-headlessui";
     import { web3Store } from "$lib/web3Store.js";
     import { goto } from "$app/navigation";
-    import { autoresizeTextarea, usdFormatter } from "$lib/utils.js";
+    import { autoresizeTextarea, usd } from "$lib/utils.js";
     import debounce from "lodash/debounce.js";
     import { Modal, modalStore } from "$lib/modals/modalStore.js";
     import base58 from "bs58";
@@ -128,8 +128,8 @@
     //     const ipfsResponse = await trpcc.storeMarketIpfs.mutate(metadata);
 
     //     const instructions = await initMarketInstruction(
-    //         new PublicKey(PUBLIC_USDC_MINT_ADDR),
-    //         new PublicKey(PUBLIC_MAIN_PROGRAM_ID),
+    //         new PublicKey(PUBLIC_SOLANA_USDC_ADDR),
+    //         new PublicKey(PUBLIC_OP_MAIN_PROGRAM_ADDR),
     //         publicKey,
     //         ipfsResponse.cid,
     //         marketAddress,
@@ -272,7 +272,7 @@
                         </button>
                         <input
                             type="string"
-                            value={usdFormatter.format(cents / 100)}
+                            value={usd.format(cents / 100)}
                             on:change={(e) => {
                                 const allowed = e.currentTarget.value.replace(
                                     /[^0-9.]+/g,
@@ -283,7 +283,7 @@
                                     cents = defaultCents;
                                 } else {
                                     cents = num * 100;
-                                    e.currentTarget.value = usdFormatter.format(
+                                    e.currentTarget.value = usd.format(
                                         cents / 100
                                     ); // sometimes wasn't updating
                                 }
@@ -304,7 +304,7 @@
                         {`Create market`}
                     </button>
                     <p class="text-sm text-gray-500">
-                        {`You have ${usdFormatter.format(
+                        {`You have ${usd.format(
                             Number($web3Store?.solanaUsdcBalance ?? 0n) /
                                 1000000
                         )}`}

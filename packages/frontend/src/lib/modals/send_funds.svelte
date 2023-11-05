@@ -4,7 +4,7 @@
   import { web3Store } from "$lib/web3Store";
   import {
     autoresizeTextarea,
-    usdFormatter,
+    usd,
     TxStatus,
     solFormatter,
   } from "$lib/utils";
@@ -163,7 +163,7 @@
         type="string"
         value={token === "SOL"
           ? solFormatter.format(lamports / LAMPORTS_PER_SOL) + " SOL"
-          : usdFormatter.format(microUsdc / USDC_PER_DOLLAR)}
+          : usd.format(microUsdc / USDC_PER_DOLLAR)}
         on:change={(e) => {
           const allowed = e.currentTarget.value.replace(/[^0-9.]+/g, "");
           const num = parseFloat(allowed);
@@ -181,7 +181,7 @@
               );
             } else {
               microUsdc = num * USDC_PER_DOLLAR;
-              e.currentTarget.value = usdFormatter.format(
+              e.currentTarget.value = usd.format(
                 microUsdc / USDC_PER_DOLLAR
               ); // sometimes wasn't updating
             }
@@ -204,11 +204,11 @@
         {`Send ${
           token === "SOL"
             ? solFormatter.format(lamports / LAMPORTS_PER_SOL) + " SOL"
-            : usdFormatter.format(microUsdc / USDC_PER_DOLLAR)
+            : usd.format(microUsdc / USDC_PER_DOLLAR)
         }`}
       </button>
     <p class="text-sm text-gray-500 whitespace-pre-wrap mt-4">
-        {`You have ${usdFormatter.format(
+        {`You have ${usd.format(
           token === "USDC"
             ? $web3Store?.usdc?.uiAmount ?? 0
             : $web3Store.usdc?.uiAmount ?? 0

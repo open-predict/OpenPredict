@@ -2,9 +2,10 @@
     import ColumnLayout from "$lib/components/column_layout.svelte";
     import Header from "$lib/components/header.svelte";
     import CopyButton from "$lib/elements/copy_button.svelte";
+    import Logo from "$lib/elements/logo.svelte";
     import MobileMenuButton from "$lib/elements/mobile_menu_button.svelte";
     import Pill from "$lib/elements/pill.svelte";
-    import { readableAddress, usdFormatter } from "$lib/utils";
+    import { readableAddress, usd } from "$lib/utils/format";
     import { web3Store } from "$lib/web3Store";
     import { web3Workspace } from "$lib/web3Workspace";
     import {
@@ -16,13 +17,7 @@
 
     let showDetails = false;
 
-    $: total =
-        ($web3Store?.polygonBalance ?? 0n) +
-        ($web3Store?.polygonUsdcBalance ?? 0n) +
-        ($web3Store?.solanaBalance ?? 0n) +
-        ($web3Store?.solanaUsdcBalance ?? 0n);
-
-    $: console.log($web3Store?.polygonBalance)
+    $: total = (($web3Store?.polygon?.balances.USDC?.ui ?? 0) + ($web3Store?.polymarket?.balances.USDC?.ui ?? 0) + ($web3Store?.solanaUsdc?.balances.USDC?.ui ?? 0))
 </script>
 
 <ColumnLayout>
@@ -39,10 +34,10 @@
             class="flex flex-col w-full h-full justify-center items-center p-6 pt-20 pb-10 gap-3"
         >
             <span class="text-4xl text-white">
-                {usdFormatter.format(Number(total))}
+                {usd.format(Number(total))}
             </span>
             <p class="text-neutral-400 text-sm">Available for trading</p>
-            <div
+            <!-- <div
                 class="flex flex-row gap-1 mt-8 flex-wrap justify-center items-center"
             >
                 <Pill>
@@ -54,9 +49,7 @@
                             alt="polygon logo"
                         />
                     </div>
-                    {usdFormatter.format(
-                        Number($web3Store?.polygonBalance ?? 0)
-                    )}
+                    {$web3Store?.polygonBalance?.usd ?? "$-.--"}
                 </Pill>
                 <Pill>
                     <div
@@ -67,9 +60,8 @@
                             alt="solana logo"
                         />
                     </div>
-                    {usdFormatter.format(
-                        Number($web3Store?.solanaBalance ?? 0)
-                    )}
+
+                    {$web3Store?.solanaBalance?.usd ?? "$-.--"}
                 </Pill>
                 <Pill>
                     <div class="flex justify-center items-center">
@@ -87,9 +79,7 @@
                             <img src="/usdc.svg" alt="usdc logo" />
                         </div>
                     </div>
-                    {usdFormatter.format(
-                        Number($web3Store?.polygonUsdcBalance ?? 0)
-                    )}
+                    {$web3Store?.solanaBalance?.usd ?? "$-.--"}
                 </Pill>
                 <Pill>
                     <div class="flex justify-center items-center">
@@ -107,11 +97,9 @@
                             <img src="/usdc.svg" alt="usdc logo" />
                         </div>
                     </div>
-                    {usdFormatter.format(
-                        Number($web3Store?.solanaUsdcBalance ?? 0)
-                    )}
+                    {$web3Store?.solanaBalance?.usd ?? "$-.--"}
                 </Pill>
-            </div>
+            </div> -->
             <div
                 class={`flex flex-col w-full rounded-2xl ${
                     showDetails ? "bg-neutral-950/70" : ""
@@ -129,7 +117,7 @@
                         size={16}
                     />
                 </button>
-                {#if showDetails}
+                <!-- {#if showDetails}
                     <div
                         class="w-full p-4 border-t border-neutral-900/60 flex flex-col gap-4"
                     >
@@ -170,15 +158,13 @@
                                                     ""}
                                             />
                                         </td>
-                                        <td>MATIC</td>
-                                        <td
-                                            >{$web3Store?.polygonUsdcBalance}</td
-                                        >
-                                        <td
-                                            >{Number(
-                                                $web3Store?.polygonBalance ?? 0
-                                            )}</td
-                                        >
+                                        <td> MATIC </td>
+                                        <td>
+                                            {$web3Store?.polygonBalance?.ui}
+                                        </td>
+                                        <td>
+                                            {$web3Store?.polygonBalance?.usd}
+                                        </td>
                                     </tr>
                                     <tr class="h-10">
                                         <td
@@ -190,19 +176,13 @@
                                                     ""}
                                             />
                                         </td>
-                                        <td>USDC</td>
-                                        <td
-                                            >{Number(
-                                                $web3Store?.polygonUsdcBalance ??
-                                                    0
-                                            )}</td
-                                        >
-                                        <td
-                                            >{Number(
-                                                $web3Store?.polygonUsdcBalance ??
-                                                    0
-                                            )}</td
-                                        >
+                                        <td> USDC </td>
+                                        <td>
+                                            {$web3Store?.polymarketProxyUsdcBalance?.ui}
+                                        </td>
+                                        <td>
+                                            {$web3Store?.polymarketProxyUsdcBalance?.usd}
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -245,16 +225,12 @@
                                             />
                                         </td>
                                         <td>SOL</td>
-                                        <td
-                                            >{Number(
-                                                $web3Store?.solanaBalance ?? 0
-                                            )}</td
-                                        >
-                                        <td
-                                            >{Number(
-                                                $web3Store?.solanaBalance ?? 0
-                                            )}</td
-                                        >
+                                        <td>
+                                            {$web3Store?.solanaBalance?.ui}
+                                        </td>
+                                        <td>
+                                            {$web3Store?.solanaBalance?.usd}
+                                        </td>
                                     </tr>
                                     <tr
                                         class="border-t border-neutral-900 h-10"
@@ -270,24 +246,18 @@
                                             />
                                         </td>
                                         <td>USDC</td>
-                                        <td
-                                            >{Number(
-                                                $web3Store?.solanaUsdcBalance ??
-                                                    0
-                                            )}</td
-                                        >
-                                        <td
-                                            >{Number(
-                                                $web3Store?.solanaUsdcBalance ??
-                                                    0
-                                            )}</td
-                                        >
+                                        <td>
+                                            {$web3Store?.solanaUsdcBalance?.ui}
+                                        </td>
+                                        <td>
+                                            {$web3Store?.solanaUsdcBalance?.usd}
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                {/if}
+                {/if} -->
             </div>
             <!-- <a
                 href="/settings#swaps"

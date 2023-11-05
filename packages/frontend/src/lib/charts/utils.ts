@@ -1,6 +1,6 @@
 import log from "$lib/log";
-import {USDC_PER_DOLLAR, getChance} from "$lib/web3_utils";
-import type {marketPricePoint} from "@am/backend/types/market";
+import { USDC_PER_DOLLAR, getChance } from "$lib/utils/op";
+import type { marketPricePoint } from "@am/backend/types/market";
 import moment from "moment";
 import type { MarketPrice } from "$lib/clob";
 
@@ -78,7 +78,7 @@ export function resampleOpMarketPricePoints(rawData: marketPricePoint[], term: P
 	// fill start & end date
 	const firstDp: marketPricePoint =
 		data.length > 0
-			? {...data[0], At: start}
+			? { ...data[0], At: start }
 			: {
 				At: start,
 				Yes: BigInt(0),
@@ -87,7 +87,7 @@ export function resampleOpMarketPricePoints(rawData: marketPricePoint[], term: P
 			};
 	const lastDp: marketPricePoint =
 		data.length > 0
-			? {...data[data.length - 1], At: end}
+			? { ...data[data.length - 1], At: end }
 			: {
 				At: end,
 				Yes: BigInt(0),
@@ -111,7 +111,7 @@ export function resampleOpMarketPricePoints(rawData: marketPricePoint[], term: P
 	let endTime = moment(end)
 	let datesResampled = samples.map(value => {
 		let resampled = moment(value.date).startOf(period)
-		return {date: resampled, chance: value.chance, subsidy: value.subsidy}
+		return { date: resampled, chance: value.chance, subsidy: value.subsidy }
 	})
 	type DPWithMoment = {
 		date: moment.Moment;
@@ -129,12 +129,12 @@ export function resampleOpMarketPricePoints(rawData: marketPricePoint[], term: P
 		if (datesReduced[startTime.valueOf()]) {
 			filled.push(datesReduced[startTime.valueOf()])
 		} else {
-			filled.push({date: moment(startTime), chance: filled.length > 0 ? filled[filled.length - 1].chance : 0.5, subsidy: 0})
+			filled.push({ date: moment(startTime), chance: filled.length > 0 ? filled[filled.length - 1].chance : 0.5, subsidy: 0 })
 		}
 		startTime.add(1, period)
 	}
 
-	return filled.map(dp => ({...dp, date: dp.date.toDate()}));
+	return filled.map(dp => ({ ...dp, date: dp.date.toDate() }));
 }
 
 export function resamplePmPriceHistory(rawData: MarketPrice[], term: PriceHistoryTerm) {
@@ -181,14 +181,14 @@ export function resamplePmPriceHistory(rawData: MarketPrice[], term: PriceHistor
 	// fill start & end date
 	const firstDp: MarketPrice =
 		data.length > 0
-			? {...data[0], t: start.getTime()}
+			? { ...data[0], t: start.getTime() }
 			: {
 				t: start.getTime(),
 				p: 0
 			};
 	const lastDp: MarketPrice =
 		data.length > 0
-			? {...data[data.length - 1], t: end.getTime()}
+			? { ...data[data.length - 1], t: end.getTime() }
 			: {
 				t: end.getTime(),
 				p: 0
@@ -201,7 +201,7 @@ export function resamplePmPriceHistory(rawData: MarketPrice[], term: PriceHistor
 	let endTime = moment(end)
 	let datesResampled = data.map(value => {
 		let resampled = moment(value.t).startOf(period)
-		return {date: resampled, price: value.p * 100}
+		return { date: resampled, price: value.p * 100 }
 	})
 
 	type DPWithMoment = {
@@ -220,10 +220,10 @@ export function resamplePmPriceHistory(rawData: MarketPrice[], term: PriceHistor
 		if (datesReduced[startTime.valueOf()]) {
 			filled.push(datesReduced[startTime.valueOf()])
 		} else {
-			filled.push({date: moment(startTime), price: filled.length > 0 ? filled[filled.length - 1].price : 0})
+			filled.push({ date: moment(startTime), price: filled.length > 0 ? filled[filled.length - 1].price : 0 })
 		}
 		startTime.add(1, period)
 	}
 
-	return filled.map(dp => ({...dp, date: dp.date.toDate()}));
+	return filled.map(dp => ({ ...dp, date: dp.date.toDate() }));
 }

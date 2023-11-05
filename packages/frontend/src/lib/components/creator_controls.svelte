@@ -1,15 +1,13 @@
 <script lang="ts">
     import {
-        PUBLIC_MAIN_PROGRAM_ID,
-        PUBLIC_USDC_MINT_ADDR,
+        PUBLIC_OP_MAIN_PROGRAM_ADDR,
+        PUBLIC_SOLANA_USDC_ADDR,
     } from "$env/static/public";
-    import { web3Workspace } from "$lib/web3Workspace";
+    import { TxStatus, web3Workspace } from "$lib/web3Workspace";
     import {
-        USDC_PER_DOLLAR,
         resolveMarketInstruction,
         subsidizeMarketInstruction,
-    } from "$lib/web3_utils";
-    import { TxStatus, usdFormatter } from "$lib/utils";
+    } from "$lib/utils/op";
     import { web3Store } from "$lib/web3Store";
     import type { marketFulldata } from "@am/backend/types/market";
     import { PublicKey } from "@solana/web3.js";
@@ -51,8 +49,8 @@
             ).toBytes();
 
             const instructions = await subsidizeMarketInstruction(
-                new PublicKey(PUBLIC_USDC_MINT_ADDR),
-                new PublicKey(PUBLIC_MAIN_PROGRAM_ID),
+                new PublicKey(PUBLIC_SOLANA_USDC_ADDR),
+                new PublicKey(PUBLIC_OP_MAIN_PROGRAM_ADDR),
                 new PublicKey($web3Store?.solanaAddress!),
                 ammAddressBytes,
                 microUsdc
@@ -115,7 +113,7 @@
 
             const instructions = await resolveMarketInstruction(
                 new PublicKey(publicKey),
-                new PublicKey(PUBLIC_MAIN_PROGRAM_ID),
+                new PublicKey(PUBLIC_OP_MAIN_PROGRAM_ADDR),
                 ammAddressBytes,
                 direction
             );
@@ -271,7 +269,7 @@
 
                 <input
                     type="string"
-                    value={usdFormatter.format(microUsdc / USDC_PER_DOLLAR)}
+                    value={usd.format(microUsdc / USDC_PER_DOLLAR)}
                     on:change={(e) => {
                         const allowed = e.currentTarget.value.replace(
                             /[^0-9.]+/g,
@@ -282,7 +280,7 @@
                             microUsdc = 0;
                         } else {
                             microUsdc = num * USDC_PER_DOLLAR;
-                            e.currentTarget.value = usdFormatter.format(
+                            e.currentTarget.value = usd.format(
                                 microUsdc / USDC_PER_DOLLAR
                             ); // sometimes wasn't updating
                         }

@@ -1,7 +1,7 @@
 <script lang="ts">
     import {
-        PUBLIC_MAIN_PROGRAM_ID,
-        PUBLIC_USDC_MINT_ADDR,
+        PUBLIC_OP_MAIN_PROGRAM_ADDR,
+        PUBLIC_SOLANA_USDC_ADDR,
     } from "$env/static/public";
     import { web3Workspace } from "$lib/web3Workspace";
     import type {
@@ -11,7 +11,6 @@
     import { PublicKey } from "@solana/web3.js";
     import { IconMinus, IconPlus } from "@tabler/icons-svelte";
     import { onMount, tick } from "svelte";
-    import { USDC_PER_DOLLAR } from "$lib/web3_utils";
     import { browser } from "$app/environment";
     import {
         getBuyShareAmount,
@@ -19,8 +18,8 @@
         getSellUsdcLimit,
         getUserShares,
         buySharesInstruction,
-    } from "$lib/web3_utils";
-    import { usdFormatter, Errors, TxStatus, delay } from "$lib/utils";
+        USDC_PER_DOLLAR,
+    } from "$lib/utils/op";
     import confetti from "canvas-confetti";
     import { web3Store } from "$lib/web3Store";
     import LoadingOverlay from "$lib/components/loading_overlay.svelte";
@@ -39,6 +38,8 @@
         IconExternalLink,
         IconLivePhoto,
     } from "@tabler/icons-svelte";
+    import utils from "$lib/utils";
+    import { usd } from "$lib/utils/format";
 
     export let market: marketFulldata;
     export let updateMarket: (market: marketFulldata) => void;
@@ -52,7 +53,7 @@
             selectedToken = undefined;
             if (content) {
                 content.style.minHeight = content.scrollHeight + "px";
-                await delay(50);
+                await utils.mics.delay(50);
                 content.style.minHeight = "";
                 content.style.maxHeight = "";
             }
@@ -213,7 +214,7 @@
                                 </button>
                                 <input
                                     type="string"
-                                    value={usdFormatter.format(
+                                    value={usd.format(
                                         (buying
                                             ? microUsd
                                             : Number(expectedShares) *
@@ -234,7 +235,7 @@
                                         } else {
                                             microUsd = num * USDC_PER_DOLLAR;
                                             e.currentTarget.value =
-                                                usdFormatter.format(
+                                                usd.format(
                                                     microUsd / USDC_PER_DOLLAR
                                                 ); // sometimes wasn't updating
                                         }
@@ -346,7 +347,7 @@
                                     >
                                     <span
                                         class={`font-semibold text-indigo-400`}
-                                        >{`+ ${usdFormatter.format(
+                                        >{`+ ${usd.format(
                                             Number(
                                                 (BigInt(expectedShares) -
                                                     BigInt(microUsd)) /

@@ -89,15 +89,16 @@
         e.stopPropagation();
         like();
     }}
-    class={`flex group/like items-center justify-center text-sm gap-1.5 py-1.5 px-2.5 rounded-lg text-neutral-400 hover:bg-neutral-900`}
->
+    class={`flex group/like items-center justify-center text-sm gap-1.5 py-1.5 px-2.5 rounded-lg text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-900`}
+    >
     <IconStar
         class={`${
             liked
-                ? "group-hover/like:rotate-12 stroke-yellow-400 fill-yellow-400/25 group-hover/like:fill-yellow-400/25 group-hover/like:stroke-yellow-400/50"
-                : "group-hover/like:-rotate-12 stroke-neutral-600 fill-transparent group-hover/like:fill-yellow-400/25 group-hover/like:stroke-yellow-400/50"
+                ? "stoke-yellow-600 group-hover/like:stroke-yellow-600/50 dark:stroke-yellow-400 dark:group-hover/like:stroke-yellow-400/50"
+                : "fill-transparent stroke-neutral-400 dark:stroke-neutral-600 group-hover/like:stroke-yellow-400 dark:group-hover/like:stroke-yellow-400/80"
         }`}
-        size={20}
+        size={18}
+        stroke={2}
     />
     {likes}
 </button>
