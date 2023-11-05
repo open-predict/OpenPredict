@@ -2,6 +2,12 @@ import {z} from "zod";
 import * as web3 from "@solana/web3.js"
 import {PriceHistoryInterval} from "@polymarket/clob-client";
 
+export const bridgeOpenPredictTransactionSchemaV0 = z.object({
+  inputPolyWallet: z.string(),
+  opTransaction: z.string(),
+  amount: z.number(),
+})
+
 export const getPmMarket = z.object({
   condition_id: z.string()
 })

@@ -28,12 +28,12 @@ class PmChainCache {
   } | null> = new Map()
 
 
-  private pushClientRequest<T>(x: Promise<T>, y: (v: T) => Promise<void>): void {
-    this.clientRequestNeck.push([x, y])
+  private pushClientRequest<T>(x: Promise<T>, y: (v: T) => Promise<void>, z: (e: Error) => Promise<void>): void {
+    this.clientRequestNeck.push([x, y, z])
     this.drainClientRequests().then(_ => {})
   }
 
-  clientRequestNeck: [Promise<any>, (x: any) => Promise<void>][] = []
+  clientRequestNeck: [Promise<any>, (x: any) => Promise<void>, (e: Error) => Promise<void>][] = []
   currentClientRequests: Promise<number>[] = []
   usingClientRequestNeck = false
 
@@ -42,8 +42,8 @@ class PmChainCache {
       this.usingClientRequestNeck = true
       while (this.clientRequestNeck.length > 0) {
         while (this.currentClientRequests.length < 10 && this.clientRequestNeck.length > 0) {
-          var [p, a] = this.clientRequestNeck[0]
-          this.currentClientRequests.push(p.then(a).then(_ => this.currentClientRequests.length))
+          var [p, a, b] = this.clientRequestNeck[0]
+          this.currentClientRequests.push(p.then(a, b).then(_ => this.currentClientRequests.length))
           this.clientRequestNeck = this.clientRequestNeck.slice(1)
         }
         const idx = await Promise.race(this.currentClientRequests)
@@ -57,6 +57,10 @@ class PmChainCache {
   marketWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`)
   liveActivityWsActive = false
   liveActivityWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/live-activity`)
+
+  constructor() {
+    this.startLiveActivityWs();
+  }
 
   private processActivityNotification(trade: any) {
     if (trade != null && trade['event_type'] === "TRADE") {
@@ -100,80 +104,97 @@ class PmChainCache {
     }
   }
 
-  private startWs() {
-    const liveActivityWs = () => {
-      this.liveActivityWs.on("open", () => {
-        this.liveActivityWsActive = true
-        this.liveActivityWs.onmessage = (msg: any) => {
-          var resp: any
-          try {
-            resp = JSON.parse(msg.data)
-          } catch {
-            return;
-          }
-          console.log("LiveActivity update: ", resp);
-          if (resp instanceof Array) {
-            for (var i = 0; i < resp.length; i++) {
-              this.processActivityNotification(resp[i])
-            }
-          } else {
-            this.processActivityNotification(resp)
-          }
-        };
-      })
-      this.liveActivityWs.on("error", (err) => {
-        this.liveActivityWsActive = false
-        console.log("ws err, reconnecting: ", err)
-        liveActivityWs()
-      })
-    }
-    const startMarketWs = () => {
-      this.marketWs.on("open", () => {
-        this.marketWsActive = true
-        const asset_ids = [...(new Set([
-          ...[...this.marketData.values()].reduce(
-            (p, v) => [...p, ...v.tokens.map(v => v.token_id)], <string[]>[]
-          ),
-        ])).values()]
-        this.marketWs.send(JSON.stringify({
-          auth: {},
-          type: "market",
-          markets: [] as string[],
-          assets_ids: asset_ids,
-        }))
-        this.marketWs.onmessage = (msg: any) => {
-          var resp: any
-          try {
-            resp = JSON.parse(msg.data)
-          } catch {
-            return;
-          }
-          console.log("PM update: ", resp);
-          if (resp['event_type'] == 'book' && resp['asset_id'] != null && resp['asks'] != null && resp['bids'] != null) {
-            this.orderBooks.set(resp['asset_id'], {
-              asks: resp['asks'].map((v: {price: string, size: string}) => [new Number(v.price), new Number(v.size)]),
-              bids: resp['bids'].map((v: {price: string, size: string}) => [new Number(v.price), new Number(v.size)]),
-            })
-          }
-        };
+  private trackOrderBooks(tokens: string[]) {
+    var marketWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`);
+    console.log("Tracking token ids: ", tokens)
+    marketWs.on("open", () => {
+      console.log("book ws opened")
+      var restarted = false;
+      this.marketWs.on("close", (code, reason) => {
+        console.log("market ws closed: ", code, reason.toString(), this.marketWsActive)
+        if (!restarted) {
+          this.trackOrderBooks(tokens)
+          restarted = true;
+        }
       })
       this.marketWs.on("error", (err) => {
-        this.marketWsActive = false
-        console.log("ws err, reconnecting: ", err)
-        startMarketWs()
+        console.log("market ws err: ", err)
+        if (!restarted) {
+          this.trackOrderBooks(tokens)
+          restarted = true;
+        }
       })
-    }
-    startMarketWs()
-    liveActivityWs()
+      this.marketWsActive = true
+      const asset_ids = [...(new Set([
+        ...[...this.marketData.values()].reduce(
+          (p, v) => {
+            if (v.active && !v.closed) {
+              return [...p, ...v.tokens.map(v => v.token_id)]
+            } else {
+              return p;
+            }
+          }, <string[]>[]
+        ),
+      ])).values()]
+      var sendingReq = JSON.stringify({
+        auth: {},
+        type: "market",
+        markets: [] as string[],
+        assets_ids: asset_ids,
+      })
+      this.marketWs.send(sendingReq)
+      this.marketWs.onmessage = (msg: any) => {
+        var resp: any
+        try {
+          resp = JSON.parse(msg.data)
+        } catch {
+          return;
+        }
+        if (resp['event_type'] instanceof String && resp['event_type'].toLowerCase() == 'book' && resp['asset_id'] != null && resp['buys'] != null && resp['sells'] != null) {
+          this.orderBooks.set(resp['asset_id'], {
+            asks: resp['asks'].map((ask: {size: string, price: string}) => [new Number(ask.price), new Number(ask.size)]),
+            bids: resp['buys'].map((bid: {size: string, price: string}) => [new Number(bid.price), new Number(bid.size)]),
+          })
+        }
+      };
+    })
   }
 
-  constructor() {
-    this.startWs()
-    setInterval(() => {
-      if (this.marketWsActive) {
-        this.marketWs.send("PING")
+  private startLiveActivityWs() {
+    this.liveActivityWs.on("open", () => {
+      this.liveActivityWsActive = true
+      this.liveActivityWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`);
+      this.liveActivityWs.onmessage = (msg: any) => {
+        var resp: any
+        try {
+          resp = JSON.parse(msg.data)
+        } catch {
+          return;
+        }
+        console.log("LiveActivity update: ", resp);
+        if (resp instanceof Array) {
+          for (var i = 0; i < resp.length; i++) {
+            this.processActivityNotification(resp[i])
+          }
+        } else {
+          this.processActivityNotification(resp)
+        }
+      };
+    })
+    this.liveActivityWs.on("close", (code, reason) => {
+      console.log("live activity ws closed: ", code, reason.toString())
+      if (this.liveActivityWsActive) {
+        this.liveActivityWsActive = false
+        this.startLiveActivityWs()
       }
-    }, 5000)
+    })
+    this.liveActivityWs.on("error", (err) => {
+      console.log("live activity ws err: ", err)
+      if (this.liveActivityWsActive) {
+        this.liveActivityWsActive = false
+        this.startLiveActivityWs()
+      }
+    })
   }
 
   public setMarketData(data: pmMarketData[]) {
@@ -203,7 +224,7 @@ class PmChainCache {
           this.orderBooks.set(v.token_id, null)
         })
       } else {
-        tradableTokens.push(...v.tokens.map(v => v.token_id))
+        tradableTokens.push(...(v.tokens.map(v => v.token_id)))
         this.pushClientRequest(fetch("https://polymarket.openpredict.org/api/holders?conditionId=" + v.condition_id), async (resp) => resp.json().then((resp) => {
           if (resp instanceof Array) {
             for (var i = 0; i < resp.length; i++) {
@@ -227,9 +248,9 @@ class PmChainCache {
               }
             }
           }
-        }).catch(err => {
-          console.log("error in api-holders at condition id", v.condition_id, ": ", err)
-        }))
+        }), async (err) => {
+          console.log("Error getting api holders for condition id: " + v.condition_id, err)
+        })
 
         this.pushClientRequest(fetch("https://polyclob.openpredict.org/live-activity/events/" + v.condition_id), resp => resp.json().then((trades: any) => {
           if (trades instanceof Array) {
@@ -238,35 +259,15 @@ class PmChainCache {
               this.processActivityNotification(trade)
             }
           }
-        }).catch(err => {
+        }), async (err) => {
           console.log("error in live-activity at condition id", v.condition_id, ": ", err)
-        }))
+        })
       }
     })
 
-    tradableTokens = [...(new Set(tradableTokens))]
-    if (tradableTokens.length > 0) {
-      if (this.marketWsActive) {
-        this.marketWs.send(JSON.stringify({
-          auth: {},
-          type: "market",
-          markets: [] as string[],
-          assets_ids: tradableTokens,
-        }))
-      }
-
-      for (var i = 0; i < tradableTokens.length; i++) {
-        var t = tradableTokens[i];
-
-        this.pushClientRequest(pmclient.getOrderBook(t), async (sum) => {
-          if (!("error" in sum) && sum.asks != null && sum.bids != null) {
-            this.orderBooks.set(t, {
-              asks: sum.asks.map(v => [Number(v.price), Number(v.size)]),
-              bids: sum.bids.map(v => [Number(v.price), Number(v.size)]),
-            })
-          }
-        })
-      }
+    var tradableTokensSet = new Set(tradableTokens)
+    if (tradableTokensSet.size > 0) {
+      this.trackOrderBooks([...tradableTokensSet.values()])
     }
   }
 
@@ -330,11 +331,14 @@ export async function startAndMaintainPmList() {
     return;
   }
   global.pmChainCache.setMarketData(markets.data)
+  var i = 0;
   while (markets.next_cursor != "LTE=") {
     markets = await pmclient.getMarkets(markets.next_cursor);
     if (markets.data == null || markets.data.length == 0) {
       break;
     }
     global.pmChainCache.setMarketData(markets.data)
+    i += markets.data.length;
+    console.log("Set another batch (" + i.toString() + ")...")
   }
 }

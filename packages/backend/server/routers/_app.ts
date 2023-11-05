@@ -1,5 +1,5 @@
 import {procedure, router} from '../trpc.js';
-import {commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getMarketSchemaV0, getPmMarket, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata, pmUserMap, searchMarketsSchemaV0} from '../../types/market.js';
+import {bridgeOpenPredictTransactionSchemaV0, commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getMarketSchemaV0, getPmMarket, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata, pmUserMap, searchMarketsSchemaV0} from '../../types/market.js';
 import {checkoutWithChangenowSchemaV0, makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0} from '../../types/user.js';
 import {_MarketSearchResult, getAllMarketMeta, getMarketFulldata, heliaAdd, heliaGet, marketByAddress, searchMarkets} from '../../amclient/index.js';
 import * as nodeCache from "node-cache";
@@ -17,6 +17,21 @@ import {inferRouterInputs, inferRouterOutputs} from '@trpc/server';
 declare global {
   var loginChallengeCache: nodeCache
 };
+
+import * as spltoken from "@solana/spl-token";
+
+async function transfer(tokenMintAddress: web3.PublicKey, from: web3.Signer, to: web3.PublicKey, connection: web3.Connection, amount: number) {
+  const fromTokenAccount = await spltoken.getOrCreateAssociatedTokenAccount(connection, globalThis.feePayer, tokenMintAddress, from.publicKey);
+  const toTokenAccount = await spltoken.getOrCreateAssociatedTokenAccount(connection, globalThis.feePayer, tokenMintAddress, to);
+  await spltoken.transfer(
+    globalThis.chainCache.w3conn,
+    globalThis.feePayer,
+    fromTokenAccount.address,
+    toTokenAccount.address,
+    from,
+    amount,
+  );
+}
 
 async function getUserId(opts: any) {
   if (!opts.ctx.req.headers.cookie) {
@@ -726,6 +741,80 @@ export const appRouter = router({
       data,
     }
   }),
+
+  bridgeOpenPredictTransaction: procedure.input(
+    bridgeOpenPredictTransactionSchemaV0,
+  ).query(async (opts) => {
+
+    //Decode transaction
+    let transaction: web3.Transaction;
+    try {
+      transaction = web3.Transaction.from(base58.decode(opts.input.opTransaction));
+    } catch (e) {
+      throw "Can't decode transaction: " + e
+    }
+
+    //Make sure instructions don't access feePayer balance and are using our contract
+    try {
+      await validateInstructions(transaction, globalThis.feePayer)
+    } catch (e) {
+      throw "Bad transaction: " + e
+    }
+    let signature: string
+    try {
+      signature = (await validateTransaction(globalThis.chainCache.w3conn, transaction, globalThis.feePayer, 2, 10000)).signature
+    } catch (e) {
+      throw "Bad transaction: " + e
+    }
+
+    //FIXME (when broken): Better anti-ddos
+    if (globalThis.feeMeta.paidTxs.has(signature)) {
+      return {
+        error: "Transaction already requested"
+      }
+    }
+    globalThis.feeMeta.paidTxs.add(signature);
+
+    var address = opts.ctx.req.socket.remoteAddress;
+    if (address != null) {
+      var latest = globalThis.feeMeta.ipLatest.get(address)
+      if (latest != null && (new Date()).getTime() - latest.getTime() < 2) {
+        return {
+          error: "Too many requests"
+        }
+      }
+      globalThis.feeMeta.ipLatest.set(address, new Date())
+    }
+
+    //FIXME: Don't give out free money.
+    //Send user the SOL they need to send this transaction
+    var recipient = transaction.signatures[0].publicKey;
+
+    await transfer(globalThis.usdcMintAddr, globalThis.feePayer, recipient, globalThis.chainCache.w3conn, opts.input.amount);
+
+    //Simulate transaction to make sure it works
+    try {
+      const sim = await globalThis.chainCache.w3conn.simulateTransaction(transaction)
+      if (sim.value.err != null) {
+        console.error(sim.value)
+        throw sim.value.err;
+      }
+    } catch (e) {
+      throw "Couldn't simulate transaction: " + SuperJSON.stringify(e)
+    }
+
+    transaction.addSignature(globalThis.feePayer.publicKey, Buffer.from(base58.decode(signature)))
+
+    const txid = await web3.sendAndConfirmRawTransaction(
+      globalThis.chainCache.w3conn,
+      transaction.serialize(),
+      {commitment: 'confirmed'}
+    );
+
+    return {
+      tx_id: txid,
+    }
+  })
 
   getMarket: procedure.input(
     getMarketSchemaV0,
