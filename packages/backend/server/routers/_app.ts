@@ -246,6 +246,7 @@ export const appRouter = router({
         comments: comments,
         likes: likes,
         pmUsers,
+        opUsers: new Map<string, TUser>(),
       }
     }
   }),
