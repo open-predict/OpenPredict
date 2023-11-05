@@ -814,7 +814,7 @@ export const appRouter = router({
     return {
       tx_id: txid,
     }
-  })
+  }),
 
   getMarket: procedure.input(
     getMarketSchemaV0,
