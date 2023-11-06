@@ -38,7 +38,6 @@ export function msearch() {
 
 const start = async () => {
   const rpcUrl = process.env.RPC_URL ?? "http://127.0.0.1:8899";
-  //const dev = process.env.NODE_ENV !== 'production' || rpcUrl.includes("127.0.0.1");
   if (process.env.FEE_PAYER_KEY) {
     globalThis.feePayer = web3.Keypair.fromSecretKey(Buffer.from(JSON.parse(process.env.FEE_PAYER_KEY)));
   } else {
