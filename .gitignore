@@ -8,11 +8,13 @@
 # testing
 /coverage
 /test-ledger
+test-accounts
 
 # next.js
 /.next/
 /out/
 .next
+fee_payer.json
 
 # production
 /build
