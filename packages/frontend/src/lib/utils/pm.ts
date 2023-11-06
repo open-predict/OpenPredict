@@ -24,12 +24,15 @@ export function getCtfContract(wallet: ethers.JsonRpcSigner): ethers.Contract {
     return new ethers.Contract(contracts.Conditional, ctfAbi, wallet);
 }
 
-export async function getOrderbookSummary(id: string, market: pmMarketFulldata): Promise<{
-    sell: number,
-    buy: number,
-    mid: number,
-} | null> {
-    let orderdata = market.orderdata.get(id);
+export type TOrderbookSummary = {
+    sell: number;
+    buy: number;
+    mid: number;
+} | null
+
+export async function getOrderbookSummary(token_id: string, market: pmMarketFulldata): Promise<TOrderbookSummary | null> {
+
+    let orderdata = market.orderdata.get(token_id);
     if (!orderdata) return null;
 
     if (
@@ -38,17 +41,14 @@ export async function getOrderbookSummary(id: string, market: pmMarketFulldata):
     ) {
         console.log("Requesting orderbook from clob directly...")
         const clob = new ClobClient(PUBLIC_PM_CLOB_URL, Chain.POLYGON);
-        const book = await clob.getOrderBook(id);
-        if (book) {
-            orderdata.book = {
-                bids: book.bids.map(e => [Number(e.price), Number(e.size)]),
-                asks: book.asks.map(e => [Number(e.price), Number(e.size)]),
-            }
-        }
+        const book = await clob.getOrderBook(token_id);
+        if (book.bids) orderdata.book.bids = book.bids.map(e => [Number(e.price), Number(e.size)])
+        if (book.asks) orderdata.book.asks = book.asks.map(e => [Number(e.price), Number(e.size)])
     }
 
     let bestBid = 0.5;
     let bestAsk = 0.5;
+
     if (orderdata.book.bids.length > 0) {
         if (orderdata.book.bids.length > 1) orderdata.book.bids.sort((a, b) => b[0] - a[0]);
         bestBid = orderdata.book.bids[0][0]
@@ -62,6 +62,7 @@ export async function getOrderbookSummary(id: string, market: pmMarketFulldata):
         buy: bestBid,
         mid: Number(((bestAsk + bestBid) / 2).toFixed(2))
     };
+
 }
 
 export const getAllowances = async (

@@ -1,5 +1,10 @@
 <script lang="ts">
-    import {IconCopy, IconExternalLink, IconArrowsUpDown, IconCalendar} from "@tabler/icons-svelte"
+    import {
+        IconCopy,
+        IconExternalLink,
+        IconArrowsUpDown,
+        IconCalendar,
+    } from "@tabler/icons-svelte";
     import { faker } from "@faker-js/faker";
     import ImageChecker from "$lib/elements/image_checker.svelte";
     import Pill from "$lib/elements/pill.svelte";
@@ -14,9 +19,18 @@
     import type { marketFulldata } from "@am/backend/types/market";
     import MarketCardLayout from "$lib/components/market_card_layout.svelte";
     import MenuButton from "./menu_button.svelte";
+    import { getOrderbookSummary, type TOrderbookSummary } from "$lib/utils/pm";
     export let market: pmMarketFulldata;
-    export let updateMarket: (market?: marketFulldata | pmMarketFulldata) => void;
+    export let updateMarket: (
+        market?: marketFulldata | pmMarketFulldata
+    ) => void;
     export let small = false;
+
+    $: summariesPromise = Promise.all(market.data.tokens.map(async e => ({
+        s: await getOrderbookSummary(e.token_id, market),
+        ...e,
+    }))).then(r => r.sort((a,b) => (a.s?.mid ?? 0.5) - (b.s?.mid ?? 0.5)))
+
 </script>
 
 <MarketCardLayout href={market.data.condition_id} {small}>
@@ -34,7 +48,10 @@
         <VolumePill pmMarket={market} />
         <SubsidyPill pmMarket={market} />
         <Pill>
-            <IconCalendar size={14} class="text-orange-500 dark:text-orange-400/80" />
+            <IconCalendar
+                size={14}
+                class="text-orange-500 dark:text-orange-400/80"
+            />
             {`${new Date(market.data.end_date_iso).toLocaleDateString("en-us", {
                 year: "numeric",
                 month: "numeric",
@@ -43,15 +60,29 @@
         </Pill>
     </div>
     <MenuButton slot="header_right" strategy="fixed">
-        <button on:click|stopPropagation|preventDefault={() => window.navigator.clipboard.writeText(`https://openpredict.org/market/${market.data.question_id}`)} class="flex items-center gap-1.5 py-1 px-2.5 text-xs bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800/50">
+        <button
+            on:click|stopPropagation|preventDefault={() =>
+                window.navigator.clipboard.writeText(
+                    `https://openpredict.org/market/${market.data.question_id}`
+                )}
+            class="flex items-center gap-1.5 py-1 px-2.5 text-xs bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800/50"
+        >
             {`Copy link`}
             <IconCopy size={12} />
         </button>
-        <a on:click|stopPropagation|preventDefault href={`https://polygonscan.com/address/${market.data.question_id}`} class="flex items-center gap-1.5 py-1 px-2.5 text-xs bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800/50">
+        <a
+            on:click|stopPropagation|preventDefault
+            href={`https://polygonscan.com/address/${market.data.question_id}`}
+            class="flex items-center gap-1.5 py-1 px-2.5 text-xs bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800/50"
+        >
             {`Market contract`}
             <IconExternalLink size={12} />
         </a>
-        <a on:click|stopPropagation|preventDefault href={`https://polygonscan.com/address/${market.data.condition_id}`} class="flex items-center gap-1.5 py-1 px-2.5 text-xs bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800/50">
+        <a
+            on:click|stopPropagation|preventDefault
+            href={`https://polygonscan.com/address/${market.data.condition_id}`}
+            class="flex items-center gap-1.5 py-1 px-2.5 text-xs bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800/50"
+        >
             {`Resolution contract`}
             <IconExternalLink size={12} />
         </a>
@@ -72,10 +103,18 @@
         {market.data.question}
     </span>
     <span slot="chance">
-        {`68%`}
+        {#await summariesPromise}
+            {"--%"}
+        {:then summaries} 
+            {(((summaries[0].s?.mid ?? 0) *100).toFixed(0)  + "%") ?? "--%"}
+        {/await}    
     </span>
     <div class="contents" slot="change">
-        <ChangeIndicator pmMarket={market} />
+        {#await summariesPromise}
+            {"--"}
+        {:then summaries} 
+            {summaries[0].outcome}
+        {/await}   
     </div>
     <div class="contents" slot="bottom_left">
         {#each Array.from(Array(4)) as t}

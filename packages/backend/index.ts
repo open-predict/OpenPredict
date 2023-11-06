@@ -61,7 +61,6 @@ const start = async () => {
   //Set filterable attributes for index
   msearch().index('markets').updateFilterableAttributes(["tradable"]).then(_ => {})
 
-  //const isLocalRPC = rpcUrl.includes("127.0.0.1") || rpcUrl.includes("localhost");
   if (!mint || !mainProgramId) {
     throw new Error("need mint addr and main program addr if not running on localhost");
   }

@@ -13,8 +13,9 @@ export async function load() {
   const data: TPageData = {};
   try {
     data.searchResults = await api.searchMarkets.query({
-      "tradable": true,
-      "term":"fed"
+      tradable: true,
+      limit: 4,
+      term: "RATS"
     })
   } catch (e) {
     console.error("Error searching markets:", e);

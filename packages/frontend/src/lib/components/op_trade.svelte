@@ -71,7 +71,6 @@
     const step = 0.1 * USDC_PER_DOLLAR;
     const chance = 0.5;
 
-    $: ({ solanaAddress } = $web3Workspace);
     let userShares = {
         shares: 0n,
         sharesUI: 0,
@@ -110,15 +109,15 @@
               `${((microUsd - 0) / ((buying ? maxBuy : maxSell) - 0)) * 100}%`
           )
         : undefined;
-    // $: browser
-    //     ? recalc(
-    //           market.data.data,
-    //           userShares.shares,
-    //           userShares.sharesUI,
-    //           microUsd,
-    //           direction
-    //       )
-    //     : undefined;
+    $: browser
+        ? recalc(
+              market.data.data,
+              userShares.shares,
+              userShares.sharesUI,
+              microUsd,
+              direction
+          )
+        : undefined;
 
     onMount(async () => {
         slider = document.getElementById("cents_slider") as HTMLInputElement;
