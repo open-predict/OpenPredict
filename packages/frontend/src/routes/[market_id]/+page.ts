@@ -8,9 +8,10 @@ export type TMarketIdPageData = {
   id: string,
   pmMarket?: pmMarketFulldata,
   opMarket?: marketFulldata,
-  users?: TUsers,
+  pmUsers?: any,
+  opUsers?: TUsers,
   comments?: TComment[],
-  likes?: string[]
+  likes?: Buffer[]
 }
 
 export async function load({ params }) {
@@ -21,16 +22,20 @@ export async function load({ params }) {
 
   if (params.market_id.startsWith("0x")) {
     const res = await api.getPmMarket.query({ condition_id: params.market_id });
-    data.pmMarket = res.data ?? undefined;
-    data.comments = res.comments;
-    data.users = new Map();
-    data.likes = res.likes;
+    if(res.data !== null){
+      data.pmMarket = res.data ?? undefined;
+      data.comments = res.comments;
+      data.pmUsers = res.pmUsers;
+      data.likes = res.likes.map(l => l.userKey);
+    }
   } else {
     const res = await api.getMarket.query({ id: params.market_id });
-    data.opMarket = res.market;
-    data.comments = res.comments;
-    data.users = res.users;
-    data.likes = res.likes;
+    if(res.resp !== null){
+      data.opMarket = res.market;
+      data.comments = res.comments;
+      // data.opUsers = res.users;
+      data.likes = res.likes.map(l => l.userKey);
+    }
   }
 
   return superjson.serialize(data);

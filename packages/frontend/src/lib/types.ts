@@ -6,7 +6,7 @@ export type TUsernames = Map<string, { username: string | null; }>
 
 export type TComment = {
     createdAt: Date;
-    userKey: string;
+    userKey: Buffer;
     content: string;
 };
 

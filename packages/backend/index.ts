@@ -38,12 +38,10 @@ export function msearch() {
 
 const start = async () => {
   const rpcUrl = process.env.RPC_URL ?? "http://127.0.0.1:8899";
-  //const dev = process.env.NODE_ENV !== 'production' || rpcUrl.includes("127.0.0.1");
-  if (process.env.FEE_PAYER_KEY) {
-    globalThis.feePayer = web3.Keypair.fromSecretKey(Buffer.from(JSON.parse(process.env.FEE_PAYER_KEY)));
+  if (process.env.FEE_PAYER_PRIVKEY) {
+    globalThis.feePayer = web3.Keypair.fromSecretKey(Buffer.from(JSON.parse(process.env.FEE_PAYER_PRIVKEY)));
   } else {
-    globalThis.feePayer = web3.Keypair.generate()
-    console.log("Generated new fee payer key: ", globalThis.feePayer.publicKey.toString());
+    throw new Error("need FEE_PAYER_PRIVKEY env ")
   }
   globalThis.feeMeta = {
     paidTxs: new Set(),
@@ -61,7 +59,6 @@ const start = async () => {
   //Set filterable attributes for index
   msearch().index('markets').updateFilterableAttributes(["tradable"]).then(_ => {})
 
-  //const isLocalRPC = rpcUrl.includes("127.0.0.1") || rpcUrl.includes("localhost");
   if (!mint || !mainProgramId) {
     throw new Error("need mint addr and main program addr if not running on localhost");
   }
