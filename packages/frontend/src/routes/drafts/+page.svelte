@@ -3,23 +3,25 @@
     import { draftsStore } from "$lib/marketDraftStore";
     import { goto } from "$app/navigation";
     import MainHeader from "$lib/components/header.svelte";
-    import { IconPlus } from "@tabler/icons-svelte";
+    import { IconPlus, IconUfo } from "@tabler/icons-svelte";
+
+    $: drafts = Object.entries($draftsStore);
+    const create = () => goto("/drafts/" + draftsStore.createDraft())
+
 </script>
 
 <ColumnLayout>
     <MainHeader slot="main-header">
-        <div
-            class="text-sm w-full flex flex-col justify-center items-center line-clamp-1 overflow-ellipsis"
+        <p
+            slot="center"
+            class="text-black max-w-[14rem] overflow-hidden overflow-ellipsis"
         >
-            <p
-                class="text-black max-w-[14rem] overflow-hidden overflow-ellipsis"
-            >
-                {"Your Drafts"}
-            </p>
-        </div>
+            {"Your Drafts"}
+        </p>
         <button
-            class={`p-2 ml-auto rounded-full text-white font-semibold cursor-pointer bg-black hover:bg-gray-800`}
-            on:click={() => goto("/drafts/" + draftsStore.createDraft())}
+            slot="right"
+            class={`action_icon`}
+            on:click={create}
         >
             <IconPlus size={20} />
         </button>
@@ -42,15 +44,18 @@
                 </div>
             </a>
         {/each}
+        {#if drafts.length === 0}
+            <div class="flex flex-col items-center justify-center h-80 gap-6">
+                <IconUfo size={28} class="rotate-[-12deg]" />
+                <h4 class="">No drafts</h4>
+                <button
+                    on:click={create} 
+                    class="btn_secondary w-40"
+                >
+                    Create a market
+                </button>
+            </div>
+        {/if}
         <div />
-    </div>
-    <div slot="right">
-        <div
-            class="w-full bg-white mt-4 ring-1 rounded-2xl ring-gray-200 p-8 flex flex-col gap-4"
-        >
-            <p class="text-sm text-gray-600">
-                Warning: all drafts are saved locally
-            </p>
-        </div>
     </div>
 </ColumnLayout>

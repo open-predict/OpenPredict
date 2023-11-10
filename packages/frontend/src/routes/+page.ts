@@ -15,7 +15,7 @@ export async function load() {
     data.searchResults = await api.searchMarkets.query({
       tradable: true,
       limit: 4,
-      term: "RATS"
+      kind: 'openpredict'
     })
   } catch (e) {
     console.error("Error searching markets:", e);

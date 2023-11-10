@@ -273,12 +273,18 @@ async function handleAccountChanges(accounts: web3.AccountInfo<Buffer>[], retrie
       globalThis.chainCache.usernames.set(key.toBase58(), username)
       console.log("New profiles: ", globalThis.chainCache.profiles, globalThis.chainCache.usernames);
     })
-    await Promise.allSettled([
-      ...pins.map(async v => {
-        return globalThis._helia.pins.add(multiformats.CID.decode(v))
-      }),
-      ...jobs,
-    ])
+    try {
+      await Promise.allSettled([
+        ...pins.map(async v => {
+          const decoded = multiformats.CID.decode(v);
+          console.log("Decoded", decoded);
+          return globalThis._helia.pins.add(decoded).catch(e => console.log(`Error pinning`, e))
+        }),
+        ...jobs,
+      ])
+    } catch (e){
+      console.error("Error handling account changes", e)
+    }
   }
 }
 

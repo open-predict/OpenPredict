@@ -6,5 +6,5 @@ let connection: Connection;
 
 export default function createConnection() {
   if(!browser) return null;
-  return connection ?? new Connection(PUBLIC_SOLANA_RPC_URL);
+  return connection ?? new Connection(PUBLIC_SOLANA_RPC_URL, "confirmed");
 }

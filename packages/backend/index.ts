@@ -9,6 +9,8 @@ import {webcrypto} from 'node:crypto';
 import {startAndMaintainPmList} from './amclient/polymarket.js';
 import * as meilisearch from 'meilisearch';
 import fetch from 'cross-fetch';
+import * as dotenv from 'dotenv'
+dotenv.config()
 
 // @ts-ignore
 if (!globalThis.crypto) globalThis.crypto = webcrypto
@@ -57,7 +59,7 @@ const start = async () => {
   }
 
   //Set filterable attributes for index
-  msearch().index('markets').updateFilterableAttributes(["tradable"]).then(_ => {})
+  msearch().index('markets').updateFilterableAttributes(["tradable", "kind"]).then(_ => {})
 
   if (!mint || !mainProgramId) {
     throw new Error("need mint addr and main program addr if not running on localhost");

@@ -1,4 +1,5 @@
 import * as helia from "helia"
+import {Helia} from "@helia/interface"
 import * as pb from './oppb.js'
 import base58 from 'bs58'
 import {extMarketChaindata, marketFulldata, marketMetadataSchemaV0, pmMarketFulldata, pmUserMap, profileChaindata} from '../types/market.js'
@@ -12,7 +13,7 @@ import {TUser, userMetadataSchemaV0} from "../types/user.js"
 import {msearch} from "../index.js"
 
 declare global {
-  var _helia: any
+  var _helia: Helia
   var helia: hJsonI | null
   var heliaBlockstore: FsBlockstore | null
   var heliaDatastore: FsDatastore | null
@@ -24,13 +25,14 @@ async function getHelia() {
   await globalThis.heliaM.runExclusive(async () => {
     if (globalThis.helia == null) {
       globalThis.heliaBlockstore = new FsBlockstore('/opt/ipfs/blocks')
-      globalThis.heliaDatastore = new FsDatastore('/opt/ipfs/data')
+      globalThis.heliaDatastore = new FsDatastore('/opt/ipfs/data');
       globalThis._helia = await helia.createHelia({
         blockstore: globalThis.heliaBlockstore!,
         datastore: globalThis.heliaDatastore!,
-      })
-      globalThis._helia.libp2p.services.dht.setMode("server");
+      });
+      (globalThis._helia as any).libp2p.services.dht.setMode("server");
       globalThis.helia = hJson(globalThis._helia);
+      globalThis.heliaCache = new Map<string, unknown>();
     }
     console.log("helia addresses", globalThis._helia.libp2p.getMultiaddrs());
   })
@@ -44,7 +46,7 @@ export async function heliaAdd(data: unknown): Promise<multiformats.CID> {
 }
 
 export async function heliaGet(cid: multiformats.CID): Promise<unknown> {
-  if (globalThis.heliaCache.has(cid.toString())) {
+  if (globalThis.heliaCache && globalThis.heliaCache.has && globalThis.heliaCache.has(cid.toString())) {
     return globalThis.heliaCache.get(cid.toString())
   }
   return getHelia().then(helia => helia.get(cid, {
@@ -329,6 +331,7 @@ export async function searchMarkets(
     skip?: number,
     tradable?: boolean,
     orderBy?: "volume" | "recent",
+    kind?: "openpredict" | "polymarket",
   },
 ): Promise<_MarketSearchResult[]> {
   var _ret: Promise<marketFulldata>[] = []
@@ -343,13 +346,15 @@ export async function searchMarkets(
       )
     }
   }
+  let filters = [];
+  if(options.tradable) filters.push(`tradable = ${JSON.stringify(options.tradable)}`);
+  if(options.kind) filters.push(`kind = ${JSON.stringify(options.kind)}`);
   var meilisearchResult = await msearch().index('markets').search(options.term, {
     limit: options.limit,
     offset: options.skip,
-    ...(options.tradable == null ? {} : {
-      filter: [`tradable = ${JSON.stringify(options.tradable)}`],
-    })
+    filter: filters.length > 0 ? filters : undefined
   })
+  console.log("meilisearchResult", meilisearchResult)
   var results: Promise<_MarketSearchResult>[] = []
   if (meilisearchResult.hits != null) {
     for (var i = 0; i < meilisearchResult.hits.length; i++) {

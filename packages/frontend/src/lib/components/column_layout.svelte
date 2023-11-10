@@ -88,6 +88,7 @@
                     {/if}
                     <UserButton />
                 </div>
+                {#if $web3Store?.polygon === null}
                 <div
                     class="flex flex-col p-4 xl:pr-0 gap-4 border-b border-neutral-200 dark:border-neutral-900"
                 >
@@ -95,6 +96,7 @@
                         <Login />
                     </div>
                 </div>
+                {/if}
             </div>
             <div class="flex flex-col p-4 xl:pr-0 gap-4">
                 <slot name="right" />

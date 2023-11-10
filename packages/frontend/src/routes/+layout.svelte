@@ -43,8 +43,9 @@
     const uiStoreCookie = document.cookie
       .split("; ")
       .find((row) => row.startsWith("theme="))
-      ?.split("=")[1];    
-    const { theme } = superjson.parse<TUiStore>(uiStoreCookie)
+      ?.split("=")[1];
+    // const { theme } = superjson.parse<TUiStore>(uiStoreCookie)
+    const { theme } = JSON.parse(uiStoreCookie ?? "{}");
     switch (theme) {
       case "dark":
         document.documentElement.classList.add("dark");

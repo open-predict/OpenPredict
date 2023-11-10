@@ -37,7 +37,7 @@
                 {usd.format(Number(total))}
             </span>
             <p class="text-neutral-400 text-sm">Available for trading</p>
-            <!-- <div
+            <div
                 class="flex flex-row gap-1 mt-8 flex-wrap justify-center items-center"
             >
                 <Pill>
@@ -49,7 +49,7 @@
                             alt="polygon logo"
                         />
                     </div>
-                    {$web3Store?.polygonBalance?.usd ?? "$-.--"}
+                    {$web3Store?.polygon?.balances?.MATIC?.usd ?? "$-.--"}
                 </Pill>
                 <Pill>
                     <div
@@ -61,7 +61,7 @@
                         />
                     </div>
 
-                    {$web3Store?.solanaBalance?.usd ?? "$-.--"}
+                    {$web3Store?.solana?.balances?.SOL?.usd ?? "$-.--"}
                 </Pill>
                 <Pill>
                     <div class="flex justify-center items-center">
@@ -79,7 +79,7 @@
                             <img src="/usdc.svg" alt="usdc logo" />
                         </div>
                     </div>
-                    {$web3Store?.solanaBalance?.usd ?? "$-.--"}
+                    {$web3Store?.polymarket?.balances?.USDC?.usd ?? "$-.--"}
                 </Pill>
                 <Pill>
                     <div class="flex justify-center items-center">
@@ -97,9 +97,9 @@
                             <img src="/usdc.svg" alt="usdc logo" />
                         </div>
                     </div>
-                    {$web3Store?.solanaBalance?.usd ?? "$-.--"}
+                    {$web3Store?.solanaUsdc?.balances?.USDC?.usd ?? "$-.--"}
                 </Pill>
-            </div> -->
+            </div>
             <div
                 class={`flex flex-col w-full rounded-2xl ${
                     showDetails ? "bg-neutral-950/70" : ""
@@ -117,7 +117,7 @@
                         size={16}
                     />
                 </button>
-                <!-- {#if showDetails}
+                {#if showDetails}
                     <div
                         class="w-full p-4 border-t border-neutral-900/60 flex flex-col gap-4"
                     >
@@ -151,37 +151,37 @@
                                     >
                                         <td>
                                             {`${readableAddress(
-                                                $web3Store?.polygonAddress ?? ""
+                                                $web3Store?.polygon?.address ?? ""
                                             )}`}
                                             <CopyButton
-                                                value={$web3Store?.polygonAddress ??
+                                                value={$web3Store?.polygon?.address ??
                                                     ""}
                                             />
                                         </td>
                                         <td> MATIC </td>
                                         <td>
-                                            {$web3Store?.polygonBalance?.ui}
+                                            {$web3Store?.polygon?.balances?.MATIC?.ui}
                                         </td>
                                         <td>
-                                            {$web3Store?.polygonBalance?.usd}
+                                            {$web3Store?.polygon?.balances?.MATIC?.usd}
                                         </td>
                                     </tr>
                                     <tr class="h-10">
                                         <td
                                             >{`${readableAddress(
-                                                $web3Store?.polygonAddress ?? ""
+                                                $web3Store?.polymarket?.address ?? ""
                                             )}`}
                                             <CopyButton
-                                                value={$web3Store?.polygonAddress ??
+                                                value={$web3Store?.polymarket?.address ??
                                                     ""}
                                             />
                                         </td>
                                         <td> USDC </td>
                                         <td>
-                                            {$web3Store?.polymarketProxyUsdcBalance?.ui}
+                                            {$web3Store?.polymarket?.balances?.USDC?.ui}
                                         </td>
                                         <td>
-                                            {$web3Store?.polymarketProxyUsdcBalance?.usd}
+                                            {$web3Store?.polymarket?.balances?.USDC?.usd}
                                         </td>
                                     </tr>
                                 </tbody>
@@ -217,19 +217,19 @@
                                     >
                                         <td>
                                             {`${readableAddress(
-                                                $web3Store?.solanaAddress ?? ""
+                                                $web3Store?.solana?.address ?? ""
                                             )}`}
                                             <CopyButton
-                                                value={$web3Store?.solanaAddress ??
+                                                value={$web3Store?.solana?.address ??
                                                     ""}
                                             />
                                         </td>
                                         <td>SOL</td>
                                         <td>
-                                            {$web3Store?.solanaBalance?.ui}
+                                            {$web3Store?.solana?.balances?.SOL?.ui}
                                         </td>
                                         <td>
-                                            {$web3Store?.solanaBalance?.usd}
+                                            {$web3Store?.solana?.balances?.SOL?.usd}
                                         </td>
                                     </tr>
                                     <tr
@@ -237,27 +237,27 @@
                                     >
                                         <td>
                                             {`${readableAddress(
-                                                $web3Store?.solanaUsdcAddress ??
+                                                $web3Store?.solanaUsdc?.address ??
                                                     ""
                                             )}`}
                                             <CopyButton
-                                                value={$web3Store?.solanaUsdcAddress ??
+                                                value={$web3Store?.solanaUsdc?.address ??
                                                     ""}
                                             />
                                         </td>
                                         <td>USDC</td>
                                         <td>
-                                            {$web3Store?.solanaUsdcBalance?.ui}
+                                            {$web3Store?.solanaUsdc?.balances?.USDC?.ui}
                                         </td>
                                         <td>
-                                            {$web3Store?.solanaUsdcBalance?.usd}
+                                            {$web3Store?.solanaUsdc?.balances?.USDC?.usd}
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                {/if} -->
+                {/if}
             </div>
             <!-- <a
                 href="/settings#swaps"
@@ -300,6 +300,19 @@
                     class="flex flex-col gap-2 bg-neutral-950 text-white text-2xl p-6 rounded-2xl hover:bg-gradient-to-tr from-neutral-950 via-neutral-900 to-neutral-900"
                 >
                     <span class="font-semibold">External sites</span>
+                    <p
+                        class="text-sm text-neutral-400 whitespace-pre-wrap text-left"
+                    >
+                        {`Use a third party site to purchase and send USDC to your OpenPredict wallet`}
+                    </p>
+                </button>
+                <button
+                    on:click={() => {
+                        
+                    }}
+                    class="flex flex-col gap-2 bg-neutral-950 text-white text-2xl p-6 rounded-2xl hover:bg-gradient-to-tr from-neutral-950 via-neutral-900 to-neutral-900"
+                >
+                    <span class="font-semibold">Airdrop</span>
                     <p
                         class="text-sm text-neutral-400 whitespace-pre-wrap text-left"
                     >

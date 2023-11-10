@@ -6,7 +6,7 @@
         PUBLIC_OP_MAIN_PROGRAM_ADDR,
         PUBLIC_SOLANA_USDC_ADDR,
     } from "$env/static/public";
-    import { PublicKey } from "@solana/web3.js";
+    import { PublicKey, Transaction } from "@solana/web3.js";
     // import {
     //     Dialog,
     //     DialogDescription,
@@ -14,11 +14,10 @@
     // } from "@rgossiaux/svelte-headlessui";
     import { web3Store } from "$lib/web3Store.js";
     import { goto } from "$app/navigation";
-    import { autoresizeTextarea, usd } from "$lib/utils.js";
     import debounce from "lodash/debounce.js";
     import { Modal, modalStore } from "$lib/modals/modalStore.js";
     import base58 from "bs58";
-    import { web3Workspace } from "$lib/web3Workspace.js";
+    import { TxStatus, web3Workspace } from "$lib/web3Workspace.js";
     import LoadingOverlay from "$lib/components/loading_overlay.svelte";
     import MainHeader from "$lib/components/header.svelte";
     import {
@@ -27,6 +26,11 @@
         IconTrash,
         IconX,
     } from "@tabler/icons-svelte";
+    import { autoresizeTextarea } from "$lib/utils/dom.js";
+    import { usd } from "$lib/utils/format.js";
+    import { USDC_PER_DOLLAR, initMarketInstruction } from "$lib/utils/op.js";
+    import { trpc } from "$lib/trpc.js";
+    import { api } from "$lib/api.js";
 
     export let data;
 
@@ -86,94 +90,116 @@
         goto("/drafts");
     }
 
-    // async function publishMarket() {
-    //     const address = $web3Store?.solanaAddress;
-    //     const usdcAmount = $web3Store?.solanaUsdcBalance;
-    //     const metadata = $draftsStore[data.draft_id].metadata;
-    //     const marketAddress = base58.decode(data.draft_id);
-    //     const subsidy =
-    //         (($draftsStore[data.draft_id].subsidy ?? 0) / 100) *
-    //         USDC_PER_DOLLAR;
+    async function publishMarket() {
+        const address = $web3Store?.solana?.address;
+        const polyAddress = $web3Store?.polymarket?.address;
+        const usdcAmount = $web3Store?.solanaUsdc?.balances.USDC;
+        const metadata = $draftsStore[data.draft_id].metadata;
+        const marketAddress = base58.decode(data.draft_id);
+        const subsidy =
+            (($draftsStore[data.draft_id].subsidy ?? 0) / 100) *
+            USDC_PER_DOLLAR;
 
-    //     if (!address) {
-    //         modalStore.openModal(Modal.login);
-    //         return;
-    //     }
+        if (!address || !polyAddress) {
+            modalStore.openModal(Modal.login);
+            return;
+        }
 
-    //     const publicKey = new PublicKey(address)
+        const publicKey = new PublicKey(address);
 
-    //     // if (!usdcAmount || Number(usdcAmount) < subsidy) {
-    //     //     alert("Will add swap to instruction set ")
-    //     //     return;
-    //     // }
+        // if (!usdcAmount || Number(usdcAmount) < subsidy) {
+        //     alert("Will add swap to instruction set ")
+        //     return;
+        // }
 
-    //     if (!subsidy) {
-    //         errorMessage = "Please make the market subsidy greater than 0";
-    //         return;
-    //     }
+        if (!subsidy) {
+            errorMessage = "Please make the market subsidy greater than 0";
+            return;
+        }
 
-    //     if (subsidy > USDC_PER_DOLLAR * 50) {
-    //         errorMessage =
-    //             "Please make the market subsidy less than $50. Subsidies are capped while OpenPredict is in beta.";
-    //         return;
-    //     }
+        if (subsidy > USDC_PER_DOLLAR * 50) {
+            errorMessage =
+                "Please make the market subsidy less than $50. Subsidies are capped while OpenPredict is in beta.";
+            return;
+        }
 
-    //     if (!metadata || !metadata.title) {
-    //         errorMessage = "Please fill in the market title and description";
-    //         return;
-    //     }
+        if (!metadata || !metadata.title) {
+            errorMessage = "Please fill in the market title and description";
+            return;
+        }
 
-    //     loadingMessage = loadingMessages.ipfs;
+        loadingMessage = loadingMessages.ipfs;
 
-    //     const ipfsResponse = await trpcc.storeMarketIpfs.mutate(metadata);
+        const ipfsResponse = await api.storeMarketIpfs.mutate(metadata);
 
-    //     const instructions = await initMarketInstruction(
-    //         new PublicKey(PUBLIC_SOLANA_USDC_ADDR),
-    //         new PublicKey(PUBLIC_OP_MAIN_PROGRAM_ADDR),
-    //         publicKey,
-    //         ipfsResponse.cid,
-    //         marketAddress,
-    //         subsidy
-    //     );
+        const instructions = await initMarketInstruction(
+            new PublicKey(PUBLIC_SOLANA_USDC_ADDR),
+            new PublicKey(PUBLIC_OP_MAIN_PROGRAM_ADDR),
+            publicKey,
+            ipfsResponse.cid,
+            marketAddress,
+            subsidy
+        );
 
-    //     const neededUsdc = !$web3Store.solanaUsdcBalance
-    //         ? subsidy
-    //         : Number($web3Store.solanaUsdcBalance ?? 0n) - subsidy < 0
-    //         ? subsidy - Number($web3Store.solanaUsdcBalance ?? 0n)
-    //         : undefined;
-    //     $web3Workspace.handleTransaction(
-    //         [instructions],
-    //         (s) => {
-    //             switch (s) {
-    //                 case TxStatus.SIGNING:
-    //                     loadingMessage = loadingMessages.signing;
-    //                     break;
-    //                 case TxStatus.SENDING:
-    //                     loadingMessage = loadingMessages.sending;
-    //                     break;
-    //                 case TxStatus.CONFIRMING:
-    //                     loadingMessage = loadingMessages.confirming;
-    //                     break;
-    //             }
-    //         },
-    //         (s, hash) => {
-    //             loadingMessage = loadingMessages.redirecting;
-    //             setTimeout(() => {
-    //                 draftsStore.deleteDraft(data.draft_id);
-    //                 goto(`/${data.draft_id}`);
-    //             }, 15000);
-    //         },
-    //         (e) => {
-    //             errorMessage = `Could not publish market. Error: ${e}`;
-    //             loadingMessage = "";
-    //         }
-    //     );
-    // }
+        const neededUsdc = !$web3Store?.solanaUsdc?.balances.USDC?.amount
+            ? subsidy
+            : Number($web3Store.solanaUsdc.balances.USDC.amount ?? 0n) -
+                  subsidy <
+              0
+            ? subsidy - Number($web3Store.solanaUsdc.balances.USDC.amount ?? 0n)
+            : undefined;
+
+        const signedTx = (await $web3Workspace.web3Sol.signTransaction([
+            instructions,
+        ])) as Transaction;
+
+        console.log("Signed transaciton", signedTx, signedTx.recentBlockhash)
+
+        const res = await api.bridgeOpenPredictTransaction.query({
+            amount: 100000,
+            inputPolyWallet: polyAddress,
+            opTransaction: base58.encode(
+                signedTx.serialize({
+                    requireAllSignatures: false,
+                })
+            ),
+        });
+        
+        console.log("RES", res)
+
+        // $web3Workspace.handleTransaction(
+        //     [instructions],
+        //     (s) => {
+        //         switch (s) {
+        //             case TxStatus.SIGNING:
+        //                 loadingMessage = loadingMessages.signing;
+        //                 break;
+        //             case TxStatus.SENDING:
+        //                 loadingMessage = loadingMessages.sending;
+        //                 break;
+        //             case TxStatus.CONFIRMING:
+        //                 loadingMessage = loadingMessages.confirming;
+        //                 break;
+        //         }
+        //     },
+        //     (s, hash) => {
+        //         loadingMessage = loadingMessages.redirecting;
+        //         setTimeout(() => {
+        //             draftsStore.deleteDraft(data.draft_id);
+        //             goto(`/${data.draft_id}`);
+        //         }, 15000);
+        //     },
+        //     (e) => {
+        //         errorMessage = `Could not publish market. Error: ${e}`;
+        //         loadingMessage = "";
+        //     }
+        // );
+    }
 
     async function handlePublishMarket() {
         errorMessage = "";
         try {
-            // await publishMarket();
+            await publishMarket();
         } catch (e) {
             console.error(e);
             errorMessage = "Error publishing your market. Check the console.";
@@ -303,17 +329,17 @@
                     >
                         {`Create market`}
                     </button>
-                    <p class="text-sm text-gray-500">
+                    <!-- <p class="text-sm text-gray-500">
                         {`You have ${usd.format(
                             Number($web3Store?.solanaUsdcBalance ?? 0n) /
                                 1000000
                         )}`}
-                    </p>
+                    </p> -->
                 </div>
             </div>
         {/if}
     </div>
-    <div slot="right">
+    <!-- <div slot="right">
         <div
             class="w-full bg-white mt-4 ring-1 rounded-2xl ring-gray-200 p-8 flex flex-col gap-4"
         >
@@ -321,7 +347,7 @@
                 Warning: all drafts are saved locally
             </p>
         </div>
-    </div>
+    </div> -->
 </ColumnLayout>
 <!-- 
 <Dialog
