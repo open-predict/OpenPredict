@@ -25,7 +25,7 @@ jobs:
             git checkout ${{ github.ref }}
             git pull origin ${{ github.ref }}
           else
-            git clone -b ${{ github.ref }} --single-branch https://github.com/Open-Predict/openpredict.git
+            git clone -b ${{ github.ref }} --single-branch https://github.com/open-predict/OpenPredict.git
             cd openpredict
             echo "Environment variables must be set up."
             exit 1
