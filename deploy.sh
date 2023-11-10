@@ -1,72 +1,61 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -m
+mkdir -p ./test-accounts
+mkdir -p ./secrets
 
-rpcUrl="http://127.0.0.1:8899"
-feePayerAddress=""
-feePayerKey=""
-tokenProgramId="TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-tokenAccount=""
-mint=""
-mainProgramId=""
-redeploy=true
+filenames=("./secrets/polygon_rpc_url" "./secrets/web3auth_id")
 
-splTokenAccountsOutput=$(spl-token accounts --output json)
-echo $splTokenAccountsOutput
-accounts=$(echo $splTokenAccountsOutput | jq -r '.accounts')
-numAccounts=$(jq -r '.accounts | length' <<< "$splTokenAccountsOutput")
+for filename in "${filenames[@]}"; do
+    if [[ ! -e $filename ]]; then
+        echo "Please enter the contents of $filename:"
+        read file_contents
 
-if [ $numAccounts -gt 0 ]; then
-    tokenAccount=$(echo $accounts | jq -r '.[0].address')
-    mint=$(echo $accounts | jq -r '.[0].mint')
-    redeploy=false
-    echo " > found existing custom tokens (usdc), not redeploying"
-fi
-
-setFeePayerFromFile() {
-    if [ -f "fee_payer.json" ]; then
-        feePayerKey=$(cat "fee_payer.json")
-        feePayerAddress=$(solana address --keypair ./fee_payer.json)
-        lamports=$(solana balance --keypair ./fee_payer.json --output json | jq -r '.lamports')
-        if [ "$lamports" -le 0 ]; then
-            solana airdrop --keypair ./fee_payer.json 1
-        fi
-        feePayerSOL=$(solana balance --keypair ./fee_payer.json)
-        return 0
+        echo "$file_contents" > "$filename"
     fi
-    return 1
-}
+done
 
-if ! setFeePayerFromFile; then
-    solana-keygen new --no-bip39-passphrase -o ./fee_payer.json
-    if ! setFeePayerFromFile; then
-        echo " > unable to create and save local fee payer keypair"
-        exit 1
-    fi
-fi
+POLYGON_RPC_URL=$(cat ./secrets/polygon_rpc_url)
+WEB3AUTH_ID=$(cat ./secrets/web3auth_id)
 
-if $redeploy; then
-    createTokenOutput=$(spl-token create-token --decimals 6 --output json)
-    mint=$(echo $createTokenOutput | jq -r '.commandOutput.address')
+# Make MEILI_MASTER_KEY if not exists
+[ -f ./secrets/meili_master_key ] || openssl rand -hex 16 > ./secrets/meili_master_key
+MEILI_MASTER_KEY=$(cat ./secrets/meili_master_key)
 
-    createTokenAccountOuput=$(spl-token create-account $mint)
-    tokenAccount=$(echo $createTokenAccountOuput | grep "Creating account" | awk '{print $3}')
+# Make DB_PASSWORD if not exists
+[ -f ./secrets/db_password ] || openssl rand -hex 16 > ./secrets/db_password
+DB_PASSWORD=$(cat ./secrets/db_password)
+DB_USER=admin
+DB_NAME=openpredict
 
-    spl-token mint $mint 10000000000
-    spl-token transfer $mint 10000000000 $feePayerAddress  
-    feePayerUSDC=$(spl-token balance --owner $feePayerAddress)
-fi
+# Make fee payer if not exists
+[ -f ./secrets/fee_payer.json ] || solana-keygen new -s --no-bip39-passphrase -o ./secrets/fee_payer.json
+FEE_PAYER_PUBKEY="$(solana-keygen pubkey ./secrets/fee_payer.json)"
+[ -f ./test-accounts/fee_payer.json ] || (solana airdrop --keypair ./secrets/fee_payer.json 300 -u localhost && solana account $FEE_PAYER_PUBKEY --output-file ./test-accounts/fee_payer.json --output json -u localhost)
 
-
-if $redeploy; then
-    FEE_PAYER_KEY=$feePayerAddress USDC_MINT_AUTH_ADDR=$mint cargo build-sbf --manifest-path ./packages/backend/contracts/Cargo.toml
-    deployOutput=$(solana program deploy ./packages/backend/contracts/target/deploy/openpredict.so -u $rpcUrl --output json)
-    mainProgramId=$(echo $deployOutput | jq -r '.programId')
+# Create mint address if not exists
+if [[ -f ./test-accounts/usdc_mint.json ]]; then
+  USDC_MINT_AUTH_ADDR=$(jq -r .pubkey ./test-accounts/usdc_mint.json)
 else
-    programShowOutput=$(solana program show --programs --output json)
-    mainProgramId=$(echo $programShowOutput | jq -r '.programs[0].programId')
+  USDC_MINT_AUTH_ADDR=$(spl-token create-token --output json -u localhost | jq .commandOutput.address -r)
+  solana account $USDC_MINT_AUTH_ADDR --output-file ./test-accounts/usdc_mint.json --output json -u localhost
 fi
 
-echo " > Fee Payer: $feePayerAddress"
-echo " > Fee Payer SOL: $feePayerSOL"
-echo " > Fee Payer USDC: $feePayerUSDC"
-echo " > USDC Mint: $mint"
-echo " > OP Program Id: $mainProgramId"
+# Deploy program if not exists
+cd ./packages/backend/contracts/
+RUST_BACKTRACE=1 FEE_PAYER_KEY=$FEE_PAYER_PUBKEY USDC_MINT_AUTH_ADDR=$USDC_MINT_AUTH_ADDR cargo --quiet build-sbf
+[ -f ./target/deploy/openpredict-keypair.json ] || solana-keygen new --no-bip39-passphrase -o ./target/deploy/openpredict-keypair.json
+deployOutput=$(solana program deploy ./target/deploy/openpredict.so -u localhost --output json)
+MAIN_PROGRAM_ID=$(echo $deployOutput | jq -r '.programId')
+cd ../../../
+
+echo "FEE_PAYER_PUBKEY=${FEE_PAYER_PUBKEY}
+FEE_PAYER_PRIVKEY=$(cat ./secrets/fee_payer.json)
+MAIN_PROGRAM_ID=${MAIN_PROGRAM_ID}
+USDC_MINT_ADDRESS=${USDC_MINT_AUTH_ADDR}
+MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+DB_USER=${DB_USER}
+DB_PASSWORD=${DB_PASSWORD}
+DB_NAME=${DB_NAME}
+POLYGON_RPC_URL=${POLYGON_RPC_URL}
+WEB3AUTH_ID=${WEB3AUTH_ID}
+SOLANA_RPC_URL=http://testvalidator:8899"

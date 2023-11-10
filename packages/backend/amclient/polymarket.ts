@@ -163,7 +163,22 @@ class PmChainCache {
   private startLiveActivityWs() {
     this.liveActivityWs.on("open", () => {
       this.liveActivityWsActive = true
-      this.liveActivityWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`);
+      this.liveActivityWs.on("close", (code, reason) => {
+        console.log("live activity ws closed: ", code, reason.toString())
+        if (this.liveActivityWsActive) {
+          this.liveActivityWsActive = false
+          this.liveActivityWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`);
+          this.startLiveActivityWs()
+        }
+      })
+      this.liveActivityWs.on("error", (err) => {
+        console.log("live activity ws err: ", err)
+        if (this.liveActivityWsActive) {
+          this.liveActivityWsActive = false
+          this.liveActivityWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`);
+          this.startLiveActivityWs()
+        }
+      })
       this.liveActivityWs.onmessage = (msg: any) => {
         var resp: any
         try {
@@ -180,20 +195,6 @@ class PmChainCache {
           this.processActivityNotification(resp)
         }
       };
-    })
-    this.liveActivityWs.on("close", (code, reason) => {
-      console.log("live activity ws closed: ", code, reason.toString())
-      if (this.liveActivityWsActive) {
-        this.liveActivityWsActive = false
-        this.startLiveActivityWs()
-      }
-    })
-    this.liveActivityWs.on("error", (err) => {
-      console.log("live activity ws err: ", err)
-      if (this.liveActivityWsActive) {
-        this.liveActivityWsActive = false
-        this.startLiveActivityWs()
-      }
     })
   }
 

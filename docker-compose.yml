@@ -1,5 +1,16 @@
 version: '3'
 services:
+  testvalidator:
+    attach: false
+    build:
+      context: ./
+      dockerfile: ./validator/Dockerfile
+    volumes:
+      - ./test-ledger:/validator/test-ledger
+      - ./test-accounts:/validator/test-accounts
+    profiles:
+      - local
+
   search:
     image: getmeili/meilisearch:latest
     environment:
@@ -47,7 +58,6 @@ services:
       context: ./
       dockerfile: ./packages/frontend/Dockerfile
       args:
-        - PUBLIC_MAGIC_PUBLISHABLE_API_KEY=${MAGIC_PUBLISHABLE_API_KEY}
         - PUBLIC_MAIN_PROGRAM_ID=${MAIN_PROGRAM_ID}
         - PUBLIC_USDC_MINT_ADDR=${USDC_MINT_ADDRESS}
         - PUBLIC_FEE_PAYER_KEY=${FEE_PAYER_PUBKEY}
