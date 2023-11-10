@@ -38,6 +38,7 @@ if [[ -f ./test-accounts/usdc_mint.json ]]; then
 else
   USDC_MINT_AUTH_ADDR=$(spl-token create-token --output json -u localhost | jq .commandOutput.address -r)
   solana account $USDC_MINT_AUTH_ADDR --output-file ./test-accounts/usdc_mint.json --output json -u localhost
+  spl-token mint $USDC_MINT_AUTH_ADDR 100000000000 $FEE_PAYER_PUBKEY
 fi
 
 # Deploy program if not exists
