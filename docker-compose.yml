@@ -1,6 +1,7 @@
 version: '3'
 services:
   testvalidator:
+    attach: false
     build:
       context: ./
       dockerfile: ./validator/Dockerfile
