@@ -30,5 +30,5 @@ jobs:
             echo "Environment variables must be set up."
             exit 1
           fi
-          docker-compose down
-          docker-compose up --build -d
+          sudo docker compose down
+          sudo docker compose up --build -d
