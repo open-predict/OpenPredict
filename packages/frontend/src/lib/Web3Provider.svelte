@@ -27,6 +27,7 @@
   import { ethers as ethers5 } from "ethers5";
   import { Errors } from "./errors";
   import { getProxyWalletAddress } from "@polymarket/sdk";
+  import { api } from "./api";
 
   const FILE = "Web3Provider";
 
@@ -210,7 +211,6 @@
         modalStore.openModal(Modal.login);
         return false;
       }
-
       // async function signProcess(publicKey: PublicKey) {
       //   modalStore.openModal(Modal.backend_auth);
       //   const challengeRes = await trpcc.getLoginChallenge.mutate({});
@@ -297,33 +297,40 @@
 
       onStatus(TxStatus.SIGNING);
 
-      const signedTx = (await web3Sol.signTransaction(
-        instructions
-      )) as Transaction;
+      const { signedTx, signTxError } = await web3Sol
+        .signTransaction(instructions)
+        .then((t) => ({
+          signedTx: t,
+          signTxError: null,
+        }))
+        .catch((e) => ({
+          signTxError: e,
+          signedTx: null,
+        }));
 
-      // if (signTxError || !signedTx) {
-      //   onError(signTxError ?? new Error("Unable to sign transaction."));
-      //   return;
-      // }
+      if (signTxError || !signedTx) {
+        onError(signTxError ?? new Error("Unable to sign transaction."));
+        return;
+      }
 
       onStatus(TxStatus.SENDING);
 
-      // const { error, tx_id } = await trpcc.sendOpenPredictTransaction.query({
-      //   transaction: base58.encode(
-      //     signedTx.serialize({
-      //       requireAllSignatures: false,
-      //     })
-      //   ),
-      // });
+      const { error, tx_id } = await api.sendOpenPredictTransaction.query({
+        transaction: base58.encode(
+          signedTx.serialize({
+            requireAllSignatures: false,
+          })
+        ),
+      });
 
-      // if (error || !tx_id) {
-      //   onError(new Error("Unable to send transaction: " + error!));
-      //   return;
-      // }
+      if (error || !tx_id) {
+        onError(new Error("Unable to send transaction: " + error!));
+        return;
+      }
 
       onStatus(TxStatus.COMPLETE);
-      // onComplete(1, tx_id);
-      onComplete(1, "fake_tx_hash");
+      onComplete(1, tx_id);
+    
     } catch (e: any) {
       log("error", FILE, e);
       if (e instanceof Error) {

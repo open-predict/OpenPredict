@@ -18,26 +18,28 @@
         pmMarket?: pmMarketFulldata
     ): boolean {
         let liked = false;
-        for (const id of ids) {
-            if (id && opMarket && opMarket.data.Likes.has(id)) {
-                liked = true;
-            }
-        }
+        // for (const id of ids) {
+        //     if (id && opMarket && opMarket.data.Likes.has(id)) {
+        //         liked = true;
+        //     }
+        // }
         return liked;
     }
 
-    $: liked = checkIds(
-        [$web3Store?.polygonAddress, $web3Store?.solanaAddress],
-        opMarket,
-        pmMarket
-    );
-    $: likes = opMarket ? opMarket.data.Likes.size : pmMarket ? 0 : 0;
+    // $: liked = checkIds(
+    //     [$web3Store?.polygonAddress, $web3Store?.solanaAddress],
+    //     opMarket,
+    //     pmMarket
+    // );
+    const liked = false;
+    const likes = 0
+    // $: likes = opMarket ? opMarket.data.Likes.size : pmMarket ? 0 : 0;
 
     async function like() {
-        if (!$web3Store?.solanaAddress) {
-            modalStore.openModal(Modal.login);
-            return;
-        }
+        // if (!$web3Store?.solanaAddress) {
+        //     modalStore.openModal(Modal.login);
+        //     return;
+        // }
 
         //     const done = await $web3Workspace.makeAuthenticatedRequest(() =>
         //         trpcc.like
@@ -56,20 +58,20 @@
         //         return;
         //     }
 
-        const likeResponse = await api.recordLike($web3Store.solanaAddress);
-        if (!likeResponse) alert("Unable to like market, please try again.");
+        // const likeResponse = await api.recordLike($web3Store.solanaAddress);
+        // if (!likeResponse) alert("Unable to like market, please try again.");
 
-        const newState = !liked;
+        // const newState = !liked;
 
-        if (opMarket) {
-            const newMarket = clone(opMarket);
-            if (newState) {
-                newMarket.data.Likes.add($web3Store.solanaAddress);
-            } else {
-                newMarket.data.Likes.delete($web3Store.solanaAddress);
-            }
-            updateMarket(newMarket);
-        } else if (pmMarket) {
+        // if (opMarket) {
+        //     const newMarket = clone(opMarket);
+        //     if (newState) {
+        //         newMarket.data.Likes.add($web3Store.solanaAddress);
+        //     } else {
+        //         newMarket.data.Likes.delete($web3Store.solanaAddress);
+        //     }
+        //     updateMarket(newMarket);
+        // } else if (pmMarket) {
             // const newMarket = clone(pmMarket);
             // if (newState) {
             //     newMarket.data.likes.push($web3Store.solanaAddress);
@@ -80,7 +82,7 @@
             //     newMarket.data.likes = newLikes;
             // }
             // updateMarket(newMarket);
-        }
+        // }
     }
 </script>
 

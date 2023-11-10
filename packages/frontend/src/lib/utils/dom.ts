@@ -1,6 +1,10 @@
+import { onMount, tick } from "svelte";
+
 export function autoresizeTextarea(node: any) {
-    const handleInput = (e: Event) => {
+    onMount(() => handleInput())
+    const handleInput = async () => {
         node.style.height = "0"
+        await tick();
         node.style.height = node.scrollHeight + "px";
     };
     document.addEventListener("input", handleInput, false);

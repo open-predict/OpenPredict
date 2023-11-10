@@ -18,6 +18,7 @@ export const searchMarketsSchemaV0 = z.object({
   limit: z.number().optional(),
   tradable: z.boolean().optional(),
   orderBy: z.enum(["recent", "volume"]).optional(),
+  kind: z.enum(["polymarket", "openpredict"]).optional(),
 })
 
 export const getMarketSchemaV0 = z.object({

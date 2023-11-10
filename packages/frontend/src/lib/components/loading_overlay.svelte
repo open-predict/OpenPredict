@@ -9,7 +9,7 @@
 
 {#if loadingMessage || errorMessage || completedMessage}
     <div
-        class="fixed top-0 flex flex-col justify-center items-center left-0 z-50 w-full h-full bg-white/95 gap-8 text-center"
+        class="fixed top-0 flex flex-col justify-center items-center left-0 z-50 w-full h-full bg-white/95 dark:bg-black/95 gap-8 text-center"
     >
         {#if errorMessage}
             <div class={"text-red-500"}>

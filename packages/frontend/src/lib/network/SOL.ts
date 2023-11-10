@@ -6,6 +6,7 @@ import { PUBLIC_OP_FEE_PAYER_ADDR, PUBLIC_SOLANA_RPC_URL, PUBLIC_SOLANA_USDC_ADD
 import { SolanaWallet } from "@web3auth/solana-provider";
 import * as web3spl from "@solana/spl-token";
 import type { TBalance } from "$lib/web3Store";
+import { api } from "$lib/api";
 // import { trpcc } from "$lib/trpc";
 
 const usdcMintAddr = new PublicKey(PUBLIC_SOLANA_USDC_ADDR);
@@ -32,35 +33,33 @@ export class SOL extends Web3 {
     return this.solanaWallet
   }
 
-  public async getBalance(): Promise<TBalance> {
+  public async getBalance(): Promise<TBalance | undefined> {
     const address = await this.getAddress();
     if (!address) {
+      console.error("Cannot get solana account balance, no account")
       return;
     }
-    const balance = await this.connection.getBalance(new PublicKey(address))
-    return { amount: BigInt(balance), decimals: LAMPORTS_PER_SOL / 10 };
+    const balance = await this.connection.getBalance(new PublicKey(address));
+    console.log("balance", address, balance)
+    return { amount: BigInt(balance), decimals: 9 };
   }
 
-  public async getUsdcBalance(): Promise<TBalance> {
+  public async getUsdcBalance(): Promise<TBalance | undefined> {
     const address = await this.getUsdcAddress();
     if (!address) {
       console.error("Cannot get solana usdc account balance, no account")
+      return;
     }
     const balance = await this.connection.getTokenAccountBalance(new PublicKey(address!));
     return { amount: BigInt(balance.value.amount), decimals: balance.value.decimals }
   }
 
   public async getAddress(): Promise<string | undefined> {
-    if (!this.solanaWallet) {
-      return;
-    }
     try {
+      if (!this.solanaWallet) throw new Error("No solana wallet")
       const acc = await this.solanaWallet.requestAccounts();
-      if (acc.length > 0) {
-        return acc[0];
-      } else {
-        return;
-      }
+      if (acc.length === 0) throw new Error("No solana accounts");
+      return acc[0];
     } catch (error) {
       console.error(error);
       return;
@@ -68,32 +67,36 @@ export class SOL extends Web3 {
   }
 
   public async getUsdcAddress(): Promise<string | undefined> {
-    const address = await this.getAddress();
-    if (!address || !this.connection) {
-      console.error("Can't get usdc address, not logged in.")
-      return;
-    }
-    const pubKey = new PublicKey(address);
     try {
-      const accountPubKey = await web3spl.getAssociatedTokenAddress(
-        usdcMintAddr,
-        pubKey,
-        false
-      );
-      const account = await web3spl.getAccount(this.connection, accountPubKey);
-    } catch (err: unknown) {
-      // if (err instanceof web3spl.TokenAccountNotFoundError) {
-      //   const res = await trpcc.makeUsdcWallet.query({
-      //     user: pubKey.toBase58(),
-      //   });
-      //   if (res.error || !res.address) {
-      //     console.error("Unable to create USDC wallet", res.error);
-      //   } else {
-      //     return res.address as unknown as string
-      //   }
-      // } else {
-      console.error("Unable to create USDC wallet", err);
-      // }
+      const address = await this.getAddress();
+      if (!address) throw new Error("No solana address");
+      if (!this.connection) throw new Error("No solana connection");
+      const pubKey = new PublicKey(address);
+      try {
+        const accountPubKey = await web3spl.getAssociatedTokenAddress(
+          usdcMintAddr,
+          pubKey,
+          false
+        );
+        const account = await web3spl.getAccount(this.connection, accountPubKey);
+        return account.address.toBase58()
+      } catch (err: unknown) {
+        if (err instanceof web3spl.TokenAccountNotFoundError) {
+          const res = await api.makeUsdcWallet.query({
+            user: pubKey.toBase58(),
+          });
+          if (res.error || !res.address) {
+            console.error("Unable to create USDC wallet", res.error);
+          } else {
+            return res.address as unknown as string
+          }
+        } else {
+          console.error("Unable to create USDC wallet", err);
+        }
+      }
+    } catch (e) {
+      console.error("Can't get usdc address", e)
+      return;
     }
   }
 
@@ -102,13 +105,17 @@ export class SOL extends Web3 {
       console.error("No solana wallet")
       return;
     }
+    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash("confirmed");
+    console.log("Blockhash", blockhash, lastValidBlockHeight)
     let transaction = new Transaction({
       feePayer: payerKey,
-      recentBlockhash: (await this.connection.getLatestBlockhash()).blockhash,
+      recentBlockhash: blockhash
     });
     transaction.add(...instructions);
+    console.log("Keys", transaction.feePayer)
     const signedTx = await this.solanaWallet.signTransaction(transaction);
-    return transaction;
+    console.log("Transaction instructions", transaction.instructions)
+    return signedTx;
   }
 
   public async signMessage(data: Uint8Array): Promise<Uint8Array | undefined> {
