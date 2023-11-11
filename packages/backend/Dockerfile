@@ -1,6 +1,10 @@
 # Use a Node.js base image
 FROM node:18-alpine
 
+RUN sudo apt-get update -y
+RUN sudo apt-get upgrade -y
+RUN sudo apt-get install build-essential
+
 # Set the working directory
 WORKDIR /app
 
