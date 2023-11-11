@@ -23,7 +23,7 @@ jobs:
           if [ -d "OpenPredict" ]; then 
             cd OpenPredict
             git checkout beta
-            git pull origin beta
+            git pull origin beta --no-rebase
           else
             git clone -b beta --single-branch https://github.com/open-predict/OpenPredict.git
             cd OpenPredict
