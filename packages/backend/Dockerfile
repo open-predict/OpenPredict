@@ -1,7 +1,7 @@
 # Use a Node.js base image
 FROM node:18-alpine
 
-RUN apk add build-base
+RUN apk add build-base cmake
 
 # Set the working directory
 WORKDIR /app
