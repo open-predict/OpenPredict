@@ -1,7 +1,9 @@
 # Use a Node.js base image
-FROM node:18-alpine
+FROM node:18
 
-RUN apk add build-base cmake openssl
+RUN apt-get update -y
+RUN apt-get upgrade -y
+RUN apt-get install openssl build-essential -y
 
 # Set the working directory
 WORKDIR /app
