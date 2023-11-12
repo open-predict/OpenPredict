@@ -22,7 +22,8 @@ declare global {
   var heliaCache: Map<string, unknown>
 }
 
-async function getHelia() {
+export async function heliaInit() {
+  globalThis.heliaM = new Mutex();
   await globalThis.heliaM.runExclusive(async () => {
     if (globalThis.helia == null) {
       globalThis.heliaBlockstore = new FsBlockstore('/opt/ipfs/blocks')
@@ -35,10 +36,15 @@ async function getHelia() {
         blockstore: globalThis.heliaBlockstore!
       });
       globalThis.heliaCache = new Map<string, unknown>();
+      console.log("helia addresses", globalThis._helia.libp2p.getMultiaddrs());
     }
-    console.log("helia addresses", globalThis._helia.libp2p.getMultiaddrs());
   })
-  return globalThis.helia!;
+}
+
+async function getHelia() {
+  return globalThis.heliaM.runExclusive(() => {
+    return globalThis.helia!;
+  })
 }
 
 export async function heliaAdd(data: unknown): Promise<multiformats.CID> {

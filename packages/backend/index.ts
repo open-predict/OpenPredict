@@ -10,6 +10,7 @@ import {startAndMaintainPmList} from './amclient/polymarket.js';
 import * as meilisearch from 'meilisearch';
 import fetch from 'cross-fetch';
 import * as dotenv from 'dotenv'
+import {heliaInit} from './amclient/index.js';
 dotenv.config()
 
 // @ts-ignore
@@ -74,6 +75,7 @@ const start = async () => {
   startAndMaintainPmList().then(_ => {})
   startMaintainingAccountState(rpcUrl).then((_: any) => {
     console.log("Chain cache initted; starting helia")
+    heliaInit().then(_ => {})
     const server = createHTTPServer({
       middleware: cors({
         origin: ["http://127.0.0.1:5173", "http://localhost:5173", "http://frontend:5173", "https://openpredict.org", /\.openpredict\.org$/],
