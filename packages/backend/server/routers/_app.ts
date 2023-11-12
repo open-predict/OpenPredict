@@ -730,14 +730,6 @@ export const appRouter = router({
     })
     const meta = await getAllMarketMeta({
       results: data,
-    }).catch(e => {
-      console.error(e);
-      return {
-        pmUsers: new Map(),
-        opUsers: new Map(),
-        commentNo: {},
-        likeNo: {}
-      }
     })
     return {
       meta,
