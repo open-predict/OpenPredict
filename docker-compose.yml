@@ -58,9 +58,9 @@ services:
       context: ./
       dockerfile: ./packages/frontend/Dockerfile
       args:
-        - PUBLIC_MAIN_PROGRAM_ID=${MAIN_PROGRAM_ID}
-        - PUBLIC_USDC_MINT_ADDR=${USDC_MINT_ADDRESS}
-        - PUBLIC_FEE_PAYER_KEY=${FEE_PAYER_PUBKEY}
+        - PUBLIC_OP_MAIN_PROGRAM_ADDR=${MAIN_PROGRAM_ID}
+        - PUBLIC_OP_FEE_PAYER_ADDR=${FEE_PAYER_PUBKEY}
+        - PUBLIC_SOLANA_USDC_ADDR=${USDC_MINT_ADDRESS}
         - PUBLIC_SOLANA_RPC_URL=${SOLANA_RPC_URL}
         - PUBLIC_POLYGON_RPC_URL=${POLYGON_RPC_URL}
         - PUBLIC_TRPC_URL=http://localhost:3000
