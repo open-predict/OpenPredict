@@ -31,7 +31,9 @@ async function getHelia() {
         datastore: globalThis.heliaDatastore!,
       });
       (globalThis._helia as any).libp2p.services.dht.setMode("server");
-      globalThis.helia = hJson(globalThis._helia);
+      globalThis.helia = hJson({
+        blockstore: globalThis.heliaBlockstore!
+      });
       globalThis.heliaCache = new Map<string, unknown>();
     }
     console.log("helia addresses", globalThis._helia.libp2p.getMultiaddrs());
@@ -347,8 +349,8 @@ export async function searchMarkets(
     }
   }
   let filters = [];
-  if(options.tradable) filters.push(`tradable = ${JSON.stringify(options.tradable)}`);
-  if(options.kind) filters.push(`kind = ${JSON.stringify(options.kind)}`);
+  if (options.tradable) filters.push(`tradable = ${JSON.stringify(options.tradable)}`);
+  if (options.kind) filters.push(`kind = ${JSON.stringify(options.kind)}`);
   var meilisearchResult = await msearch().index('markets').search(options.term, {
     limit: options.limit,
     offset: options.skip,
