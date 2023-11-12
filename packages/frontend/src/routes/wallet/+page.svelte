@@ -17,7 +17,7 @@
 
     let showDetails = false;
 
-    $: total = (($web3Store?.polygon?.balances.USDC?.ui ?? 0) + ($web3Store?.polymarket?.balances.USDC?.ui ?? 0) + ($web3Store?.solanaUsdc?.balances.USDC?.ui ?? 0))
+    $: funds = ($web3Store?.polymarket?.balances.USDC?.ui ?? 0) + ($web3Store?.solanaUsdc?.balances.USDC?.ui ?? 0)
 </script>
 
 <ColumnLayout>
@@ -34,10 +34,10 @@
             class="flex flex-col w-full h-full justify-center items-center p-6 pt-20 pb-10 gap-3"
         >
             <span class="text-4xl text-white">
-                {usd.format(Number(total))}
+                {usd.format(Number(funds))}
             </span>
             <p class="text-neutral-400 text-sm">Available for trading</p>
-            <div
+            <!-- <div
                 class="flex flex-row gap-1 mt-8 flex-wrap justify-center items-center"
             >
                 <Pill>
@@ -99,7 +99,7 @@
                     </div>
                     {$web3Store?.solanaUsdc?.balances?.USDC?.usd ?? "$-.--"}
                 </Pill>
-            </div>
+            </div> -->
             <div
                 class={`flex flex-col w-full rounded-2xl ${
                     showDetails ? "bg-neutral-950/70" : ""

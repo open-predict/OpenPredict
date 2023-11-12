@@ -1,7 +1,6 @@
 import { browser } from '$app/environment'
 import { writable } from 'svelte/store';
 import Cookies from 'js-cookie';
-import { superjson } from '$lib/superjson';
 import { onMount } from 'svelte';
 
 export type TUiStore = {
@@ -13,7 +12,7 @@ export const uiStoreLsKey = 'ui_store';
 function createUiStore() {
 
     const initialValueRaw = Cookies.get(uiStoreLsKey);
-    const initialValueParsed = initialValueRaw ? superjson.parse<TUiStore>(initialValueRaw) : undefined;
+    const initialValueParsed = initialValueRaw ? JSON.parse(initialValueRaw) as TUiStore : undefined;
     const initialValue = initialValueParsed ? {
         ...initialValueParsed
     } : {};
@@ -25,8 +24,8 @@ function createUiStore() {
     })())
 
     subscribe((value) => {
-        if (browser && superjson.stringify(value) !== Cookies.get(uiStoreLsKey)) {
-            Cookies.set(uiStoreLsKey, superjson.stringify(value))
+        if (browser && JSON.stringify(value) !== Cookies.get(uiStoreLsKey)) {
+            Cookies.set(uiStoreLsKey, JSON.stringify(value))
             theme = value?.theme;
         }
     })

@@ -171,7 +171,7 @@
         on:click|stopPropagation|preventDefault={() => uiStore.toggleTheme()}
         class="flex items-center gap-1.5 py-2 px-3 text-sm bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800"
     >
-        {`Dark mode ${
+        {`Turn dark mode ${
             $uiStore.theme
                 ? $uiStore.theme === "dark"
                     ? "off"

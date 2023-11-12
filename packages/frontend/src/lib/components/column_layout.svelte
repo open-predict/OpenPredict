@@ -80,11 +80,11 @@
                     class="h-full w-full flex justify-end items-center gap-2 border-b border-neutral-200 dark:border-neutral-900 dark:bg-black/80"
                 >
                     {#if $web3Store?.polygon !== null}
-                        <div
+                        <!-- <div
                             class="flex flex-nowrap justify-evenly overflow-hidden w-48 items-center rounded-2xl ring-1 h-10 divide-x bg-white ring-neutral-200 dark:bg-neutral-950 dark:ring-neutral-900 divide-neutral-900"
                         >
                             <WalletWidget />
-                        </div>
+                        </div> -->
                     {/if}
                     <UserButton />
                 </div>

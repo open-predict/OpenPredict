@@ -13,6 +13,7 @@
   import "@fontsource-variable/inter";
   import ToastsProvider from "$lib/toasts/toastsProvider.svelte";
   import "$lib/styles/nprogress.css";
+  import { superjson } from "$lib/superjson";
 
   NProgress.configure({
     minimum: 0.16,
@@ -39,13 +40,13 @@
 </script>
 
 <svelte:head>
-  <script lang="ts">
+  <script lang="ts" type="module">
     const uiStoreCookie = document.cookie
       .split("; ")
-      .find((row) => row.startsWith("theme="))
+      .find((row) => row.startsWith("ui_store="))
       ?.split("=")[1];
-    // const { theme } = superjson.parse<TUiStore>(uiStoreCookie)
-    const { theme } = JSON.parse(uiStoreCookie ?? "{}");
+    const decoded = decodeURI(uiStoreCookie);
+    const { theme } = JSON.parse(decoded ?? "{}");
     switch (theme) {
       case "dark":
         document.documentElement.classList.add("dark");

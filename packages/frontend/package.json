@@ -13,6 +13,7 @@
 	},
 	"devDependencies": {
 		"@faker-js/faker": "^7.6.0",
+		"@rgossiaux/svelte-headlessui": "^2.0.0",
 		"@sveltejs/adapter-auto": "^2.1.0",
 		"@sveltejs/kit": "^1.22.3",
 		"@types/cookie": "^0.5.1",
