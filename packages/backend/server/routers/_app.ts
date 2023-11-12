@@ -1,9 +1,9 @@
-import { procedure, router } from '../trpc.js';
-import { bridgeOpenPredictTransactionSchemaV0, commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getMarketSchemaV0, getPmMarket, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata, pmUserMap, searchMarketsSchemaV0 } from '../../types/market.js';
-import { checkoutWithChangenowSchemaV0, makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0 } from '../../types/user.js';
-import { _MarketSearchResult, getAllMarketMeta, getMarketFulldata, heliaAdd, heliaGet, marketByAddress, searchMarkets } from '../../amclient/index.js';
+import {procedure, router} from '../trpc.js';
+import {bridgeOpenPredictTransactionSchemaV0, commentSchemaV0, extMarketChaindata, getChallengeTxSchemaV0, getMarketAccountsSchemaV0, getMarketSchemaV0, getPmMarket, getUserMarketsSchemaV0, getUserProfilesSchemaV0, likeMarketSchemaV0, listCommentsSchemaV0, login2SchemaV0, marketFulldata, marketMetadataSchema2V0, /*loginSchemaV0,*/ marketMetadataSchemaV0, marketUserChaindata, pmUserMap, searchMarketsSchemaV0} from '../../types/market.js';
+import {checkoutWithChangenowSchemaV0, makeUsdcWalletSchemaV0, payUserTransactionSchemaV0, TUser, userMetadataSchemaV0, usernameAvailableCheckSchemaV0} from '../../types/user.js';
+import {_MarketSearchResult, getAllMarketMeta, getMarketFulldata, heliaAdd, heliaGet, searchMarkets} from '../../amclient/index.js';
 import * as nodeCache from "node-cache";
-import { createHash, randomBytes } from "crypto";
+import {createHash, randomBytes} from "crypto";
 import * as web3 from "@solana/web3.js";
 import * as cookie from "cookie";
 import * as ed25519 from "@noble/ed25519";
@@ -12,7 +12,7 @@ import * as spl from "@solana/spl-token";
 import base58 from 'bs58';
 import SuperJSON from 'superjson';
 import fetch from "node-fetch";
-import { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
+import {inferRouterInputs, inferRouterOutputs} from '@trpc/server';
 
 declare global {
   var loginChallengeCache: nodeCache
@@ -113,9 +113,9 @@ export async function createAccounts(
     }
 
     if (error) {
-      results.push({ error })
+      results.push({error})
     } else {
-      results.push({ ...account, address: res })
+      results.push({...account, address: res})
     }
   }
 
@@ -131,7 +131,7 @@ export async function validateTransaction(
   feePayer: web3.Keypair,
   maxSignatures: number,
   lamportsPerSignature: number
-): Promise<{ signature: web3.TransactionSignature; rawTransaction: Buffer }> {
+): Promise<{signature: web3.TransactionSignature; rawTransaction: Buffer}> {
   // Check the fee payer and blockhash for basic validity
   if (!transaction.feePayer?.equals(feePayer.publicKey)) throw new Error('invalid fee payer');
   if (!transaction.recentBlockhash) throw new Error('missing recent blockhash');
@@ -140,7 +140,7 @@ export async function validateTransaction(
 
   // Check Octane's RPC node for the blockhash to make sure it's synced and the fee is reasonable
   const feeCalculator = await connection.getFeeCalculatorForBlockhash(transaction.recentBlockhash, "confirmed");
-  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+  const {blockhash, lastValidBlockHeight} = await connection.getLatestBlockhash("confirmed");
   console.log("Tx", transaction.recentBlockhash, "RecentBlock", blockhash, lastValidBlockHeight, feeCalculator.context.slot, feeCalculator)
   if (!feeCalculator.value) throw new Error('blockhash not found');
   if (feeCalculator.value.lamportsPerSignature > lamportsPerSignature) throw new Error('fee too high');
@@ -165,7 +165,7 @@ export async function validateTransaction(
   const rawTransaction = transaction.serialize();
 
   // Return the primary signature (aka txid) and serialized transaction
-  return { signature: base58.encode(transaction.signature!), rawTransaction };
+  return {signature: base58.encode(transaction.signature!), rawTransaction};
 }
 
 //TODO: This function may be insecure, idk. If it is it will only allow someone
@@ -278,7 +278,7 @@ export const appRouter = router({
       })
       if (response.status !== 200) {
         console.log(response);
-        return { error: "Error checking out with changenow" }
+        return {error: "Error checking out with changenow"}
       }
       const json = await response.json();
       if (json['redirect_url']) {
@@ -288,7 +288,7 @@ export const appRouter = router({
       }
     } catch (e) {
       console.error(e);
-      return { error: "Error checking out with changenow" }
+      return {error: "Error checking out with changenow"}
     }
   }),
 
@@ -362,7 +362,7 @@ export const appRouter = router({
     const txid = await web3.sendAndConfirmRawTransaction(
       globalThis.chainCache.w3conn,
       transaction.serialize(),
-      { commitment: 'confirmed' }
+      {commitment: 'confirmed'}
     );
 
     return {
@@ -663,7 +663,7 @@ export const appRouter = router({
           userKey: key.toBuffer(),
         }
       })
-      opts.ctx.res.setHeader("Set-Cookie", cookie.serialize("session", JSON.stringify({ "id": sessionId, "secret": cookieSecret }), {
+      opts.ctx.res.setHeader("Set-Cookie", cookie.serialize("session", JSON.stringify({"id": sessionId, "secret": cookieSecret}), {
         secure: false,
         sameSite: "none",
         maxAge: new Date().getTime() + (10 * 365 * 24 * 60 * 60)
@@ -791,7 +791,7 @@ export const appRouter = router({
 
     //FIXME: Don't give out free money.
     //Send user the SOL they need to send this transaction
-    console.log("Sigs", transaction.signatures.map((s, i)=>`#${i} ${s.publicKey.toBase58()}`).join(`;`));
+    console.log("Sigs", transaction.signatures.map((s, i) => `#${i} ${s.publicKey.toBase58()}`).join(`;`));
     var recipient = transaction.signatures[1].publicKey;
 
     try {
@@ -818,7 +818,7 @@ export const appRouter = router({
       txid = await web3.sendAndConfirmRawTransaction(
         globalThis.chainCache.w3conn,
         transaction.serialize(),
-        { commitment: 'confirmed' }
+        {commitment: 'confirmed'}
       );
     } catch (e) {
       throw "Send transaction error: " + SuperJSON.stringify(e)
@@ -832,18 +832,50 @@ export const appRouter = router({
   getMarket: procedure.input(
     getMarketSchemaV0,
   ).query(async (opts) => {
-    const resp = await marketByAddress(opts.input.id)
-    if (resp == null) {
-      return {
-        resp: null,
+    const data = chainCache.markets.get(opts.input.id)
+    if (!data) {
+      return null
+    };
+    var users = new Map<string, TUser | null>
+    const getUser = async (key: string) => {
+      if (!users.has(key)) {
+        var username = globalThis.chainCache.usernames.get(key);
+        if (username != null) {
+          var profile = globalThis.chainCache.profiles.get(username)!;
+          try {
+            var result = await heliaGet(multiformats.CID.decode(profile.IPFS_Cid));
+            const metadata = await userMetadataSchemaV0.safeParseAsync(result);
+            if (metadata.success) {
+              users.set(key, {
+                username: username,
+                metadata: metadata.data,
+              })
+            } else {
+              users.set(key, {
+                username: username,
+                metadata: null,
+              })
+            }
+          } catch {
+            users.set(key, {
+              username: username,
+              metadata: null,
+            })
+          }
+        }
+        users.set(key, null);
       }
-    } else {
-      var [market, users] = resp;
-      //TODO: Amalgamate these into one Promise.all() call
-      const [comments, likes] = await globalThis.chainCache.prisma.$transaction([
+    }
+    var [metadata, [comments, likes],] = await Promise.all([
+      (async () => {
+        const mfcid = multiformats.CID.decode(data.data.IPFS_Cid)
+        const result = await heliaGet(mfcid)
+        return await marketMetadataSchemaV0.safeParseAsync(result);
+      })(),
+      globalThis.chainCache.prisma.$transaction([
         globalThis.chainCache.prisma.marketComment.findMany({
           where: {
-            ammAddress: market.data.data.AmmAddress,
+            ammAddress: data.data.AmmAddress,
           },
           select: {
             userKey: true,
@@ -853,20 +885,35 @@ export const appRouter = router({
         }),
         globalThis.chainCache.prisma.marketLike.findMany({
           where: {
-            ammAddress: market.data.data.AmmAddress,
+            ammAddress: data.data.AmmAddress,
           },
           select: {
             userKey: true,
             createdAt: true,
           },
         })
-      ])
-      return {
-        market: resp[0],
-        comments,
-        likes,
-        users,
+      ]),
+      getUser(data.data.OperatorKey.toBase58()),
+      ...[...data.UserAccounts.keys()].map(v => getUser(v))
+    ])
+    await Promise.all([
+      ...comments.map(v => getUser(base58.encode(v.userKey))),
+      ...likes.map(v => getUser(base58.encode(v.userKey))),
+    ])
+    var rUsers = new Map<string, TUser>()
+    users.forEach((v, k) => {
+      if (v != null) {
+        rUsers.set(k, v)
       }
+    })
+    return {
+      data: {
+        data: data,
+        metadata: metadata.success ? metadata.data : null,
+      },
+      users: rUsers,
+      comments,
+      likes
     }
   }),
 });
