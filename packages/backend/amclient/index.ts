@@ -12,6 +12,7 @@ import {Mutex} from 'async-mutex'
 import {TUser, userMetadataSchemaV0} from "../types/user.js"
 import {msearch} from "../index.js"
 
+
 declare global {
   var _helia: Helia
   var helia: hJsonI | null
