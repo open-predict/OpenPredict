@@ -2,15 +2,18 @@
     import { goto } from "$app/navigation";
     import { api } from "$lib/api";
     import Pill from "$lib/elements/pill.svelte";
+    import type { TUserMinimal } from "$lib/types";
     import { generateProfileImage, format } from "$lib/utils";
     import type { TUser } from "@am/backend/types/user";
     import { IconLoader } from "@tabler/icons-svelte";
+    import { image } from "d3";
     import { createPopperActions } from "svelte-popperjs";
 
     const [popperRef, popperContent] = createPopperActions();
 
     export let id: string;
     export let user: TUser | undefined = undefined;
+    export let userMinimal: TUserMinimal | undefined = undefined;
 
     $: !user
         ? api.getUser.query({ userId: [id] }).then((res) => {
@@ -38,28 +41,27 @@
     </div>
 {/if} -->
 
-<a href={`/user/${id}`}>
+<a href={`/user/${id}`} class="flex">
     <Pill>
         <div
             use:popperRef
-            class="w-4 h-4 rounded-full ring-1 ring-inset ring-neutral-400 overflow-hidden"
+            class="w-4 h-4 rounded-full ring-1 ring-inset ring-neutral-400 overflow-hidden flex-shrink-0"
         >
             <img
-                class="h-full w-full rounded-full overflow-hidden"
-                src={user?.metadata.image ?? generateProfileImage(id)}
+                class="h-full w-full rounded-full overflow-hidden flex flex-shrink-0"
+                src={user?.metadata?.image ??
+                    userMinimal?.image ??
+                    generateProfileImage(id)}
                 alt="user avatar"
             />
         </div>
         <span
-            class="group-hover/pill:underline group-hover/pill:text-neutral-200"
+            class="group-hover/pill:underline text-ellipsis overflow-hidden group-hover/pill:text-neutral-900 dark:group-hover/pill:text-neutral-200"
         >
-            {#if user?.username}
-                {user.username}
-            {:else if id}
-                {format.readableAddress(id)}
-            {:else}
-                {"- -"}
-            {/if}
+            {user?.username ??
+                userMinimal?.name ??
+                format.readableAddress(id) ??
+                "--"}
         </span>
     </Pill>
 </a>

@@ -26,8 +26,8 @@
 
     export let data;
 
-    $: ({ pmMarket, opMarket, id } =
-        superjson.deserialize<TMarketIdPageData>(data));
+    $: pageData = superjson.deserialize<TMarketIdPageData>(data);
+    $: ({ opUsers, pmMarket, opMarket, pmUsers, id } = pageData);
 
     enum Tabs {
         Comments = "comments",
@@ -141,7 +141,12 @@
     </div> -->
     <div slot="main" class="min-h-full flex flex-col">
         {#if pmMarket}
-            <PmMarketView market={pmMarket} updateMarket={(m) => {}} />
+            <PmMarketView
+                opUsers={opUsers}
+                pmUsers={pmUsers}
+                market={pmMarket}
+                updateMarket={(m) => {}}
+            />
         {/if}
         {#if opMarket}
             <OpMarketView market={opMarket} updateMarket={(m) => {}} />

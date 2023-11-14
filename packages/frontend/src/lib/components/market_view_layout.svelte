@@ -33,7 +33,7 @@
         <h4 class="text-xl font-semibold">Description</h4>
         <div class="w-full border-t mb-2 border-neutral-200 dark:border-neutral-900" />
         <p
-            class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
+            class="w-full font-normal leading-relaxed break-words overflow-hidden whitespace-pre-wrap"
         >
             <slot name="about" />
         </p>

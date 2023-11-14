@@ -1,16 +1,16 @@
 import * as helia from "helia"
-import {Helia} from "@helia/interface"
+import { Helia } from "@helia/interface"
 import * as pb from './oppb.js'
 import base58 from 'bs58'
-import {extMarketChaindata, marketFulldata, marketMetadataSchemaV0, pmMarketFulldata, pmUserMap, profileChaindata} from '../types/market.js'
+import { extMarketChaindata, marketFulldata, marketMetadataSchemaV0, pmMarketFulldata, pmUserMap, profileChaindata } from '../types/market.js'
 import './globals.js'
 import * as multiformats from "multiformats"
-import {json as hJson, JSON as hJsonI} from "@helia/json"
-import {FsBlockstore} from 'blockstore-fs'
-import {FsDatastore} from 'datastore-fs'
-import {Mutex} from 'async-mutex'
-import {TUser, userMetadataSchemaV0} from "../types/user.js"
-import {msearch} from "../index.js"
+import { json as hJson, JSON as hJsonI } from "@helia/json"
+import { FsBlockstore } from 'blockstore-fs'
+import { FsDatastore } from 'datastore-fs'
+import { Mutex } from 'async-mutex'
+import { TUser, userMetadataSchemaV0 } from "../types/user.js"
+import { msearch } from "../index.js"
 
 
 declare global {
@@ -175,14 +175,14 @@ export async function getAllMarketMeta(data: {
 }): Promise<{
   pmUsers: pmUserMap,
   opUsers: Map<string, TUser>,
-  commentNo: {[market_id: string]: number},
-  likeNo: {[market_id: string]: number},
+  commentNo: { [market_id: string]: number },
+  likeNo: { [market_id: string]: number },
 }> {
   var pmUsers: pmUserMap = new Map();
   var opUsers: Map<string, TUser> = new Map();
 
-  var commentNo: {[market_id: string]: number} = {}
-  var likeNo: {[market_id: string]: number} = {}
+  var commentNo: { [market_id: string]: number } = {}
+  var likeNo: { [market_id: string]: number } = {}
 
   var opMarkets: marketFulldata[] = data.opMarkets ?? []
   var pmMarkets: pmMarketFulldata[] = data.pmMarkets ?? []
@@ -342,7 +342,8 @@ export async function searchMarkets(
     for (var i = 0; i < meilisearchResult.hits.length; i++) {
       var data = meilisearchResult.hits[i];
       if (data['kind'] == "openpredict") {
-        results.push(getMarketFulldata(globalThis.chainCache.markets.get(data['id'])!).then(fulldata => {
+        const market = globalThis.chainCache.markets.get(data['id']);
+        if (market) results.push(getMarketFulldata(market).then(fulldata => {
           return {
             opMarket: fulldata,
             pmMarket: undefined,
