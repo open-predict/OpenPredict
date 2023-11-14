@@ -5,8 +5,10 @@
         marketFulldata,
         pmMarketFulldata,
     } from "@am/backend/types/market";
-    export let opMarket: marketFulldata | undefined = undefined;
-    export let pmMarket: pmMarketFulldata | undefined = undefined;
+    import type { TMarket } from "$lib/types";
+    export let market: TMarket;
+
+    $: ({ opMarket, pmMarket } = market);
 
     $: traders = opMarket
         ? opMarket.data.UserAccounts.size

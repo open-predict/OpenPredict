@@ -17,17 +17,17 @@
         pmTokenOrderdata,
     } from "@am/backend/types/market";
     import TokenChart from "$lib/charts/token_chart.svelte";
-    import Orderbook from "./orderbook.svelte";
+    import Orderbook from "./pm_orderbook.svelte";
     import FilledOrders from "./filled_orders.svelte";
     import UserPill from "./user_pill.svelte";
     import PmTrade from "./pm_trade.svelte";
     import TradersPill from "$lib/elements/traders_pill.svelte";
     import { usd } from "$lib/utils/format";
     import { USDC_PER_DOLLAR } from "$lib/utils/op";
-    export let market: pmMarketFulldata;
-    export let updateMarket: (
-        market?: marketFulldata | pmMarketFulldata
-    ) => void;
+    import type { TMarket, TPmMarket } from "$lib/types";
+    import MarketViewLayout from "./market_view_layout.svelte";
+    export let market: TPmMarket;
+    export let updateMarket: (market?: TMarket) => void;
     $: tokens = market.data.tokens.reduce(
         (acc: Record<string, pmTokenData>, val) => {
             acc[val.token_id] = val;
@@ -38,77 +38,60 @@
     let selectedView: "trades" | "chart" | "orderbook" = "chart";
 </script>
 
-<div class="w-full max-w-full p-4 flex flex-col gap-4">
-    <div class="flex justify-start items-start">
-        <h2
-            class="text-2xl font-semibold flex-grow group-visited/link:text-indigo-300"
-        >
-            {market.data.question}
-        </h2>
-    </div>
-    <div class="w-full flex items-center flex-nowrap gap-2">
-        <div class="relative w-9/10 max-w-9/10 grow overflow-hidden">
+<MarketViewLayout>
+    <h2 slot="title" class="contents">
+        {market.data.question}
+    </h2>
+    <div class="contents" slot="pills">
+        <Pill>
             <div
-                class="absolute h-full w-20 bg-gradient-to-r from-transparent to-black right-0"
-            />
-            <div
-                class="w-full flex justify-start gap-2 items-center overflow-x-scroll scrollbar_hide pr-20"
+                class="w-4 h-4 rounded-full ring-neutral-400 bg-blue-700 ring-1 ring-inset stroke-white p-1"
             >
-                <Pill>
-                    <div
-                        class="w-4 h-4 rounded-full ring-neutral-400 bg-blue-700 ring-1 ring-inset stroke-white p-1"
-                    >
-                        <PolymarketLogo />
-                    </div>
-                    <span>
-                        {"Polymarket"}
-                    </span>
-                </Pill>
-                <VolumePill pmMarket={market} />
-                <SubsidyPill pmMarket={market} />
-                <Pill>
-                    <IconLiquidity size={14} class="text-indigo-500" />
-                    {`$298`}
-                </Pill>
-                <TradersPill pmMarket={market} />
-                <Pill>
-                    <IconCal size={14} class="text-red-500" />
-                    {`${new Date(market.data.end_date_iso).toLocaleDateString(
-                        "en-us",
-                        {
-                            year: "numeric",
-                            month: "numeric",
-                            day: "numeric",
-                        }
-                    )}`}
-                </Pill>
-                <div class="ml-auto" />
+                <PolymarketLogo />
             </div>
-        </div>
+            <span>
+                {"Polymarket"}
+            </span>
+        </Pill>
+        <VolumePill market={{ pmMarket: market }} />
+        <SubsidyPill market={{ pmMarket: market }} />
+        <Pill>
+            <IconLiquidity size={14} class="text-indigo-500" />
+            {`$298`}
+        </Pill>
+        <TradersPill market={{ pmMarket: market }} />
+        <Pill>
+            <IconCal size={14} class="text-red-500" />
+            {`${new Date(market.data.end_date_iso).toLocaleDateString("en-us", {
+                year: "numeric",
+                month: "numeric",
+                day: "numeric",
+            })}`}
+        </Pill>
     </div>
-    <div class="flex flex-col bg-neutral-950 rounded-xl overflow-hidden">
+    <div class="contents" slot="interactive">
         <div
-            class="bg-neutral-950/90 min-h-[300px] max-h-[400px] h-[300px] overflow-y-scroll scrollbar_hide"
+            class="min-h-[300px] max-h-[400px] h-[300px] overflow-y-scroll scrollbar_hide"
         >
             {#if selectedView === "chart"}
                 <TokenChart {market} />
                 <div />
             {:else if selectedView === "orderbook"}
-                <Orderbook {market} {updateMarket} />
+                <!-- <Orderbook {market} {updateMarket} /> -->
             {:else}
-                <FilledOrders {market} {updateMarket} />
+                <!-- <FilledOrders {market} {updateMarket} /> -->
             {/if}
         </div>
-        <div class="w-full h-10 border-t border-neutral-900">
+        <div class="w-full h-10 border-t border-neutral-200 dark:border-neutral-900">
             <div
-                class="w-full flex items-center justify-between h-full bg-neutral-900/40 font-semibold text-xs divide-x divide-neutral-800"
+                class="w-full flex items-center justify-between h-full font-semibold text-xs divide-x bg-white divide-neutral-200 dark:divide-neutral-800 dark:bg-neutral-900/40"
             >
                 <button
                     on:click={() => (selectedView = "chart")}
                     class={`flex gap-1 items-center justify-center w-full h-full ${
                         selectedView === "chart"
-                            ? "text-white"
-                            : "text-neutral-400"
+                            ? "text-black dark:text-white"
+                            : "text-neutral-500 dark:text-neutral-400"
                     }`}
                 >
                     <IconChart size={18} />
@@ -118,8 +101,8 @@
                     on:click={() => (selectedView = "orderbook")}
                     class={`flex gap-1 items-center justify-center w-full h-full ${
                         selectedView === "orderbook"
-                            ? "text-white"
-                            : "text-neutral-400"
+                        ? "text-black dark:text-white"
+                            : "text-neutral-500 dark:text-neutral-400"
                     }`}
                 >
                     <IconOrderbook size={17} />
@@ -129,8 +112,8 @@
                     on:click={() => (selectedView = "trades")}
                     class={`flex gap-1 items-center justify-center w-full h-full ${
                         selectedView === "trades"
-                            ? "text-white"
-                            : "text-neutral-400"
+                        ? "text-black dark:text-white"
+                            : "text-neutral-500 dark:text-neutral-400"
                     }`}
                 >
                     <IconExchange size={18} />
@@ -139,36 +122,24 @@
             </div>
         </div>
     </div>
-    <div class="flex flex-col gap-2 mb-8 mt-4">
-        <div class="flex justify-between items-center">
-            <h4 class="text-xl font-semibold">Trade</h4>
-        </div>
-        <div class="w-full border-t border-neutral-900 mb-2" />
-        <PmTrade {market} {updateMarket} onClose={() => {}} direction />
-    </div>
-    <div class="flex flex-col gap-2 mb-8">
-        <h4 class="text-xl font-semibold">Description</h4>
-        <div class="w-full border-t border-neutral-900 mb-2" />
-        <p
-            class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
-        >
-            {market.data.description}
-        </p>
-    </div>
-    <div class="flex flex-col gap-2 mb-8">
-        <h4 class="text-xl font-semibold">Resolution</h4>
-        <div class="w-full border-t border-neutral-900 mb-2" />
-        <p
-            class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
-        >
-            {"This market has not yet been resolved."}
-        </p>
-    </div>
-    <div class="flex flex-col gap-2 mb-8">
-        <div class="flex justify-between items-end">
-            <h4 class="text-xl font-semibold text-neutral-200">Holders</h4>
-        </div>
-        <div class="w-full border-t border-neutral-900 mb-2" />
+    <PmTrade
+        slot="trade"
+        market={{
+            data: market.data,
+            orderdata: market.orderdata,
+            meta: market.meta,
+        }}
+        direction
+        onClose={() => {}}
+        updateMarket={() => {}}
+    />
+    <p slot="about" class="contents">
+        {market.data.description}
+    </p>
+    <p class="contents" slot="resolution">
+        {"This market has not yet been resolved."}
+    </p>
+    <div class="contents" slot="holders">
         <div class="w-full grid grid-cols-2 gap-8">
             {#each Array.from(market.orderdata.entries()) as tokenOrderdata}
                 <div class="w-full flex flex-col gap-2">
@@ -209,15 +180,7 @@
             {/each}
         </div>
     </div>
-    <div class="flex flex-col gap-2 mb-8">
-        <div class="flex justify-between items-end">
-            <h4 class="text-xl font-medium text-neutral-200">Comments</h4>
-        </div>
-        <div class="w-full border-t border-neutral-900 mb-2" />
-        <p
-            class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
-        >
-            {"No comments"}
-        </p>
-    </div>
-</div>
+    <p class="contents" slot="comments">
+        {"No comments"}
+    </p>
+</MarketViewLayout>

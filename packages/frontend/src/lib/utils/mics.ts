@@ -1,3 +1,5 @@
+import type { TUserMinimal } from '$lib/types';
+import type { TUser } from '@am/backend/types/user';
 import { createAvatar } from '@dicebear/core';
 import * as shapes from '@dicebear/shapes';
 
@@ -18,3 +20,27 @@ export function generateProfileImage(publicKey: string) {
     shape3: ["ellipse", "line"]
   }).toDataUriSync();
 }
+
+export const fromPmUser = (
+  id: string,
+  u: { name: string; profileImage: string } | undefined
+): TUserMinimal => {
+  return {
+    image: u?.profileImage
+      ? u.profileImage
+      : generateProfileImage(id),
+    name: u?.name,
+    id,
+  };
+};
+
+export const fromOpUser = (
+  id: string,
+  u: TUser | undefined
+): TUserMinimal => {
+  return {
+    image: u?.metadata.image ?? generateProfileImage(id),
+    id,
+    name: u?.metadata.name,
+  };
+};

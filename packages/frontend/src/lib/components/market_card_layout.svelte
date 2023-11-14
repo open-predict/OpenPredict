@@ -16,7 +16,9 @@
                 <div
                     class="relative w-full flex justify-between items-center flex-nowrap gap-2"
                 >
-                    <div class="relative w-9/10 max-w-9/10 grow overflow-hidden">
+                    <div
+                        class="relative w-9/10 max-w-9/10 grow overflow-hidden"
+                    >
                         <div
                             class="absolute h-full w-20 bg-gradient-to-r from-transparent dark:to-neutral-950 to-white right-0"
                         />
@@ -49,24 +51,24 @@
                     >
                         <slot name="title" />
                     </h2>
-                        <div class="ml-auto flex items-start justify-start">
-                            <div
-                                class="ml-3 flex flex-col justify-start items-end"
+                    <div class="ml-auto flex items-start justify-start">
+                        <div class="ml-3 flex flex-col justify-start items-end">
+                            <h2
+                                class={`font-bold ${
+                                    small ? "text-md" : "text-md lg:text-xl"
+                                }`}
                             >
-                                <h2
-                                    class={`font-bold ${small ? "text-md" : "text-md lg:text-xl"}`}
-                                >
-                                    <slot name="chance" />
-                                </h2>
-                                <slot name="change" />
-                            </div>
+                                <slot name="chance" />
+                            </h2>
+                            <slot name="context" />
                         </div>
+                    </div>
                 </div>
                 {#if !small}
                     <div
                         class="w-full flex flex-nowrap justify-start items-center"
                     >
-                        <div class="flex-nowrap pl-4 p-1 hidden">
+                        <div class="p-1">
                             <slot name="bottom_left" />
                         </div>
                         <div

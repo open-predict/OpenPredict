@@ -4,36 +4,31 @@
     import type { marketFulldata } from "@am/backend/types/market";
     import { PublicKey } from "@solana/web3.js";
     import { IconMessageCircle2 } from "@tabler/icons-svelte";
+    import type { TMarket } from "$lib/types";
 
-    export let opMarket: marketFulldata | undefined = undefined;
-    export let pmMarket: pmMarketFulldata | undefined = undefined;
+    export let market: TMarket;
     export let commentCount: number | undefined = 0;
 
     function checkIds(
         ids: (string | undefined | null)[],
-        opMarket?: marketFulldata,
-        pmMarket?: pmMarketFulldata
+        market: TMarket
     ): boolean {
-        if (!pmMarket || !opMarket) {
-            return false;
-        } else {
-            for (const id of ids) {
-                return false;
-            }
-        }
-        return commented;
+        return false;
     }
 
-    $: id = opMarket
-        ? new PublicKey(opMarket.data.data.AmmAddress).toBase58()
-        : pmMarket
-        ? pmMarket.data.condition_id
+    $: id = market.opMarket
+        ? new PublicKey(market.opMarket.data.data.AmmAddress).toBase58()
+        : market.pmMarket
+        ? market.pmMarket.data.condition_id
         : null;
 
     $: commented = checkIds(
-        [$web3Store?.polygonAddress, $web3Store?.solanaAddress],
-        opMarket,
-        pmMarket
+        [
+            $web3Store?.solana?.address,
+            $web3Store?.polygon?.address,
+            $web3Store?.polymarket?.address,
+        ],
+        market
     );
 </script>
 

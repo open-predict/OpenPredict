@@ -62,7 +62,6 @@
     } from "ethers6";
     import { superjson } from "$lib/superjson";
     import { usd } from "$lib/utils/format";
-    import Orderbook from "./orderbook.svelte";
     import {
         getAllowances,
         getCtfContract,

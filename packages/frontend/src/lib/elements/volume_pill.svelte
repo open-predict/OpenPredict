@@ -5,9 +5,9 @@
     import { IconExchange } from "@tabler/icons-svelte";
     import { USDC_PER_DOLLAR } from "$lib/utils/op";
     import { usd } from "$lib/utils/format";
+    import type { TMarket } from "$lib/types";
 
-    export let opMarket: marketFulldata | undefined = undefined;
-    export let pmMarket: pmMarketFulldata | undefined = undefined;
+    export let market: TMarket | undefined;
 
     function getOpVolume(m: marketFulldata) {
         let volume: bigint = 0n;
@@ -21,13 +21,14 @@
         return m.meta.volume
     }
 
-    $: volume = opMarket
-        ? getOpVolume(opMarket)
-        : pmMarket
-        ? getPmVolume(pmMarket)
+    $: volume = market?.opMarket
+        ? getOpVolume(market.opMarket)
+        : market?.pmMarket
+        ? getPmVolume(market.pmMarket)
         : null;
 
     $: volumeDisplay = volume ? usd.format(Number(volume)) : null;
+    
 </script>
 
 {#if volume}

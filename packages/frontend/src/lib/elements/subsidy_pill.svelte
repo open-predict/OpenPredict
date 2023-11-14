@@ -5,12 +5,13 @@
     import type { pmMarketFulldata } from "@am/backend/types/market";
     import { IconMoneybag } from "@tabler/icons-svelte";
     import { USDC_PER_DOLLAR } from "$lib/utils/op";
+    import type { TMarket } from "$lib/types";
 
-    export let opMarket: marketFulldata | undefined = undefined;
-    export let pmMarket: pmMarketFulldata | undefined = undefined;
+    export let market: TMarket | undefined;
+    $: ({opMarket, pmMarket} = market ?? {})
 
     function getOpSubsidy(market: marketFulldata) {
-        return market.data.data.Subsidy / BigInt(USDC_PER_DOLLAR);
+        return Number((market.data.data.Subsidy * 100n) / BigInt(USDC_PER_DOLLAR))/100
     }
 
     function getPmSubsidy(market: pmMarketFulldata) {
@@ -22,6 +23,7 @@
         : pmMarket
         ? getPmSubsidy(pmMarket)
         : null;
+        
     $: subsidyDisplay = subsidy ? usd.format(subsidy) : null;
 </script>
 

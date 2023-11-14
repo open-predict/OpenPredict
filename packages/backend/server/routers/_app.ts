@@ -733,10 +733,10 @@ export const appRouter = router({
     }).catch(e => {
       console.error(e);
       return {
-        pmUsers: new Map(),
-        opUsers: new Map(),
-        commentNo: {},
-        likeNo: {}
+        pmUsers: new Map() as pmUserMap,
+        opUsers: new Map<string, TUser>(),
+        commentNo: {} as Record<string, number>,
+        likeNo: {} as Record<string, number>
       }
     })
     return {
@@ -835,7 +835,7 @@ export const appRouter = router({
     const resp = await marketByAddress(opts.input.id)
     if (resp == null) {
       return {
-        resp: null,
+        err: "No market"
       }
     } else {
       var [market, users] = resp;

@@ -20,7 +20,6 @@
         { name: "Search", href: "#search", Icon: IconSearch },
         { name: "Profile", href: `/profile`, Icon: IconUser },
         { name: "Drafts", href: "/drafts", Icon: IconPencil },
-        { name: "Activity", href: "/activity", Icon: IconActivity },
         { name: "Wallet", href: `/wallet`, Icon: IconWallet },
     ];
 </script>

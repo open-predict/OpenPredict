@@ -6,11 +6,14 @@
     import { clone } from "lodash";
     import type { pmMarketFulldata } from "@am/backend/types/market";
     import { IconStar } from "@tabler/icons-svelte";
-    export let opMarket: marketFulldata | undefined = undefined;
-    export let pmMarket: pmMarketFulldata | undefined = undefined;
+    import type { AppRouterOutputs } from "@am/backend/server/routers/_app";
+    import type { TMarket } from "$lib/types";
+    export let market: TMarket;
     export let updateMarket: (
-        market?: marketFulldata | pmMarketFulldata
+        market?: TMarket
     ) => void;
+
+    $: likes = market.opMarket?.likeNo ?? market.pmMarket?.likeNo ?? 0;
 
     function checkIds(
         ids: (string | undefined | null)[],
@@ -32,8 +35,6 @@
     //     pmMarket
     // );
     const liked = false;
-    const likes = 0
-    // $: likes = opMarket ? opMarket.data.Likes.size : pmMarket ? 0 : 0;
 
     async function like() {
         // if (!$web3Store?.solanaAddress) {

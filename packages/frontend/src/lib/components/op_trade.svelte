@@ -146,25 +146,6 @@
 
 <div class="flex flex-col gap-4">
     <div class="flex flex-col gap-2">
-        <div class="flex justify-between items-center mb-1">
-            <h4 class="font-semibold text-neutral-300">
-                {`Buy shares`}
-            </h4>
-            <Toggle
-                selected={orderType === "limit" ? "left" : "right"}
-                onSelect={(s) =>
-                    (orderType = s === "left" ? "limit" : "market")}
-            >
-                <div class="contents" slot="left">
-                    <IconEaseInOutControlPoints size={12} />
-                    Limit
-                </div>
-                <div class="contents" slot="right">
-                    <IconLivePhoto size={12} />
-                    Market
-                </div>
-            </Toggle>
-        </div>
         <div class={`flex flex-col gap-4`}>
             <div class="flex gap-3 col-span-3">
                 <button

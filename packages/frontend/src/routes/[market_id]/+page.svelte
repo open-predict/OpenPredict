@@ -22,7 +22,8 @@
     import ShareButton from "$lib/elements/share_button.svelte";
     import LikeButton from "$lib/elements/like_button.svelte";
     import type { MarketSearchResult } from "@am/backend/server/routers/_app.js";
-    
+    import type { TMarket } from "$lib/types.js";
+
     export let data;
 
     $: ({ pmMarket, opMarket, id } =
@@ -44,7 +45,7 @@
     let comment = "";
 
     async function postComment() {
-        if ($web3Store?.solanaAddress) {
+        if ($web3Store?.solana?.address) {
             // const posted = await $web3Workspace.makeAuthenticatedRequest(() =>
             //     trpcc.comment
             //         .mutate({
@@ -85,7 +86,7 @@
 
     // $: createdAt = market?.data?.PriceHistory[0]?.At as Date | undefined;
 
-    let relatedMarkets: MarketSearchResult[] = [];
+    let relatedMarkets: TMarket[] = [];
 
     onMount(async () => {
         // relatedMarkets = await api.getRelatedMarkets();
@@ -115,8 +116,11 @@
             </p>
         </div> -->
         <div slot="right" class="flex">
-            <ShareButton {pmMarket} {opMarket} updateMarket={(m) => {}} />
-            <LikeButton {pmMarket} {opMarket} updateMarket={(m) => {}} />
+            <!-- <ShareButton market={{opMarket, pmMarket}} updateMarket={(m) => {}} /> -->
+            <LikeButton
+                market={{ opMarket, pmMarket }}
+                updateMarket={(m) => {}}
+            />
         </div>
     </MainHeader>
     <!-- <div
@@ -257,7 +261,7 @@
     </div>
     <div slot="right" class="flex flex-col gap-4">
         {#if opMarket}
-            {#if $web3Store?.solanaAddress}
+            {#if $web3Store?.solana?.address}
                 <div class="bg-white ring-1 rounded-3xl ring-gray-200">
                     <AccountSummary />
                 </div>
@@ -269,7 +273,7 @@
                     <CreatorControls {market} {updateMarket} />
                 </div>
             {/if} -->
-            {#if $web3Store?.solanaAddress}
+            {#if $web3Store?.solana?.address}
                 <div
                     class="ring-1 rounded-3xl bg-white ring-gray-200 flex flex-col"
                 >

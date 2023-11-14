@@ -14,8 +14,8 @@ export async function load() {
   try {
     data.searchResults = await api.searchMarkets.query({
       tradable: true,
-      limit: 4,
-      kind: 'openpredict'
+      limit: 20,
+      orderBy: "volume"
     })
   } catch (e) {
     console.error("Error searching markets:", e);

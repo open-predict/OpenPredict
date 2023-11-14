@@ -28,10 +28,12 @@
     import OpChart from "$lib/charts/op_chart.svelte";
     import OpTrade from "./op_trade.svelte";
     import { getChance } from "$lib/utils/op";
-    export let market: marketFulldata;
-    export let updateMarket: (
-        market?: marketFulldata | pmMarketFulldata
-    ) => void;
+    import type { TMarket, TOpMarket } from "$lib/types";
+    import MarketViewLayout from "./market_view_layout.svelte";
+
+    export let market: TOpMarket;
+    export let updateMarket: (market?: TMarket) => void;
+
     const id = new PublicKey(market.data.data.AmmAddress).toBase58();
     $: chanceDisplay =
         (getChance(market.data.data.Yes, market.data.data.No) * 100).toFixed(
@@ -41,56 +43,37 @@
     let selectedView: "trades" | "chart" | "orderbook" = "chart";
 </script>
 
-<div class="w-full max-w-full p-4 flex flex-col gap-4">
-    <div class="flex justify-start items-start">
-        <h2
-            class="text-2xl font-semibold text-white flex-grow group-visited/link:text-indigo-300"
-        >
-            {market.metadata?.title}
-        </h2>
-        <span
-            class="text-2xl font-semibold text-white"
-        >
-            {chanceDisplay}
-        </span>
+<MarketViewLayout>
+    <h2 slot="title" class="contents">
+        {market.metadata?.title}
+    </h2>
+    <div class="contents" slot="pills">
+        <UserPill {id} />
+        <VolumePill market={{ opMarket: market }} />
+        <SubsidyPill market={{ opMarket: market }} />
+        <TradersPill market={{ opMarket: market }} />
     </div>
-    <div class="w-full flex items-center flex-nowrap gap-2">
-        <div class="relative w-9/10 max-w-9/10 grow overflow-hidden">
-            <div
-                class="absolute h-full w-20 bg-gradient-to-r from-transparent to-black right-0"
-            />
-            <div
-                class="w-full flex justify-start gap-2 items-center overflow-x-scroll scrollbar_hide pr-20"
-            >
-                <UserPill {id} />
-                <VolumePill opMarket={market} />
-                <SubsidyPill opMarket={market} />
-                <TradersPill opMarket={market} />
-                <div class="ml-auto" />
-            </div>
-        </div>
-    </div>
-    <div
-        class="relative bg-neutral-950/90 rounded-lg min-h-[300px] max-h-[400px] h-[300px] overflow-y-scroll scrollbar_hide text-neutral-400"
-    >
-        {#if selectedView === "chart"}
-            <!-- <OpChart {market} /> -->
-        {:else if selectedView === "orderbook"}
-            <div class="flex justify-center items-center py-28">
-                <p>
-                    {"An orderbook is not yet available for this market."}
-                </p>
-            </div>
-        {:else}
-            <div class="flex justify-center items-center py-28">
-                <p>
-                    {"Trade history is not yet available for this market."}
-                </p>
-            </div>
-        {/if}
+    <div class="contents" slot="interactive">
         <div
-            class="w-full h-10 absolute bottom-0 border-t border-neutral-900 bg-neutral-950"
+            class="bg-neutral-950/90 min-h-[300px] max-h-[400px] h-[300px] overflow-y-scroll scrollbar_hide"
         >
+            {#if selectedView === "chart"}
+                <!-- <OpChart {market} /> -->
+            {:else if selectedView === "orderbook"}
+                <div class="flex justify-center items-center py-28">
+                    <p>
+                        {"An orderbook is not yet available for this market."}
+                    </p>
+                </div>
+            {:else}
+                <div class="flex justify-center items-center py-28">
+                    <p>
+                        {"Trade history is not yet available for this market."}
+                    </p>
+                </div>
+            {/if}
+        </div>
+        <div class="w-full h-10 border-t border-neutral-900">
             <div
                 class="w-full flex items-center justify-between h-full bg-neutral-900/40 font-semibold text-xs divide-x divide-neutral-800"
             >
@@ -130,37 +113,18 @@
             </div>
         </div>
     </div>
-    <div class="flex flex-col gap-2 mb-8 mt-4">
-        <div class="flex justify-between items-center">
-            <h4 class="text-xl font-semibold text-neutral-200">Trade</h4>
-        </div>
-        <div class="w-full border-t border-neutral-900 mb-2" />
-        <!-- <PmTrade {market} {updateMarket} onClose={() => {}} direction /> -->
-            <OpTrade {market} {updateMarket} />
-    </div>
-    <div class="flex flex-col gap-2 mb-8">
-        <h4 class="text-xl font-semibold text-neutral-200">Description</h4>
-        <div class="w-full border-t border-neutral-900 mb-2" />
-        <p
-            class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
-        >
-            {market.metadata?.description.replaceAll("\n", "\n\n")}
-        </p>
-    </div>
-    <div class="flex flex-col gap-2 mb-8">
-        <h4 class="text-xl font-semibold text-neutral-200">Resolution</h4>
-        <div class="w-full border-t border-neutral-900 mb-2" />
-        <p
-            class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
-        >
-            {"This market has not yet been resolved."}
-        </p>
-    </div>
-    <div class="flex flex-col gap-2 mb-8">
-        <div class="flex justify-between items-end">
-            <h4 class="text-xl font-semibold text-neutral-200">Holders</h4>
-        </div>
-        <div class="w-full border-t border-neutral-900 mb-2" />
+    <OpTrade
+        slot="trade"
+        market={{ data: market.data, metadata: market.metadata }}
+        updateMarket={() => {}}
+    />
+    <p class="contents" slot="about">
+        {market.metadata?.description.replaceAll("\n", "\n\n")}
+    </p>
+    <p slot="resolution" class="contents">
+        {"This market has not yet been resolved."}
+    </p>
+    <div class="contents" slot="holders">
         <!-- <div class="w-full grid grid-cols-2 gap-8">
             {#each Array.from(market.orderdata.entries()) as tokenOrderdata}
                 <div class="w-full flex flex-col gap-2">
@@ -201,15 +165,7 @@
             {/each}
         </div> -->
     </div>
-    <div class="flex flex-col gap-2 mb-8">
-        <div class="flex justify-between items-end">
-            <h4 class="text-xl font-medium text-neutral-200">Comments</h4>
-        </div>
-        <div class="w-full border-t border-neutral-900 mb-2" />
-        <p
-            class="w-full font-normal leading-relaxed break-words lg:text-md overflow-hidden whitespace-pre-wrap text-neutral-700 dark:text-neutral-300"
-        >
-            {"No comments"}
-        </p>
+    <div class="contents" slot="comments">
+        {"No comments"}
     </div>
-</div>
+</MarketViewLayout>

@@ -3,16 +3,20 @@
     import { api } from "$lib/api";
     import Pill from "$lib/elements/pill.svelte";
     import { generateProfileImage, format } from "$lib/utils";
+    import type { TUser } from "@am/backend/types/user";
     import { IconLoader } from "@tabler/icons-svelte";
     import { createPopperActions } from "svelte-popperjs";
 
     const [popperRef, popperContent] = createPopperActions();
-    export let id: string;
 
-    $: userResponse = api.getUser.query({userId: [id]}).then(res => {
-        return res.get(id)
-    })
-    
+    export let id: string;
+    export let user: TUser | undefined = undefined;
+
+    $: !user
+        ? api.getUser.query({ userId: [id] }).then((res) => {
+              return res.get(id);
+          })
+        : undefined;
 </script>
 
 <!-- 
@@ -34,36 +38,28 @@
     </div>
 {/if} -->
 
-<a
-    href={`/user/${id}`}
- >
+<a href={`/user/${id}`}>
     <Pill>
         <div
             use:popperRef
-            class="w-4 h-4 rounded-full ring-1 ring-inset ring-neutral-400 overflow-hidden p-0.5"
+            class="w-4 h-4 rounded-full ring-1 ring-inset ring-neutral-400 overflow-hidden"
         >
-            {#await userResponse}
-                <IconLoader class="animate-spin" size={12} />
-            {:then user}
-                <img
-                    class=""
-                    src={user?.metadata.image ?? generateProfileImage(id)}
-                    alt="user avatar"
-                />
-            {/await}
+            <img
+                class="h-full w-full rounded-full overflow-hidden"
+                src={user?.metadata.image ?? generateProfileImage(id)}
+                alt="user avatar"
+            />
         </div>
-        <span class="group-hover/pill:underline group-hover/pill:text-neutral-200">
-            {#await userResponse}
-                {"..."}
-            {:then user}
-                {#if user?.username}
-                    {user.username}
-                {:else if id}
-                    {format.readableAddress(id)}
-                {:else}
-                    {"- -"}
-                {/if}
-            {/await}
+        <span
+            class="group-hover/pill:underline group-hover/pill:text-neutral-200"
+        >
+            {#if user?.username}
+                {user.username}
+            {:else if id}
+                {format.readableAddress(id)}
+            {:else}
+                {"- -"}
+            {/if}
         </span>
     </Pill>
 </a>

@@ -12,7 +12,7 @@
     import LikeButton from "$lib/elements/like_button.svelte";
     import ShareButton from "$lib/elements/share_button.svelte";
     import CommentButton from "$lib/elements/comment_button.svelte";
-    import type { pmMarketFulldata } from "@am/backend/types/market";
+    import type { pmMarketFulldata, pmUserMap } from "@am/backend/types/market";
     import ChangeIndicator from "$lib/elements/change_indicator.svelte";
     import SubsidyPill from "$lib/elements/subsidy_pill.svelte";
     import VolumePill from "$lib/elements/volume_pill.svelte";
@@ -20,17 +20,50 @@
     import MarketCardLayout from "$lib/components/market_card_layout.svelte";
     import MenuButton from "./menu_button.svelte";
     import { getOrderbookSummary, type TOrderbookSummary } from "$lib/utils/pm";
-    export let market: pmMarketFulldata;
-    export let updateMarket: (
-        market?: marketFulldata | pmMarketFulldata
-    ) => void;
+    import type { TUser } from "@am/backend/types/user";
+    import { fromOpUser, fromPmUser, generateProfileImage } from "$lib/utils";
+    import type { TMarket, TPmMarket, TUserMinimal } from "$lib/types";
+
+    export let market: TPmMarket;
+    export let updateMarket: (market?: TMarket) => void;
+    export let users: Map<string, TUser> = new Map<string, TUser>();
+    export let pmUsers: pmUserMap = new Map() as pmUserMap;
     export let small = false;
 
-    $: summariesPromise = Promise.all(market.data.tokens.map(async e => ({
-        s: await getOrderbookSummary(e.token_id, market),
-        ...e,
-    }))).then(r => r.sort((a,b) => (a.s?.mid ?? 0.5) - (b.s?.mid ?? 0.5)))
+    $: summariesPromise = Promise.all(
+        market.data.tokens.map(async (e) => ({
+            s: await getOrderbookSummary(e.token_id, market),
+            ...e,
+        }))
+    ).then((r) => r.sort((a, b) => (b.s?.mid ?? 0.5) - (a.s?.mid ?? 0.5)));
 
+    $: selectedSummaryPromise = summariesPromise.then((sp) => {
+        return sp.find((s) => s.outcome === "Yes") ?? sp[0];
+    });
+
+    let traders = new Set<TUserMinimal>();
+    $: market.orderdata.forEach((t) => {
+        t.positions.forEach(({ address }) => {
+            if (pmUsers.get(address))
+                traders.add(fromPmUser(address, pmUsers.get(address)));
+            if (users.get(address))
+                traders.add(fromOpUser(address, users.get(address)));
+        });
+        t.filledOrders.forEach((o) => {
+            if (o.maker) {
+                if (pmUsers.get(o.maker))
+                    traders.add(fromPmUser(o.maker, pmUsers.get(o.maker)));
+                if (users.get(o.maker))
+                    traders.add(fromOpUser(o.maker, users.get(o.maker)));
+            }
+            if (o.taker) {
+                if (pmUsers.get(o.taker))
+                    traders.add(fromPmUser(o.taker, pmUsers.get(o.taker)));
+                if (users.get(o.taker))
+                    traders.add(fromOpUser(o.taker, users.get(o.taker)));
+            }
+        });
+    });
 </script>
 
 <MarketCardLayout href={market.data.condition_id} {small}>
@@ -45,8 +78,8 @@
                 {"Polymarket"}
             </span>
         </Pill>
-        <VolumePill pmMarket={market} />
-        <SubsidyPill pmMarket={market} />
+        <VolumePill market={{ pmMarket: market }} />
+        <SubsidyPill market={{ pmMarket: market }} />
         <Pill>
             <IconCalendar
                 size={14}
@@ -87,53 +120,59 @@
             <IconExternalLink size={12} />
         </a>
     </MenuButton>
-    <!-- <ImageChecker
-        slot="extra_content"
-        url={market.data.image}
-        ratio={1.2}
-        resolution={400}
-    >
-        <img
-            src={market.data.image}
-            class={`w-full h-full rounded-lg object-cover object-center`}
-            alt="market cover"
-        />
-    </ImageChecker> -->
     <span slot="title">
         {market.data.question}
     </span>
     <span slot="chance">
-        {#await summariesPromise}
+        {#await selectedSummaryPromise}
             {"--%"}
-        {:then summaries} 
-            {(((summaries[0].s?.mid ?? 0) *100).toFixed(0)  + "%") ?? "--%"}
-        {/await}    
+        {:then summary}
+            {((summary.s?.mid ?? 0) * 100).toFixed(0) + "%" ?? "--%"}
+        {/await}
     </span>
-    <div class="contents" slot="change">
-        {#await summariesPromise}
-            {"--"}
-        {:then summaries} 
-            {summaries[0].outcome}
-        {/await}   
+    <div class="contents" slot="context">
+        <span
+            class={`font-semibold text-xs text-neutral-700 dark:text-neutral-400`}
+        >
+            {#await selectedSummaryPromise}
+                {"--"}
+            {:then summary}
+                <span
+                    class={`${
+                        summary.outcome === "Yes"
+                            ? ""
+                            : "text-indigo-600 dark:text-indigo-400"
+                    }`}
+                >
+                    {summary.outcome}
+                </span>
+            {/await}
+        </span>
     </div>
     <div class="contents" slot="bottom_left">
-        {#each Array.from(Array(4)) as t}
-            <img
-                src={faker.image.avatar()}
-                alt="s"
-                class="h-6 w-6 rounded-full -ml-3 ring-2 ring-neutral-900"
-            />
-        {/each}
-        <div
-            class="h-6 w-6 rounded-full -ml-3 ring-2 ring-indigo-800 bg-neutral-900 flex justify-center items-center text-[9px] font-extrabold text-white"
-        >
-            +23
+        <div class="flex items-center flex-nowrap">
+            {#each Array.from(traders.values())
+                .sort( (a, b) => (a.image.startsWith("http") ? -1 : b.image.startsWith("http") ? 1 : 0) )
+                .slice(0, 4) as user}
+                <img
+                    src={user.image}
+                    alt={user.name ?? user.id}
+                    class="h-6 w-6 rounded-full -ml-1.5 flex-shrink-0 ring-1 ring-white dark:ring-neutral-950"
+                />
+            {/each}
+            {#if traders.size > 4}
+                <div
+                    class="h-6 w-6 text-[9px] font-bold flex justify-center items-center flex-nowrap whitespace-nowrap rounded-full -ml-1.5 flex-shrink-0 ring-1 ring-white dark:text-white dark:ring-neutral-950 bg-neutral-200 dark:bg-neutral-800"
+                >
+                    {"+" + traders.size}
+                </div>
+            {/if}
         </div>
     </div>
     <div class="contents" slot="bottom_right">
-        <ShareButton pmMarket={market} {updateMarket} />
-        <CommentButton pmMarket={market} />
-        <LikeButton pmMarket={market} {updateMarket} />
+        <!-- <ShareButton pmMarket={market} {updateMarket} /> -->
+        <CommentButton market={{ pmMarket: market }} />
+        <LikeButton market={{ pmMarket: market }} {updateMarket} />
         <button
             class="flex items-center justify-center rounded-lg text-sm gap-1 py-1.5 px-2.5 transition-all ring-1 dark:ring-transparent dark:shadow-lg dark:bg-neutral-900 dark:text-indigo-400/80 dark:hover:text-indigo-300 dark:hover:ring-indigo-800 dark:hover:shadow-indigo-500/10 shadow-sm bg-white text-indigo-700/90 hover:text-indigo-700 ring-indigo-200 hover:ring-indigo-300 hover:shadow-lg"
         >
@@ -150,3 +189,16 @@
         alt="market cover"
     />
 </ImageChecker> -->
+
+<!-- <ImageChecker
+        slot="extra_content"
+        url={market.data.image}
+        ratio={1.2}
+        resolution={400}
+    >
+        <img
+            src={market.data.image}
+            class={`w-full h-full rounded-lg object-cover object-center`}
+            alt="market cover"
+        />
+    </ImageChecker> -->

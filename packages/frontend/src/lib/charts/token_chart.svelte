@@ -30,6 +30,7 @@
         ClobClient,
         Chain,
     } from "$lib/clob";
+    import { IconLoader, IconLoader2 } from "@tabler/icons-svelte";
 
     export let market: pmMarketFulldata;
     export let term: PriceHistoryTerm = PriceHistoryTerm.DAY;
@@ -252,7 +253,7 @@
         {#await tokenDataPromise}
             {#each market.data.tokens as token}
                 <div
-                    class="animate-pulse text-xs flex items-center font-medium h-7 gap-2 min-w-[5rem] bg-neutral-900/70 py-0.5 pl-2.5 pr-2.5 text-neutral-200 ring-neutral-800 rounded-md"
+                    class="animate-pulse text-xs flex items-center font-medium h-7 gap-2 min-w-[5rem] py-0.5 pl-2.5 pr-2.5 rounded-md dark:text-neutral-200 dark:bg-neutral-900/70 text-neutral-800 bg-neutral-100/70"
                 >
                     <div class={`h-1.5 w-1.5 rounded-full bg-neutral-600`} />
                     {token.outcome}
@@ -263,7 +264,7 @@
             {#if tokenData}
                 {#each Object.entries(tokenData) as token}
                     <button
-                        class="text-xs flex items-center font-medium h-7 gap-2 min-w-[5rem] bg-neutral-900/70 py-0.5 pl-2.5 pr-2.5 text-neutral-200 ring-neutral-800 rounded-md"
+                        class="text-xs flex items-center font-medium h-7 gap-2 min-w-[5rem] py-0.5 pl-2.5 pr-2.5 rounded-lg dark:text-neutral-200 dark:bg-neutral-900/70 dark:border-0 text-neutral-800 bg-white border border-neutral-200"
                     >
                         <div
                             class={`h-1.5 w-1.5 rounded-full`}
@@ -280,13 +281,13 @@
             {/if}
         {/await}
         <nav
-            class="hidden lg:flex justify-end ml-auto gap-1 bg-neutral-900/50 rounded-lg px-1.5"
+            class="hidden lg:flex justify-end ml-auto gap-1 rounded-lg px-1.5 bg-white dark:bg-neutral-900/50 border dark:border-0 border-neutral-200"
         >
             {#each Object.values(PriceHistoryTerm) as v}
                 <button
                     on:click={() => (term = v)}
                     class={`h-8 w-7 text-xs font-semibold ${
-                        term === v ? "text-white" : "text-neutral-500"
+                        term === v ? "dark:text-white text-black" : "dark:text-neutral-500 text-neutral-400"
                     }`}
                 >
                     {v}
@@ -296,9 +297,9 @@
     </div>
     {#await tokenDataPromise}
         <div
-            class={`bg-neutral-900 animate-pulse h-full w-full`}
+            class={`animate-pulse h-full w-full flex justify-center items-center`}
         >
-            Loading
+            <IconLoader2 class='animate-spin' />
         </div>
     {:then tokens}
         {#if graphReady && tokens}
@@ -325,7 +326,7 @@
                             transform="translate(0, {yScale(tick)})"
                         >
                             <line
-                                class="stroke-neutral-800"
+                                class="dark:stroke-neutral-800 stroke-neutral-400"
                                 stroke-dasharray="3"
                                 x1={inset}
                                 x2={width - marginLeft - marginRight}
@@ -333,7 +334,7 @@
                             <text
                                 x={width - marginLeft - marginRight / 2}
                                 y="5"
-                                class="fill-neutral-500 text-xs"
+                                class="fill-neutral-600 dark:fill-neutral-500 text-xs"
                             >
                                 {tick + yFormat}
                             </text>
@@ -352,8 +353,8 @@
                             class="tick"
                             transform="translate({xScale(tick)}, 0)"
                         >
-                            <line class="tick-start" stroke="black" y2="6" />
-                            <text y="25" class="text-xs fill-neutral-500">
+                            <line class="stroke-neutral-400 dark:stroke-neutral-800" stroke-width="1" y2="6" />
+                            <text y="25" class="fill-neutral-600 dark:fill-neutral-500 text-xs">
                                 {xTicksFormatted[i]}
                             </text>
                         </g>
@@ -365,14 +366,14 @@
                         >
                             <line
                                 y2={-height + 70}
-                                class="stroke-neutral-800"
+                                class="dark:stroke-neutral-800 stroke-neutral-300"
                             />
                             <rect
                                 height={20}
                                 width={120}
                                 y={11}
                                 rx={10}
-                                class="fill-white"
+                                class="dark:fill-white fill-neutral-700"
                                 x={xScaledDotInfo > workingWidth - 70
                                     ? workingWidth - 130 - xScaledDotInfo
                                     : xScaledDotInfo < 70
@@ -388,7 +389,7 @@
                                     : xScaledDotInfo < 70
                                     ? 70 - xScaledDotInfo
                                     : undefined}
-                                class="fill-black font-semibold text-xs w-14"
+                                class="dark:fill-black fill-white font-semibold text-xs w-14"
                             >
                                 {`${format.date.format(
                                     aggPoints[dotInfo.i].x
@@ -422,9 +423,9 @@
                             {#if dotInfo.tokenPoints[id]}
                                 <circle
                                     r={6}
-                                    class={"stroke-neutral-950"}
+                                    class={"stroke-neutral-50 dark:stroke-neutral-950"}
                                     fill={tokens[id]?.color}
-                                    stroke-width={5}
+                                    stroke-width={3}
                                     cx={xScale(dotInfo.tokenPoints[id].x)}
                                     cy={yScale(dotInfo.tokenPoints[id].y)}
                                 />
