@@ -58,15 +58,19 @@ services:
       context: ./
       dockerfile: ./packages/frontend/Dockerfile
       args:
-        - PUBLIC_MAIN_PROGRAM_ID=${MAIN_PROGRAM_ID}
-        - PUBLIC_USDC_MINT_ADDR=${USDC_MINT_ADDRESS}
-        - PUBLIC_FEE_PAYER_KEY=${FEE_PAYER_PUBKEY}
+        - PUBLIC_OP_MAIN_PROGRAM_ADDR=${MAIN_PROGRAM_ID}
+        - PUBLIC_OP_FEE_PAYER_ADDR=${FEE_PAYER_PUBKEY}
+        - PUBLIC_SOLANA_USDC_ADDR=${USDC_MINT_ADDRESS}
         - PUBLIC_SOLANA_RPC_URL=${SOLANA_RPC_URL}
         - PUBLIC_POLYGON_RPC_URL=${POLYGON_RPC_URL}
-        - PUBLIC_TRPC_URL=http://localhost:3000
+        - PUBLIC_TRPC_URL=${PUBLIC_TRPC_URL}
         - PUBLIC_INTERNAL_TRPC_URL=http://backend:3000
         - PUBLIC_WEB3AUTH_ID=${WEB3AUTH_ID}
         - PUBLIC_FAKE_API=false
+        - PUBLIC_PM_PROXY_WALLET_FACTORY=0xaB45c5A4B0c941a2F231C04C3f49182e1A254052
+        - PUBLIC_PM_CLOB_URL=https://clob.polymarket.com
+        - PUBLIC_POLYGON_USDC_ADDR=0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174
+        - PUBLIC_POLYGON_TESTNET=0
     environment:
       - INTERNAL_TRPC_URL=http://backend:3000
       - PUBLIC_FAKE_API=false

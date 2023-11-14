@@ -12,6 +12,7 @@ import {Mutex} from 'async-mutex'
 import {TUser, userMetadataSchemaV0} from "../types/user.js"
 import {msearch} from "../index.js"
 
+
 declare global {
   var _helia: Helia
   var helia: hJsonI | null
@@ -21,22 +22,29 @@ declare global {
   var heliaCache: Map<string, unknown>
 }
 
-async function getHelia() {
+export async function heliaInit() {
+  globalThis.heliaM = new Mutex();
   await globalThis.heliaM.runExclusive(async () => {
     if (globalThis.helia == null) {
       globalThis.heliaBlockstore = new FsBlockstore('/opt/ipfs/blocks')
       globalThis.heliaDatastore = new FsDatastore('/opt/ipfs/data');
       globalThis._helia = await helia.createHelia({
         blockstore: globalThis.heliaBlockstore!,
-        datastore: globalThis.heliaDatastore!,
       });
       (globalThis._helia as any).libp2p.services.dht.setMode("server");
-      globalThis.helia = hJson(globalThis._helia);
+      globalThis.helia = hJson({
+        blockstore: globalThis.heliaBlockstore!
+      });
       globalThis.heliaCache = new Map<string, unknown>();
+      console.log("helia addresses", globalThis._helia.libp2p.getMultiaddrs());
     }
-    console.log("helia addresses", globalThis._helia.libp2p.getMultiaddrs());
   })
-  return globalThis.helia!;
+}
+
+async function getHelia() {
+  return globalThis.heliaM.runExclusive(() => {
+    return globalThis.helia!;
+  })
 }
 
 export async function heliaAdd(data: unknown): Promise<multiformats.CID> {
@@ -52,32 +60,6 @@ export async function heliaGet(cid: multiformats.CID): Promise<unknown> {
   return getHelia().then(helia => helia.get(cid, {
     signal: AbortSignal.timeout(500)
   }))
-}
-
-export async function marketByAddress(amm_address: string): Promise<[marketFulldata, Map<string, {
-  username: string | null,
-}>] | null> {
-  const data = chainCache.markets.get(amm_address)
-  if (!data) {
-    return null
-  };
-  var users = new Map<string, {username: string | null}>
-  users.set(data.data.OperatorKey.toBase58(), {
-    username: globalThis.chainCache.usernames.get(data.data.OperatorKey.toBase58()) ?? null
-  })
-  const entries = data.UserAccounts.entries()
-  for (var entry of entries) {
-    users.set(entry[0], {
-      username: globalThis.chainCache.usernames.get(entry[0]) ?? null
-    })
-  }
-  const mfcid = multiformats.CID.decode(data.data.IPFS_Cid)
-  const result = await heliaGet(mfcid)
-  const metadata = await marketMetadataSchemaV0.safeParseAsync(result);
-  return [{
-    data: data,
-    metadata: metadata.success ? metadata.data : null,
-  }, users]
 }
 
 export async function profileByUsername(username: string): Promise<profileChaindata | undefined> {
@@ -347,8 +329,8 @@ export async function searchMarkets(
     }
   }
   let filters = [];
-  if(options.tradable) filters.push(`tradable = ${JSON.stringify(options.tradable)}`);
-  if(options.kind) filters.push(`kind = ${JSON.stringify(options.kind)}`);
+  if (options.tradable) filters.push(`tradable = ${JSON.stringify(options.tradable)}`);
+  if (options.kind) filters.push(`kind = ${JSON.stringify(options.kind)}`);
   var meilisearchResult = await msearch().index('markets').search(options.term, {
     limit: options.limit,
     offset: options.skip,

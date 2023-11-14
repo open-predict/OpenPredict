@@ -20,15 +20,15 @@ jobs:
     - name: SSH and run Docker Compose
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.VM_USER }}@${{ secrets.VM_IP }} << EOF
-          if [ -d "openpredict" ]; then 
-            cd openpredict
-            git checkout ${{ github.ref }}
-            git pull origin ${{ github.ref }}
+          if [ -d "OpenPredict" ]; then 
+            cd OpenPredict
+            git checkout beta
+            git pull origin beta --no-rebase
           else
-            git clone -b ${{ github.ref }} --single-branch https://github.com/Open-Predict/openpredict.git
-            cd openpredict
+            git clone -b beta --single-branch https://github.com/open-predict/OpenPredict.git
+            cd OpenPredict
             echo "Environment variables must be set up."
             exit 1
           fi
-          docker-compose down
-          docker-compose up --build -d
+          sudo docker compose down
+          sudo docker compose up --build -d
