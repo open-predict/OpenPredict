@@ -29,7 +29,7 @@
         slider.setAttribute("id", id);
         if (slider) {
             let style = document.createElement("style");
-            style.textContent = `#${id}.no::-webkit-slider-runnable-track {
+            style.textContent = `#${id}.dark.no::-webkit-slider-runnable-track {
     background: linear-gradient(
             to right,
             theme("colors.red.600"),
@@ -40,7 +40,7 @@
     background-repeat: no-repeat;
 }
 
-#${id}.yes::-webkit-slider-runnable-track {
+#${id}.dark.yes::-webkit-slider-runnable-track {
     background: linear-gradient(
             to right,
             theme("colors.emerald.600"),
@@ -51,7 +51,7 @@
     background-repeat: no-repeat;
 }
 
-#${id}::-webkit-slider-runnable-track {
+#${id}.dark::-webkit-slider-runnable-track {
     background: linear-gradient(
             to right,
             theme("colors.indigo.600"),
@@ -66,6 +66,12 @@
     });
 </script>
 
+<div class="one">
+    <div class="two">
+    </div>
+</div>
+<div class="two">
+</div>
 <div class="flex justify-center items-center w-full px-1 py-1">
     <input
         class={extraClass}

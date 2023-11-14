@@ -299,23 +299,23 @@
             case "yes":
                 btn_class = selected
                     ? selected?.token_id === token.token_id
-                        ? `bg-emerald-600 text-white`
-                        : `bg-neutral-900 text-white opacity-70`
-                    : `bg-neutral-900 text-green-400`;
+                        ? `bg-emerald-500 dark:bg-emerald-600 text-white`
+                        : `bg-white text-neutral-600 border border-neutral-200 dark:border-0 dark:bg-neutral-900 dark:text-white dark:opacity-80`
+                    : `bg-white text-green-600 border border-neutral-200 dark:border-0 dark:bg-neutral-900 dark:text-green-400`;
                 break;
             case "no":
                 btn_class = selected
                     ? selected?.token_id === token.token_id
                         ? `bg-red-500 text-white`
-                        : `bg-neutral-900 text-white opacity-70`
-                    : `bg-neutral-900 text-red-400`;
+                        : `bg-white text-neutral-600 border border-neutral-200 dark:border-0 dark:bg-neutral-900 dark:text-white dark:opacity-80`
+                    : `bg-white text-red-600 border border-neutral-200 dark:border-0 dark:bg-neutral-900 text-red-400`;
                 break;
             default:
                 btn_class = selected
                     ? selected?.token_id === token.token_id
                         ? `bg-indigo-600 text-white`
-                        : "bg-neutral-900 text-white opacity-70"
-                    : "bg-neutral-900 text-indigo-400";
+                        : "bg-white text-neutral-600 border border-neutral-200 dark:border-0 dark:bg-neutral-900 dark:text-white dark:opacity-80"
+                    : "bg-white text-indigo-600 border border-neutral-200 dark:border-0 dark:bg-neutral-900 text-indigo-400";
                 break;
         }
         return btn_class;
@@ -323,7 +323,7 @@
 
     $: tradeButtonClass = selectedToken
         ? selectedToken.outcome.toLowerCase() === "yes"
-            ? `bg-emerald-600 text-white`
+            ? `bg-emerald-500 dark:bg-emerald-600 text-white`
             : selectedToken.outcome.toLowerCase() === "no"
             ? `bg-red-500 text-white`
             : `bg-indigo-600 text-white`
@@ -333,26 +333,26 @@
 <div class="flex flex-col gap-4">
     <div
         class={`flex flex-col rounded-2xl overflow-hidden ring-1 ${
-            selectedToken ? "ring-neutral-900" : "ring-transparent"
+            selectedToken ? "dark:ring-neutral-900 ring-neutral-200" : "dark:ring-transparent ring-neutral-200"
         }`}
     >
-        <div class="flex gap-3 col-span-3 bg-neutral-900/60 p-2">
+        <div class="flex gap-3 col-span-3 p-2 bg-neutral-100 dark:bg-neutral-900/60">
             {#each market.data.tokens.sort( (a, b) => b.outcome.localeCompare(a.outcome) ) as token}
                 <button
                     on:click={() => selectToken(token.token_id)}
-                    class={`h-10 w-full flex px-4 justify-start items-center gap-1 lg:gap-2 rounded-xl font-semibold mt-auto shadow-xl ${tokenBtnClass(
+                    class={`h-10 w-full flex px-4 justify-start items-center gap-1 lg:gap-2 rounded-xl font-semibold mt-auto ${tokenBtnClass(
                         token,
                         selectedToken
                     )}`}
                 >
-                    <span class="opacity-40">Buy</span>
+                    <span class="opacity-75">Buy</span>
                     {token.outcome}
                     <span class="ml-auto">
                         {#await pricesPromise}
                             {"--"}
                         {:then prices}
                             {#if prices[token.token_id]}
-                                {prices[token.token_id].b * 100 + "¢"}
+                                {(prices[token.token_id].b * 100).toFixed(1) + "¢"}
                             {:else}
                                 {"--"}
                             {/if}
@@ -365,12 +365,12 @@
             {#if selectedToken}
                 <div
                     transition:fade={{ duration: 200, delay: 50 }}
-                    class={"flex flex-col gap-4 p-3 pt-4 bg-neutral-950/80 border-t border-neutral-900"}
+                    class={"flex flex-col gap-4 p-3 pt-4 bg-white dark:bg-neutral-950/80 border-t border-neutral-300 dark:border-neutral-900"}
                 >
                     <div class="flex mb-1 gap-3 justify-between flex-row">
                         <label
                             for="thing"
-                            class="w-1/3 font-semibold text-neutral-300 mt-2"
+                            class="w-1/3 font-semibold mt-2 dark:text-neutral-300 text-neutral-700"
                         >
                             {"Order type"}
                         </label>
@@ -400,7 +400,7 @@
                         >
                             <label
                                 for="thing"
-                                class="w-full xl:w-1/2 font-semibold text-neutral-300 xl:mt-2"
+                                class="w-full xl:w-1/2 font-semibold xl:mt-2 dark:text-neutral-300 text-neutral-700"
                             >
                                 {"Limit price"}
                             </label>
@@ -421,7 +421,7 @@
                     >
                         <label
                             for="thing"
-                            class="w-full xl:w-1/2 font-semibold text-neutral-300 xl:mt-2"
+                            class="w-full xl:w-1/2 font-semibold xl:mt-2 dark:text-neutral-300 text-neutral-700"
                         >
                             {"Shares"}
                         </label>
@@ -501,7 +501,7 @@
             {/if}
         </div>
     </div>
-    <div class="flex flex-col gap-2">
+    <!-- <div class="flex flex-col gap-2">
         <h4 class="font-semibold text-neutral-300">
             {`Limit orders`}
         </h4>
@@ -513,7 +513,7 @@
         <h4 class="font-semibold text-neutral-300 my-1">
             {`Positions`}
         </h4>
-        <!-- {#each Array.from(market.orderdata.entries()).slice(0, 1) as token}
+        {#each Array.from(market.orderdata.entries()).slice(0, 1) as token}
             {#each token[1].positions.slice(0, 1) as position}
                 {#if market.data.tokens.find((t) => t.token_id === token[0])}
                     <PmPosition
@@ -526,8 +526,8 @@
                     />
                 {/if}
             {/each}
-        {/each} -->
-    </div>
+        {/each}
+    </div> -->
 </div>
 
 <style>

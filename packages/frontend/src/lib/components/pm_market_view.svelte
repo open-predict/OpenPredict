@@ -82,7 +82,9 @@
                 <!-- <FilledOrders {market} {updateMarket} /> -->
             {/if}
         </div>
-        <div class="w-full h-10 border-t border-neutral-200 dark:border-neutral-900">
+        <div
+            class="w-full h-10 border-t border-neutral-200 dark:border-neutral-900"
+        >
             <div
                 class="w-full flex items-center justify-between h-full font-semibold text-xs divide-x bg-white divide-neutral-200 dark:divide-neutral-800 dark:bg-neutral-900/40"
             >
@@ -101,7 +103,7 @@
                     on:click={() => (selectedView = "orderbook")}
                     class={`flex gap-1 items-center justify-center w-full h-full ${
                         selectedView === "orderbook"
-                        ? "text-black dark:text-white"
+                            ? "text-black dark:text-white"
                             : "text-neutral-500 dark:text-neutral-400"
                     }`}
                 >
@@ -112,7 +114,7 @@
                     on:click={() => (selectedView = "trades")}
                     class={`flex gap-1 items-center justify-center w-full h-full ${
                         selectedView === "trades"
-                        ? "text-black dark:text-white"
+                            ? "text-black dark:text-white"
                             : "text-neutral-500 dark:text-neutral-400"
                     }`}
                 >

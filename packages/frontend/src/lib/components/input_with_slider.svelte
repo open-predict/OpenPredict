@@ -1,7 +1,6 @@
 <script lang="ts">
     import { IconMinus, IconPlus } from "@tabler/icons-svelte";
     import Slider from "$lib/elements/slider.svelte";
-    import { usd } from "$lib/utils/format";
 
     export let step = 1;
     export let max: number;
@@ -29,10 +28,10 @@
 </script>
 
 <div
-    class="block overflow-hidden text-sm w-full rounded-xl ring-neutral-900/80 bg-white dark:bg-neutral-900/50"
+    class="block overflow-hidden text-sm w-full rounded-xl ring-neutral-900/80 bg-neutral-100 border dark:border-0 border-neutral-200 dark:bg-neutral-900/50"
 >
     <div
-        class="w-full h-12 flex justify-between items-center p-2 gap-2 bg-neutral-900/80 rounded-xl ring-neutral-900 ring-inset"
+        class="w-full h-12 flex justify-between items-center p-2 gap-2 ring-1 bg-white dark:bg-neutral-900/80 rounded-xl ring-neutral-200 dark:ring-neutral-900"
     >
         <button
             on:click={stepDown}
@@ -44,7 +43,7 @@
             type="string"
             value={formatted}
             on:change={onChange}
-            class="text-lg max-w-[10rem] text-center text-neutral-300 outline-none bg-transparent"
+            class="text-lg max-w-[10rem] text-center outline-none bg-transparent text-black dark:text-neutral-300"
         />
         <button
             class="action_icon opacity-60 hover:opacity-100"
