@@ -43,7 +43,7 @@
             type="string"
             value={formatted}
             on:change={onChange}
-            class="text-lg max-w-[10rem] text-center outline-none bg-transparent text-black dark:text-neutral-300"
+            class="text-lg max-w-[10rem] font-semibold text-center outline-none bg-transparent text-black dark:text-neutral-300"
         />
         <button
             class="action_icon opacity-60 hover:opacity-100"

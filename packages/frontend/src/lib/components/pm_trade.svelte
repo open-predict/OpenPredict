@@ -88,8 +88,17 @@
 
     let selectedToken: pmTokenData | undefined;
 
+    let prices: Record<
+        string,
+        {
+            b: number;
+            s: number;
+        }
+    > = {};
+
     async function selectToken(token_id: string) {
         var content = document.getElementById("content");
+        price = prices[token_id]?.b ?? 0.5;
         if (selectedToken && selectedToken.token_id === token_id) {
             selectedToken = undefined;
             if (content) {
@@ -109,36 +118,17 @@
         }
     }
 
-    const step = 0.1 * USDC_PER_DOLLAR;
-    const chance = 0.5;
-
-    $: ({ solana } = $web3Workspace);
-    let userShares = {
-        shares: 0n,
-        sharesUI: 0,
-        valueCents: 0,
-    };
-    $: buying =
-        userShares.sharesUI === 0 ||
-        (userShares.shares > 0 && direction) ||
-        (userShares.shares < 0 && !direction);
-    $: summary = buying
-        ? `Buy ${direction ? "'Yes'" : "'No'"} Shares`
-        : `Sell ${userShares.shares < 0 ? "'No'" : "'Yes'"} Shares`;
-
     async function getPrices(td: pmTokenData[]) {
-        let _prices: Record<string, { b: number; s: number }> = {};
         for (const t of td) {
             const summary = await getOrderbookSummary(t.token_id, market);
-            _prices[t.token_id] = {
+            prices[t.token_id] = {
                 b: summary?.buy ?? 0.5,
                 s: summary?.sell ?? 0.5,
             };
         }
-        return _prices;
     }
 
-    $: pricesPromise = getPrices(market.data.tokens);
+    $: getPrices(market.data.tokens);
 
     let limitPrice = 50;
     let defaultMicroUsd = 100;
@@ -189,8 +179,9 @@
     //         maxSell = Number(getSellUsdcLimit(data, userShares));
     // }
 
+    let setInitialPrice = false;
     let price: number;
-    let shares: number;
+    let shares: number = 10;
     $: total = usd.format((price ?? 0) * (shares ?? 0));
 
     const onPriceChange = (
@@ -219,7 +210,7 @@
             shares = 0; // change this
         } else {
             shares = num;
-            e.currentTarget.value = shares.toFixed(2); // wasn't updating
+            e.currentTarget.value = shares.toFixed(1); // wasn't updating
         }
     };
 
@@ -333,10 +324,14 @@
 <div class="flex flex-col gap-4">
     <div
         class={`flex flex-col rounded-2xl overflow-hidden ring-1 ${
-            selectedToken ? "dark:ring-neutral-900 ring-neutral-200" : "dark:ring-transparent ring-neutral-200"
+            selectedToken
+                ? "dark:ring-neutral-900 ring-neutral-200"
+                : "dark:ring-transparent ring-neutral-200"
         }`}
     >
-        <div class="flex gap-3 col-span-3 p-2 bg-neutral-100 dark:bg-neutral-900/60">
+        <div
+            class="flex gap-3 col-span-3 p-2 bg-neutral-100 dark:bg-neutral-900/60"
+        >
             {#each market.data.tokens.sort( (a, b) => b.outcome.localeCompare(a.outcome) ) as token}
                 <button
                     on:click={() => selectToken(token.token_id)}
@@ -348,15 +343,9 @@
                     <span class="opacity-75">Buy</span>
                     {token.outcome}
                     <span class="ml-auto">
-                        {#await pricesPromise}
-                            {"--"}
-                        {:then prices}
-                            {#if prices[token.token_id]}
-                                {(prices[token.token_id].b * 100).toFixed(1) + "¢"}
-                            {:else}
-                                {"--"}
-                            {/if}
-                        {/await}
+                        {(prices[token.token_id]?.b
+                            ? (prices[token.token_id]?.b * 100).toFixed(1)
+                            : "-- ") + "¢"}
                     </span>
                 </button>
             {/each}
@@ -368,10 +357,7 @@
                     class={"flex flex-col gap-4 p-3 pt-4 bg-white dark:bg-neutral-950/80 border-t border-neutral-300 dark:border-neutral-900"}
                 >
                     <div class="flex mb-1 gap-3 justify-between flex-row">
-                        <label
-                            for="thing"
-                            class="w-1/3 font-semibold mt-2 dark:text-neutral-300 text-neutral-700"
-                        >
+                        <label for="thing" class="w-1/3 font-semibold mt-2">
                             {"Order type"}
                         </label>
                         <div class="w-2/3 xl:w-1/3 h-11">
@@ -400,7 +386,7 @@
                         >
                             <label
                                 for="thing"
-                                class="w-full xl:w-1/2 font-semibold xl:mt-2 dark:text-neutral-300 text-neutral-700"
+                                class="w-full xl:w-2/3 font-semibold xl:mt-2"
                             >
                                 {"Limit price"}
                             </label>
@@ -410,7 +396,7 @@
                                 outcome={selectedToken.outcome.toLowerCase()}
                                 bind:value={price}
                                 onChange={onPriceChange}
-                                formatted={usd.format(price)}
+                                formatted={(price * 100).toFixed(1) + " ¢"}
                                 max={1}
                                 min={0}
                             />
@@ -421,7 +407,7 @@
                     >
                         <label
                             for="thing"
-                            class="w-full xl:w-1/2 font-semibold xl:mt-2 dark:text-neutral-300 text-neutral-700"
+                            class="w-full xl:w-2/3 font-semibold xl:mt-2"
                         >
                             {"Shares"}
                         </label>
@@ -430,64 +416,51 @@
                             min={0}
                             bind:value={shares}
                             outcome={selectedToken.outcome.toLocaleLowerCase()}
-                            formatted={(shares ?? 0).toFixed(2)}
+                            formatted={(shares ?? 0).toFixed(1)}
                             onChange={onSharesChange}
                         />
                     </div>
-                    <div class="text-neutral-400">
-                        {#if !buying}
-                            <div
-                                class="pb-2 text-sm flex justify-between items-center"
-                            >
-                                <span class="">
-                                    {`Your ${
-                                        userShares.shares > 0 ? "'Yes'" : "'No'"
-                                    } shares`}
-                                </span>
-                                <span class="text-black">
-                                    {Math.abs(userShares.sharesUI)}
-                                </span>
-                            </div>
-                        {/if}
-                        <div
-                            class="py-2 text-sm flex justify-between items-center"
-                        >
-                            <span class="">Total</span>
-                            <span>
+                    <div class="flex mb-1 gap-3 justify-between flex-row">
+                        <label for="thing" class="w-1/3 font-semibold mt-2">
+                            {"Summary"}
+                        </label>
+                        <div class="flex gap-2">
+                            <p class="">Total</p>
+                            <h3 class="font-semibold">
                                 {total}
-                            </span>
+                            </h3>
                         </div>
-                        <div
+                    </div>
+                    <div class="text-neutral-400">
+                        <!-- <div
                             class="py-2 text-sm flex justify-between items-center"
                         >
-                            <span class="">New probability</span>
+                            <h5 class="">New probability</h5>
                             <span class=""
                                 >{`${(expectedChance * 100).toFixed(1)}%`}</span
                             >
-                        </div>
+                        </div> -->
                         <div
                             class="py-2 text-sm flex justify-between items-center"
                         >
-                            <span class="font-semibold"
-                                >{`Payout if ${direction ? "Yes" : "No"}`}</span
-                            >
-                            <span
-                                class={`font-semibold ${
-                                    selectedToken.outcome.toLowerCase() === "no"
-                                        ? "text-red-400"
-                                        : selectedToken.outcome.toLowerCase() ===
-                                          "yes"
-                                        ? "text-emerald-400"
-                                        : "text-indigo-400"
-                                }`}
-                                >{`+ ${usd.format(
-                                    Number(
-                                        (BigInt(expectedShares) -
-                                            BigInt(microUsd)) /
-                                            10000n
-                                    ) / 100
-                                )}`}</span
-                            >
+                            <h5 class="font-semibold">
+                                {`Payout if ${direction ? "Yes" : "No"}`}
+                            </h5>
+                            <p>
+                                <span
+                                    class={`font-semibold ${
+                                        selectedToken.outcome.toLowerCase() ===
+                                        "no"
+                                            ? "dark:text-red-400"
+                                            : selectedToken.outcome.toLowerCase() ===
+                                              "yes"
+                                            ? "text-emerald-600 dark:text-emerald-400"
+                                            : "dark:text-indigo-400"
+                                    }`}
+                                >
+                                    {`+ ${usd.format(shares)}`}
+                                </span>
+                            </p>
                         </div>
                     </div>
                     <div class="hidden 2xl:flex" />
@@ -495,7 +468,7 @@
                         on:click={() => buyShares()}
                         class={`h-10 rounded-xl font-semibold cursor-pointer text-white ${tradeButtonClass}`}
                     >
-                        {`${summary}`}
+                        {`Buy ${shares} '${selectedToken.outcome}' shares`}
                     </button>
                 </div>
             {/if}

@@ -12,6 +12,7 @@
 	import { PublicKey } from "@solana/web3.js";
 	import type { AppRouterOutputs } from "@am/backend/server/routers/_app";
 	import type { TMarket } from "$lib/types";
+    import { browser } from "$app/environment";
 	export let data;
 
 	$: pageData = superjson.deserialize<TPageData>(data);
@@ -25,7 +26,7 @@
 	const getMarkets = (pd: TPageData): TMarket[] => {
 		let _markets: TMarket[] = [];
 		if (pd.error) {
-			alert("Error requesting markets. Please check the console.");
+			if(browser) alert("Error requesting markets. Please check the console.");
 			console.error(pageData.error);
 		}
 		if (pd.searchResults?.data) {

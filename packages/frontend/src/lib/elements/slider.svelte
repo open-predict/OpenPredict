@@ -16,70 +16,37 @@
 
     $: property = `--range-${id}-bg-size`;
 
-    $: setSlider(slider, property, _value);
+    $: setSlider(slider, property, _value ?? 0);
 
     function setSlider(s: HTMLElement | null, p: string, v: number) {
-        if (s && p && v)
+        if (s && p)
             s.style.setProperty(p, `${((v - 0) / (max - 0)) * 100}%`);
     }
 
-    onMount(() => {
-        id = nanoid();
-        property = `--range-${id}-bg-size`;
-        slider.setAttribute("id", id);
-        if (slider) {
-            let style = document.createElement("style");
-            style.textContent = `#${id}.dark.no::-webkit-slider-runnable-track {
-    background: linear-gradient(
-            to right,
-            theme("colors.red.600"),
-            theme("colors.red.700")
-        ),
-        theme("colors.neutral.700");
+    $: slider,
+        (() => {
+            if (!slider) return;
+            id = nanoid();
+            property = `--range-${id}-bg-size`;
+            slider.setAttribute("id", id);
+            if (slider) {
+                let style = document.createElement("style");
+                style.textContent = `.range#${id}::-webkit-slider-runnable-track {                
     background-size: var(${property}, 0%) 100%;
-    background-repeat: no-repeat;
-}
-
-#${id}.dark.yes::-webkit-slider-runnable-track {
-    background: linear-gradient(
-            to right,
-            theme("colors.emerald.600"),
-            theme("colors.emerald.700")
-        ),
-        theme("colors.neutral.700");
-    background-size: var(${property}, 0%) 100%;
-    background-repeat: no-repeat;
-}
-
-#${id}.dark::-webkit-slider-runnable-track {
-    background: linear-gradient(
-            to right,
-            theme("colors.indigo.600"),
-            theme("colors.indigo.700")
-        ),
-        theme("colors.neutral.700");
-    background-size: var(${property}, 0%) 100%;
-    background-repeat: no-repeat;
 }`;
-            document.head.append(style);
-        }
-    });
+                document.head.append(style);
+            }
+        })();
 </script>
 
-<div class="one">
-    <div class="two">
-    </div>
-</div>
-<div class="two">
-</div>
 <div class="flex justify-center items-center w-full px-1 py-1">
     <input
-        class={extraClass}
+        class={"range" + (` ${extraClass}` ?? "")}
         type="range"
         bind:value
         {max}
         {min}
         bind:this={slider}
-        step={step}
+        {step}
     />
 </div>
