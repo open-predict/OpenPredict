@@ -23,7 +23,7 @@
         <h3 class="font-semibold text-lg text-neutral-800 dark:text-white whitespace-pre-wrap">
             {`Start trading on OpenPredict.`}
             <span class="text-neutral-500">
-                {` Login with email.`}
+                {` \nLogin with email.`}
             </span>
         </h3>
         <div class="mt-2">
@@ -33,7 +33,7 @@
                     name="email"
                     id="email"
                     class={`basic_input`}
-                    placeholder="you@email.com"
+                    placeholder="make@predictions.com"
                     on:keypress={(e) => {
                         if (e.key === "Enter") handleLogin();
                     }}
@@ -47,7 +47,7 @@
                     {#if loading}
                         <IconLoader class="animate-spin text-white" />
                     {:else}
-                        Login
+                        Signup / Login
                     {/if}
                 </button>
             </div>

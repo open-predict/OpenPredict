@@ -80,6 +80,7 @@
         erc20ApprovalTransaction,
     } from "@polymarket/sdk/lib/utils";
     import InputWithSlider from "./input_with_slider.svelte";
+    import { Modal, modalStore } from "$lib/modals/modalStore";
 
     export let market: pmMarketFulldata;
     export let direction: boolean;
@@ -97,6 +98,10 @@
     > = {};
 
     async function selectToken(token_id: string) {
+        if(!$web3Store?.polygon?.address){
+            modalStore.openModal(Modal.login)
+            return;
+        }
         var content = document.getElementById("content");
         price = prices[token_id]?.b ?? 0.5;
         if (selectedToken && selectedToken.token_id === token_id) {
@@ -129,15 +134,6 @@
     }
 
     $: getPrices(market.data.tokens);
-
-    let limitPrice = 50;
-    let defaultMicroUsd = 100;
-    let microUsd = 0;
-    let expectedShares: bigint = 0n;
-    let expectedChance = 0;
-    let expectedYes: bigint = 0n;
-    let expectedNo: bigint = 0n;
-    let maxSell = 0;
 
     let loadingMessage = "";
     let errorMessage = "";
@@ -179,7 +175,6 @@
     //         maxSell = Number(getSellUsdcLimit(data, userShares));
     // }
 
-    let setInitialPrice = false;
     let price: number;
     let shares: number = 10;
     $: total = usd.format((price ?? 0) * (shares ?? 0));

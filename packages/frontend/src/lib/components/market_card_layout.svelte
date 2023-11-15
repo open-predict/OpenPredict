@@ -52,9 +52,9 @@
                         <slot name="title" />
                     </h2>
                     <div class="ml-auto flex items-start justify-start">
-                        <div class="ml-3 flex flex-col justify-start items-end">
+                        <div class="ml-3 flex flex-col justify-start items-end flex-nowrap">
                             <h2
-                                class={`font-bold ${
+                                class={`font-bold whitespace-nowrap ${
                                     small ? "text-md" : "text-md lg:text-xl"
                                 }`}
                             >
