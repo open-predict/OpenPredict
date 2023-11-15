@@ -4,6 +4,7 @@
         IconExternalLink,
         IconArrowsUpDown,
         IconCalendar,
+        IconDotsVertical,
     } from "@tabler/icons-svelte";
     import { faker } from "@faker-js/faker";
     import ImageChecker from "$lib/elements/image_checker.svelte";
@@ -93,6 +94,9 @@
         </Pill>
     </div>
     <MenuButton slot="header_right" strategy="fixed">
+        <div slot="target" class="action_icon h-6 w-6">
+            <IconDotsVertical size={14} />
+        </div>
         <button
             on:click|stopPropagation|preventDefault={() =>
                 window.navigator.clipboard.writeText(

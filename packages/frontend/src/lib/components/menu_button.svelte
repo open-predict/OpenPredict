@@ -2,11 +2,9 @@
     import { delay } from "$lib/utils/mics";
     import { IconDotsVertical } from "@tabler/icons-svelte";
     import { nanoid } from "nanoid";
-    import { tick } from "svelte";
     import { createPopperActions } from "svelte-popperjs";
-    export let strategy: "absolute" | "fixed" = "absolute";
 
-    const [popperRef, popperContent, popperInstance] = createPopperActions();
+    const [popperRef, popperContent, getInstance] = createPopperActions();
 
     const popperId = nanoid();
     let offset = [0, 4]; // w, h
@@ -23,9 +21,6 @@
 
     async function show() {
         showPopup = true;
-        if (strategy === "absolute") {
-            offset[0] = 500;
-        }
     }
 
     function hide() {
@@ -41,7 +36,7 @@
         use:popperContent={{
             placement: "bottom-end",
             strategy: "fixed",
-            modifiers: [{ name: "offset", options: { offset } }],
+            modifiers: [{ name: "offset", options: { offset, } }],
         }}
     >
         <div
@@ -67,8 +62,8 @@
     }}
 >
     <slot name="target">
-        <div class="action_icon h-6 w-6">
-            <IconDotsVertical size={14} />
+        <div class="action_icon">
+            <IconDotsVertical size={16} />
         </div>
     </slot>
 </button>

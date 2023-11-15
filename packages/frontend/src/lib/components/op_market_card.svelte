@@ -3,6 +3,7 @@
         IconCopy,
         IconExternalLink,
         IconArrowsUpDown,
+        IconDotsVertical,
     } from "@tabler/icons-svelte";
     import type { marketFulldata, pmUserMap } from "@am/backend/types/market";
     import { faker } from "@faker-js/faker";
@@ -46,6 +47,9 @@
     </div>
 
     <MenuButton slot="header_right" strategy="fixed">
+        <div slot="target" class="action_icon h-6 w-6">
+            <IconDotsVertical size={14} />
+        </div>
         <button
             on:click={() =>
                 window.navigator.clipboard.writeText(

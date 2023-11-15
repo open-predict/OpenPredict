@@ -32,7 +32,6 @@
         pmTokenOrderdata,
     } from "@am/backend/types/market";
     import { fade, scale, slide } from "svelte/transition";
-    import "$lib/styles/range.css";
     import Toggle from "$lib/elements/toggle.svelte";
     import {
         IconChevronDown,

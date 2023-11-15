@@ -21,6 +21,9 @@
     import LoadingOverlay from "$lib/components/loading_overlay.svelte";
     import MainHeader from "$lib/components/header.svelte";
     import {
+        IconDotsVertical,
+        IconHexagon3d,
+        IconInfoCircle,
         IconMinus,
         IconPlus,
         IconTrash,
@@ -31,6 +34,10 @@
     import { USDC_PER_DOLLAR, initMarketInstruction } from "$lib/utils/op.js";
     import { trpc } from "$lib/trpc.js";
     import { api } from "$lib/api.js";
+    import InputWithSlider from "$lib/components/input_with_slider.svelte";
+    import MenuButton from "$lib/components/menu_button.svelte";
+    import { browser } from "$app/environment";
+    import Dialog from "$lib/elements/dialog.svelte";
 
     export let data;
 
@@ -49,6 +56,8 @@
 
     const loadingMessages = {
         ipfs: "Saving your market details with IPFS...",
+        preparing: "Preparing your request...",
+        checkout: "Waiting for checkout...",
         signing: "Signing your transaction...",
         sending: "Sending your transaction to the network...",
         confirming: "Confirming the transaction...",
@@ -58,6 +67,13 @@
     let loadingMessage = "";
     let errorMessage = "";
     let completedMessage = "";
+
+    $: (() => {
+        if (browser) {
+            const elem = document.getElementById("menu_container");
+            console.log("Elem", elem?.clientLeft, elem?.clientWidth);
+        }
+    })();
 
     onMount(() => {
         const draft = $draftsStore[data.draft_id];
@@ -93,8 +109,10 @@
     async function publishMarket() {
         const address = $web3Store?.solana?.address;
         const polyAddress = $web3Store?.polymarket?.address;
-        const usdcAmount = $web3Store?.solanaUsdc?.balances.USDC;
         const metadata = $draftsStore[data.draft_id].metadata;
+        const usdcBalance = Number(
+            $web3Store?.solanaUsdc?.balances.USDC?.amount ?? 0n
+        );
         const marketAddress = base58.decode(data.draft_id);
         const subsidy =
             (($draftsStore[data.draft_id].subsidy ?? 0) / 100) *
@@ -106,11 +124,6 @@
         }
 
         const publicKey = new PublicKey(address);
-
-        // if (!usdcAmount || Number(usdcAmount) < subsidy) {
-        //     alert("Will add swap to instruction set ")
-        //     return;
-        // }
 
         if (!subsidy) {
             errorMessage = "Please make the market subsidy greater than 0";
@@ -132,6 +145,8 @@
 
         const ipfsResponse = await api.storeMarketIpfs.mutate(metadata);
 
+        loadingMessage = loadingMessages.preparing;
+
         const instructions = await initMarketInstruction(
             new PublicKey(PUBLIC_SOLANA_USDC_ADDR),
             new PublicKey(PUBLIC_OP_MAIN_PROGRAM_ADDR),
@@ -141,19 +156,27 @@
             subsidy
         );
 
-        const neededUsdc = !$web3Store?.solanaUsdc?.balances.USDC?.amount
-            ? subsidy
-            : Number($web3Store.solanaUsdc.balances.USDC.amount ?? 0n) -
-                  subsidy <
-              0
-            ? subsidy - Number($web3Store.solanaUsdc.balances.USDC.amount ?? 0n)
-            : undefined;
+        if (usdcBalance < subsidy) {
+            loadingMessage = loadingMessages.checkout;
+            await $web3Workspace.web3Sol
+                .topup((subsidy - usdcBalance) / 100)
+                .catch((e) => {
+                    errorMessage =
+                        "Unable to fund your account. Please check the console.";
+                    console.error(e);
+                    return;
+                });
+        }
+
+        loadingMessage = loadingMessages.signing;
 
         const signedTx = (await $web3Workspace.web3Sol.signTransaction([
             instructions,
         ])) as Transaction;
 
-        console.log("Signed transaciton", signedTx, signedTx.recentBlockhash)
+        console.log("Signed create market instruction: ", signedTx);
+
+        loadingMessage = loadingMessages.sending;
 
         const res = await api.bridgeOpenPredictTransaction.query({
             amount: 100000,
@@ -164,8 +187,19 @@
                 })
             ),
         });
-        
-        console.log("RES", res)
+
+        if (res.error) {
+            errorMessage = `Unable to execute transaction: ${res.error}`;
+            return;
+        }
+
+        loadingMessage = loadingMessages.redirecting;
+
+        loadingMessage = loadingMessages.redirecting;
+        setTimeout(() => {
+            draftsStore.deleteDraft(data.draft_id);
+            goto(`/${data.draft_id}`);
+        }, 15000);
 
         // $web3Workspace.handleTransaction(
         //     [instructions],
@@ -209,15 +243,24 @@
 
 <ColumnLayout>
     <MainHeader slot="main-header">
-        <button
-            class="rounded-full p-1.5 text-gray-600 hover:text-gray-950 hover:bg-gray-200 ml-auto"
-            on:click={() => (deleteModal = true)}
-        >
-            <IconTrash stroke={1.5} size={20} />
-        </button>
+        <h3 slot="center" class="font-medium">Create a prediction market</h3>
+        <MenuButton slot="right">
+            <button
+                on:click|stopPropagation|preventDefault={() => {
+                    deleteModal = true;
+                }}
+                class="flex items-center gap-10 py-2 px-3 text-sm bg-neutral-900 text-neutral-300 font-medium hover:text-white hover:bg-neutral-800"
+            >
+                {`Delete draft`}
+                <IconTrash size={14} />
+            </button>
+        </MenuButton>
     </MainHeader>
-    <div slot="main" class="min-h-full">
-        <LoadingOverlay
+    <div
+        slot="main"
+        class="divide-y w-full max-w-full divide-neutral-200 dark:divide-neutral-900"
+    >
+        <!-- <LoadingOverlay
             {loadingMessage}
             {errorMessage}
             {completedMessage}
@@ -229,31 +272,20 @@
                 errorMessage = "";
                 completedMessage = "";
             }}
-        />
-        {#if !!draft}
-            <div class="flex flex-col px-10 py-10">
-                {#if errorMessage}
-                    <div
-                        class="px-4 py-2 mb-4 ring-1 rounded-xl ring-red-500 bg-red-50"
-                    >
-                        <div
-                            class="font-semibold text-red-600 text-sm flex items-center justify-between"
-                        >
-                            <span>Error:</span>
-                            <button
-                                on:click={() => (errorMessage = "")}
-                                class="p-1"
-                            >
-                                <IconX size={20} stroke={2} />
-                            </button>
-                        </div>
-                        <p class="text-red-500 text-sm pb-2">
-                            {errorMessage}
-                        </p>
-                    </div>
-                {/if}
-                <label for="title" class="mt-2 text-sm text-gray-600">
-                    Title *
+        /> -->
+        <div class="w-full max-w-full p-4 flex flex-col gap-4">
+            <div class="flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                    <h4 class="text-xl font-semibold">Market details</h4>
+                </div>
+                <div
+                    class="w-full border-t mb-2 border-neutral-200 dark:border-neutral-900"
+                />
+                <label for="title" class="w-full font-semibold">
+                    {"Title"}
+                    <span>
+                        {""}
+                    </span>
                 </label>
                 <textarea
                     id="title"
@@ -262,11 +294,10 @@
                     placeholder="Question title"
                     bind:value={title}
                     use:autoresizeTextarea
-                    class="mt-2 w-full rounded-xl border-0 py-1.5 px-3 text-gray-900 bg-gray-100 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500"
+                    class="basic_input text-base"
                 />
-
-                <label for="description" class="mt-10 text-sm text-gray-600">
-                    Description *
+                <label for="description" class="w-full font-semibold mt-4">
+                    Description
                 </label>
                 <textarea
                     id="description"
@@ -275,108 +306,116 @@
                     use:autoresizeTextarea
                     placeholder="Describe your market and detail how you plan to resolve it."
                     rows={3}
-                    class="mt-2 w-full rounded-xl border-0 py-1.5 px-3 text-gray-900 bg-gray-100 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500"
+                    class="basic_input text-base"
                 />
-
-                <div
-                    class="mt-10 pt-10 bg-white ring-1 ring-gray-200 shadow-sm rounded-2xl p-3 px-6 flex flex-col justify-center items-center gap-4"
-                >
-                    <p
-                        class="text-gray-600 flex gap-2 justify-center items-center"
-                    >
-                        {`Market subsidy`}
+                
+                <div class="flex justify-between items-center mt-4">
+                    <label for="title" class="w-full font-semibold">
+                        {"Subsidy"}
+                        <span>
+                            {""}
+                        </span>
+                    </label>
+                    <p class="text-xs whitespace-nowrap leading-none">
+                        {`Balance (USD): ${
+                            $web3Store?.solanaUsdc?.balances.USDC?.usd ??
+                            "$0.00"
+                        }`}
                     </p>
-                    <div
-                        class="w-full flex justify-center items-center gap-2 py-12"
-                    >
-                        <button
-                            on:click={() =>
-                                (cents = Math.max(cents - centsStep, 0))}
-                            class="p-1 ring-1 rounded-full ring-gray-300 text-gray-400 hover:text-gray-600 hover:ring-gray-400 hover:bg-gray-100"
+                </div>
+                <InputWithSlider
+                    step={100}
+                    setSliderStep
+                    onChange={(e) => {
+                        const allowed = e.currentTarget.value.replace(
+                            /[^0-9.]+/g,
+                            ""
+                        );
+                        const num = parseFloat(allowed);
+                        if (isNaN(num)) {
+                            cents = defaultCents;
+                        } else {
+                            cents = num * 100;
+                            e.currentTarget.value = usd.format(cents / 100); // sometimes wasn't updating
+                        }
+                    }}
+                    bind:value={cents}
+                    formatted={usd.format(cents / 100)}
+                    max={10000}
+                    min={0}
+                />
+            </div>
+            <div class="flex flex-col gap-2 mt-4">
+                <div class="flex justify-between items-center">
+                    <h4 class="text-xl font-semibold">Summary</h4>
+                </div>
+                <div
+                    class="w-full border-t mb-2 border-neutral-200 dark:border-neutral-900"
+                />
+                <div class="flex flex-col gap-4">
+                    {#if errorMessage}
+                        <div
+                            class="px-4 py-2 mb-4 ring-1 rounded-xl ring-red-500 bg-red-50"
                         >
-                            <IconMinus size={20} />
-                        </button>
-                        <input
-                            type="string"
-                            value={usd.format(cents / 100)}
-                            on:change={(e) => {
-                                const allowed = e.currentTarget.value.replace(
-                                    /[^0-9.]+/g,
-                                    ""
-                                );
-                                const num = parseFloat(allowed);
-                                if (isNaN(num)) {
-                                    cents = defaultCents;
-                                } else {
-                                    cents = num * 100;
-                                    e.currentTarget.value = usd.format(
-                                        cents / 100
-                                    ); // sometimes wasn't updating
-                                }
-                            }}
-                            class="text-4xl max-w-[12rem] sm:max-w-[16rem] text-center text-black outline-none"
-                        />
-                        <button
-                            class="p-1 ring-1 rounded-full ring-gray-300 text-gray-400 hover:text-gray-600 hover:ring-gray-400 hover:bg-gray-100"
-                            on:click={() => (cents = cents + centsStep)}
+                            <div
+                                class="font-semibold text-red-600 text-sm flex items-center justify-between"
+                            >
+                                <span>Error:</span>
+                                <button
+                                    on:click={() => (errorMessage = "")}
+                                    class="p-1"
+                                >
+                                    <IconX size={20} stroke={2} />
+                                </button>
+                            </div>
+                            <p class="text-red-500 text-sm pb-2">
+                                {errorMessage}
+                            </p>
+                        </div>
+                    {/if}
+                    {#if cents / 100 > ($web3Store?.solanaUsdc?.balances?.USDC?.ui ?? 0)}
+                        <div
+                            class="flex gap-4 p-4 rounded-xl ring-1 bg-indigo-500/10 text-indigo-800 ring-indigo-400 dark:text-white dark:ring-indigo-950"
                         >
-                            <IconPlus size={20} />
-                        </button>
-                    </div>
+                            <IconInfoCircle size={24} />
+                            {`You will be redirected to a payment form to fund your account.`}
+                        </div>
+                    {/if}
                     <button
-                        class={`w-full p-2.5 rounded-full text-white font-semibold cursor-pointer bg-black hover:bg-gray-800`}
+                        class={"btn_primary mt-2"}
                         on:click={handlePublishMarket}
                     >
                         {`Create market`}
                     </button>
-                    <!-- <p class="text-sm text-gray-500">
-                        {`You have ${usd.format(
-                            Number($web3Store?.solanaUsdcBalance ?? 0n) /
-                                1000000
-                        )}`}
-                    </p> -->
                 </div>
             </div>
-        {/if}
-    </div>
-    <!-- <div slot="right">
-        <div
-            class="w-full bg-white mt-4 ring-1 rounded-2xl ring-gray-200 p-8 flex flex-col gap-4"
-        >
-            <p class="text-sm text-gray-600">
-                Warning: all drafts are saved locally
-            </p>
         </div>
-    </div> -->
+    </div>
+    <div slot="right">
+        
+    </div>
 </ColumnLayout>
-<!-- 
-<Dialog
-    open={deleteModal}
-    on:close={() => (deleteModal = false)}
-    class="fixed inset-0 z-10 overflow-y-auto flex min-h-full items-center justify-center text-center"
->
-    <DialogOverlay
-        class="fixed inset-0 bg-white/80 transition-opacity blur-md"
-    />
-    <div
-        class="bg-white z-10 max-w-xs w-80 ring-1 ring-gray-200 shadow-2xl rounded-2xl p-4 flex justify-center flex-col gap-2 text-left"
-    >
-        <DialogDescription as="p" class="text-gray-600">
-            Are you sure you want to delete this draft?
-        </DialogDescription>
+
+<Dialog open={deleteModal} close={() => (deleteModal = false)}>
+    <div class="modal_card md:max-w-sm p-4 gap-4">
+        <h3
+            class="text-left font-semibold text-lg text-neutral-800 dark:text-white whitespace-pre-wrap"
+        >
+            Delete this draft?
+        </h3>
         <div class="flex flex-nowrap gap-2 w-full mt-2">
+            <button
+                class="btn_secondary w-full"
+                on:click={() => (deleteModal = false)}
+                >
+                Cancel
+            </button>
             <button
                 class="bg-red-500 w-full p-2 text-white font-semibold text-sm rounded-xl"
                 on:click={() => deleteDraft()}
             >
                 Delete
             </button>
-            <button
-                class="bg-gray-200 w-full p-2 text-gray-800 font-semibold text-sm rounded-xl"
-                on:click={() => (deleteModal = false)}
-            >
-                Cancel
-            </button>
         </div>
     </div>
-</Dialog> -->
+</Dialog>

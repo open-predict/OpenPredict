@@ -51,7 +51,7 @@
 
 <div id="scroll_top_indicator" />
 <div
-    class={`sticky flex whitespace-nowrap justify-between items-center top-0 z-10 h-16 px-3 py-3.5 w-full backdrop-blur-xl overflow-hidden border-r border-l border-gray-200 dark:border-neutral-900 ${
+    class={`sticky flex whitespace-nowrap justify-between items-center top-0 z-10 h-16 px-3 py-3.5 w-full border-r border-l border-gray-200 dark:border-neutral-900 ${
         fadeHeader ? "" : "border-b bg-white/70 dark:bg-black/70"
     } transition-all duration-300`}
 >
@@ -61,7 +61,9 @@
         </BackButton>
     </div>
     <slot name="center" />
-    <div class={`w-1/5 flex justify-end items-center md:w-auto`}>
+    <div
+        class={`w-1/5 flex justify-end items-center md:w-auto overflow-visible`}
+    >
         <slot name="right" />
     </div>
 </div>

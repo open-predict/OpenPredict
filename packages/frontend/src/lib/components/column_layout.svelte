@@ -12,11 +12,10 @@
 
 <div class="relative flex w-full min-h-full bg-neutral-50 dark:bg-black">
     <!-- left column -->
-    <header
+    <div
         class="sticky top-0 hidden md:block md:w-1/12 lg:w-2/12 xl:w-3/12 max-h-screen"
     >
         <div class="ml-auto max-w-xs h-full">
-            <!-- desktop navigation -->
             <a
                 href="/"
                 class="flex justify-center p-2.5 xl:pl-0 gap-1 lg:justify-start items-center h-16 border-b border-neutral-200 dark:border-neutral-900"
@@ -41,7 +40,7 @@
             <div class="pr-8 py-4 pl-4 text-xs overflow-clip" />
         </div>
         <slot name="left" />
-    </header>
+    </div>
 
     <!-- center column -->
     <div
@@ -50,11 +49,11 @@
         <!-- <MobileBanner /> -->
 
         <!-- main header -->
-        <slot name="main-header" class="sticky top-0" />
+        <slot name="main-header" class="sticky top-0 w-full" />
 
         <!-- main content -->
         <div
-            class="max-w-full min-h-full border-r border-l border-neutral-200 dark:border-neutral-900 pb-16"
+            class="max-w-full min-h-full border-r border-l border-neutral-200 dark:border-neutral-900 pb-16 z-0"
             style="min-height: calc(100vh - 4rem)"
         >
             <slot name="main" />
@@ -75,17 +74,17 @@
     <!-- right column -->
     <div class="hidden relative md:block md:w-5/12 lg:w-4/12 xl:w-4/12">
         <div class="h-full max-w-xs">
-            <div class="sticky top-0 w-full h-16 backdrop-blur-2xl z-10">
+            <div class="sticky top-0 w-full h-16 z-10">
                 <div
                     class="h-full w-full flex justify-end items-center gap-2 border-b border-neutral-200 dark:border-neutral-900 dark:bg-black/80"
                 >
-                    {#if $web3Store?.polygon !== null}
-                        <!-- <div
+                    <!-- {#if $web3Store?.polygon !== null}
+                        <div
                             class="flex flex-nowrap justify-evenly overflow-hidden w-48 items-center rounded-2xl ring-1 h-10 divide-x bg-white ring-neutral-200 dark:bg-neutral-950 dark:ring-neutral-900 divide-neutral-900"
                         >
                             <WalletWidget />
-                        </div> -->
-                    {/if}
+                        </div>
+                    {/if} -->
                     <UserButton />
                 </div>
                 {#if $web3Store?.polygon === null}
