@@ -100,7 +100,7 @@ function createWeb3Store() {
                                     ...balance,
                                     ui
                                 }
-                                console.log("Currency balance", currency, balance, ui);
+                                console.log(`Upserting ${accountKey} ${currency} to ${ui}...`);
                                 switch (currency) {
                                     case "MATIC":
                                         ((ns[accountKey] as TAccount).balances[currency] as TBalance).usd = usd.format(ui * 0.5);

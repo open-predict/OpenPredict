@@ -16,6 +16,10 @@ export async function load() {
       tradable: true,
       limit: 20,
       orderBy: "volume"
+    }).catch(e => {
+      console.error("Error searching markets:", e);
+      data.error = e;
+      return undefined;
     })
   } catch (e) {
     console.error("Error searching markets:", e);

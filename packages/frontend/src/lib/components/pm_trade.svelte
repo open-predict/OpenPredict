@@ -140,41 +140,6 @@
     let completedMessage = "";
 
     let orderType: "limit" | "market" = "limit";
-
-    // capped in beta
-    // $: maxBuy = microUsd + maxGap;
-    $: maxBuy = 10 * USDC_PER_DOLLAR;
-
-    // $: browser
-    //     ? recalc(
-    //           market.data.data,
-    //           userShares.shares,
-    //           userShares.sharesUI,
-    //           microUsd,
-    //           direction
-    //       )
-    //     : undefined;
-
-    // function recalc(
-    //     data: marketChaindata,
-    //     userShares: bigint,
-    //     userSharesNumber: number,
-    //     microUsdc: number,
-    //     direction: boolean
-    // ) {
-    //     const expected = getBuyShareAmount(
-    //         data,
-    //         Math.round(microUsdc),
-    //         direction
-    //     );
-    //     expectedShares = BigInt(expected.shares.toString());
-    //     expectedChance = expected.newRatio;
-    //     expectedYes = BigInt(expected.newYes.toString());
-    //     expectedNo = BigInt(expected.newNo.toString());
-    //     if (userSharesNumber !== 0)
-    //         maxSell = Number(getSellUsdcLimit(data, userShares));
-    // }
-
     let price: number;
     let shares: number = 10;
     $: total = usd.format((price ?? 0) * (shares ?? 0));
@@ -210,8 +175,12 @@
     };
 
     async function buyShares() {
-        if (!$web3Workspace.polyClob) alert("login");
         if (!selectedToken) return;
+
+        if (!$web3Workspace.polyClob) {
+            modalStore.openModal(Modal.login);
+            return;
+        }
 
         const wallet = await $web3Workspace.web3Evm.getWallet();
         const rpc = $web3Workspace.web3Evm.rpc;
@@ -221,7 +190,7 @@
             return;
         }
         if (!rpc) {
-            alert("Missing rpc.");
+            console.log("Missing rpc.");
             return;
         }
 
@@ -256,7 +225,8 @@
 
         const resp = await polyProxyClient.postOrder(order, OrderType.FOK);
 
-        alert("Done");
+        console.log("Resp", resp)
+
     }
 
     const getOrders = async (id: string) => {
@@ -294,7 +264,7 @@
                     ? selected?.token_id === token.token_id
                         ? `bg-red-500 text-white`
                         : `bg-white text-neutral-600 border border-neutral-200 dark:border-0 dark:bg-neutral-900 dark:text-white dark:opacity-80`
-                    : `bg-white text-red-600 border border-neutral-200 dark:border-0 dark:bg-neutral-900 text-red-400`;
+                    : `bg-white text-red-600 border border-neutral-200 dark:border-0 dark:bg-neutral-900 dark:text-red-400`;
                 break;
             default:
                 btn_class = selected

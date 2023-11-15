@@ -48,35 +48,45 @@
     );
   }
 
-  async function initialize() {
-    await Promise.all([
-      await refreshAddress("polygon"),
-      await refreshAddress("polymarket"),
-      await refreshAddress("solana"),
-      await refreshAddress("solanaUsdc"),
-    ]);
-    await Promise.all([
-      await refreshBalance("polygon"),
-      await refreshBalance("polymarket"),
-      await refreshBalance("solana"),
-      await refreshBalance("solanaUsdc"),
-    ]);
-  }
+  const initializeEvm = async () => {
+    if (!web3Evm) {
+      web3Evm = (await Web3.create(Network.Polygon)) as EVM;
+      web3Workspace.update((v) => ({ ...v, web3Evm }));
+    }
+    if (web3Evm && (await web3Evm.loggedIn())) {
+      createClob().then(() => console.log("Polyclob created..."));
+      refreshAddress("polygon").then(() => refreshBalance("polymarket"));
+      refreshAddress("polymarket").then(() => refreshBalance("polymarket"));
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  const initializeSol = async () => {
+    if (!web3Sol) {
+      web3Sol = (await Web3.create(Network.Polygon)) as SOL;
+      web3Workspace.update((v) => ({ ...v, web3Sol }));
+    }
+    if (web3Sol && (await web3Sol.loggedIn())) {
+      refreshAddress("solana").then(() => refreshBalance("solana"));
+      refreshAddress("solanaUsdc").then(() => refreshBalance("solanaUsdc"));
+      return true;
+    } else {
+      return false;
+    }
+  };
 
   onMount(async () => {
     log("debug", FILE, "onMount");
-    web3Evm = (await Web3.create(Network.Polygon)) as EVM;
-    web3Sol = (await Web3.create(Network.Solana)) as SOL;
-    if (await web3Evm.loggedIn()) {
-      initialize();
-    } else {
-      web3Store.clear();
-    }
-    web3Workspace.update((v) => ({
-      ...v,
-      web3Sol,
-      web3Evm,
-    }));
+    Promise.any([initializeEvm(), initializeSol()])
+      .then(() => {
+        console.log("Web3 initialized...");
+      })
+      .catch((e) => {
+        console.error("Error initializing web3:", e);
+        web3Store.clear();
+      });
   });
 
   async function createClob() {
@@ -126,11 +136,19 @@
   async function refreshBalance(account: TAccountKey) {
     let n: Partial<Record<TAccountKey, Partial<Record<TCurrency, TBalance>>>> =
       {};
-    if (!web3Evm || !web3Sol) {
+    if ((account === "polygon" || account === "polymarket") && !web3Evm) {
       console.error(
         "Cannot refresh balance",
         account,
-        "web3 not initialized..."
+        "web3Evm not initialized..."
+      );
+      return;
+    }
+    if ((account === "solana" || account === "solanaUsdc") && !web3Sol) {
+      console.error(
+        "Cannot refresh balance",
+        account,
+        "web3Sol not initialized..."
       );
       return;
     }
@@ -169,8 +187,20 @@
 
   async function refreshAddress(kind: TAccountKey) {
     let n: Partial<Record<TAccountKey, string | null>> = {};
-    if (!web3Evm || !web3Sol) {
-      console.error("Cannot refresh balance", kind, "web3 not initialized...");
+    if ((kind === "polygon" || kind === "polymarket") && !web3Evm) {
+      console.error(
+        "Cannot refresh balance",
+        kind,
+        "web3Evm not initialized..."
+      );
+      return;
+    }
+    if ((kind === "solana" || kind === "solanaUsdc") && !web3Sol) {
+      console.error(
+        "Cannot refresh balance",
+        kind,
+        "web3Sol not initialized..."
+      );
       return;
     }
     let address;
@@ -254,11 +284,7 @@
     }
     try {
       await web3Evm.login(email);
-      if (!(await web3Evm.loggedIn())) {
-        return false;
-      }
-      await initialize();
-      return true;
+      return await Promise.race([initializeEvm(), initializeSol()]);
     } catch (err) {
       alert(err);
       log("error", FILE, err);
@@ -330,7 +356,6 @@
 
       onStatus(TxStatus.COMPLETE);
       onComplete(1, tx_id);
-    
     } catch (e: any) {
       log("error", FILE, e);
       if (e instanceof Error) {

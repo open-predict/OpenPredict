@@ -18,9 +18,9 @@
     }[] = [
         { name: "Home", href: "/", Icon: IconCards },
         { name: "Search", href: "#search", Icon: IconSearch },
-        { name: "Profile", href: `/profile`, Icon: IconUser },
         { name: "Drafts", href: "/drafts", Icon: IconPencil },
         { name: "Wallet", href: `/wallet`, Icon: IconWallet },
+        { name: "Profile", href: `/profile`, Icon: IconUser },
     ];
 </script>
 
