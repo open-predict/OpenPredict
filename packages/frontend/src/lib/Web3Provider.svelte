@@ -65,7 +65,7 @@
 
   const initializeSol = async () => {
     if (!web3Sol) {
-      web3Sol = (await Web3.create(Network.Polygon)) as SOL;
+      web3Sol = (await Web3.create(Network.Solana)) as SOL;
       web3Workspace.update((v) => ({ ...v, web3Sol }));
     }
     if (web3Sol && (await web3Sol.loggedIn())) {
@@ -80,8 +80,12 @@
   onMount(async () => {
     log("debug", FILE, "onMount");
     Promise.any([initializeEvm(), initializeSol()])
-      .then(() => {
-        console.log("Web3 initialized...");
+      .then((loggedIn) => {
+        console.log("web3Auth initialized...")
+        if(!loggedIn) {
+          console.log("Logged out, clearing web3Store...")
+          web3Store.clear();
+        }
       })
       .catch((e) => {
         console.error("Error initializing web3:", e);

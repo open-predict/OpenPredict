@@ -36,9 +36,11 @@ FEE_PAYER_PUBKEY="$(solana-keygen pubkey ./secrets/fee_payer.json)"
 if [[ -f ./test-accounts/usdc_mint.json ]]; then
   USDC_MINT_AUTH_ADDR=$(jq -r .pubkey ./test-accounts/usdc_mint.json)
 else
-  USDC_MINT_AUTH_ADDR=$(spl-token create-token --output json -u localhost | jq .commandOutput.address -r)
+  USDC_MINT_AUTH_ADDR=$(spl-token create-token --decimals 6 --output json -u localhost | jq .commandOutput.address -r)
   solana account $USDC_MINT_AUTH_ADDR --output-file ./test-accounts/usdc_mint.json --output json -u localhost
-  spl-token mint $USDC_MINT_AUTH_ADDR 100000000000 $FEE_PAYER_PUBKEY
+  spl-token create-account $USDC_MINT_AUTH_ADDR
+  spl-token mint $USDC_MINT_AUTH_ADDR 100000000000
+  spl-token transfer $USDC_MINT_AUTH_ADDR 10000000000 $FEE_PAYER_PUBKEY --fund-recipient
 fi
 
 # Deploy program if not exists

@@ -72,6 +72,7 @@ function createWeb3Store() {
                     if (!address) {
                         delete store[accountKey];
                     } else {
+                        console.log(`Upserting ${accountKey} address to ${address}...`);
                         if (store[accountKey]?.address !== address) {
                             store[accountKey] = {
                                 address,

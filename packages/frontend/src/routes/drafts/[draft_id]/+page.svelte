@@ -21,6 +21,7 @@
     import LoadingOverlay from "$lib/components/loading_overlay.svelte";
     import MainHeader from "$lib/components/header.svelte";
     import {
+        IconCircleX,
         IconDotsVertical,
         IconHexagon3d,
         IconInfoCircle,
@@ -67,13 +68,6 @@
     let loadingMessage = "";
     let errorMessage = "";
     let completedMessage = "";
-
-    $: (() => {
-        if (browser) {
-            const elem = document.getElementById("menu_container");
-            console.log("Elem", elem?.clientLeft, elem?.clientWidth);
-        }
-    })();
 
     onMount(() => {
         const draft = $draftsStore[data.draft_id];
@@ -158,14 +152,18 @@
 
         if (usdcBalance < subsidy) {
             loadingMessage = loadingMessages.checkout;
-            await $web3Workspace.web3Sol
+            const toppedUp = await $web3Workspace.web3Sol
                 .topup((subsidy - usdcBalance) / 100)
+                .then(() => {
+                    return true;
+                })
                 .catch((e) => {
                     errorMessage =
                         "Unable to fund your account. Please check the console.";
                     console.error(e);
-                    return;
+                    return false;
                 });
+            if(!toppedUp) return;
         }
 
         loadingMessage = loadingMessages.signing;
@@ -236,7 +234,8 @@
             await publishMarket();
         } catch (e) {
             console.error(e);
-            errorMessage = "Error publishing your market. Check the console.";
+            loadingMessage = "";
+            errorMessage = "Error publishing your market: " + e;
         }
     }
 </script>
@@ -260,7 +259,7 @@
         slot="main"
         class="divide-y w-full max-w-full divide-neutral-200 dark:divide-neutral-900"
     >
-        <!-- <LoadingOverlay
+        <LoadingOverlay
             {loadingMessage}
             {errorMessage}
             {completedMessage}
@@ -272,7 +271,7 @@
                 errorMessage = "";
                 completedMessage = "";
             }}
-        /> -->
+        />
         <div class="w-full max-w-full p-4 flex flex-col gap-4">
             <div class="flex flex-col gap-2">
                 <div class="flex justify-between items-center">
@@ -355,23 +354,13 @@
                 <div class="flex flex-col gap-4">
                     {#if errorMessage}
                         <div
-                            class="px-4 py-2 mb-4 ring-1 rounded-xl ring-red-500 bg-red-50"
+                        class="flex gap-4 p-4 rounded-xl ring-1 bg-red-500/10 text-red-800 ring-red-400 dark:text-white dark:ring-red-950"
                         >
-                            <div
-                                class="font-semibold text-red-600 text-sm flex items-center justify-between"
-                            >
-                                <span>Error:</span>
-                                <button
-                                    on:click={() => (errorMessage = "")}
-                                    class="p-1"
-                                >
-                                    <IconX size={20} stroke={2} />
-                                </button>
-                            </div>
-                            <p class="text-red-500 text-sm pb-2">
-                                {errorMessage}
-                            </p>
+                        <IconCircleX />
+                        <div>
+                            {errorMessage}
                         </div>
+                    </div>
                     {/if}
                     {#if cents / 100 > ($web3Store?.solanaUsdc?.balances?.USDC?.ui ?? 0)}
                         <div

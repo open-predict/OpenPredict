@@ -200,7 +200,7 @@ export abstract class Web3 {
       selectedAddress: address,
       selectedCurrency: "USD",
       fiatValue: cents,
-      selectedCryptoCurrency: this.network === Network.Polygon ? "MATIC" : Network.Solana,
+      selectedCryptoCurrency: this.network === Network.Solana ? "usdc_sol" : "usdc_polygon"
     });
   }
 

@@ -74,7 +74,7 @@
     <!-- right column -->
     <div class="hidden relative md:block md:w-5/12 lg:w-4/12 xl:w-4/12">
         <div class="h-full max-w-xs">
-            <div class="sticky top-0 w-full h-16 z-10">
+            <div class="sticky top-0 w-full h-16 z-50">
                 <div
                     class="h-full w-full flex justify-end items-center gap-2 border-b border-neutral-200 dark:border-neutral-900 dark:bg-black/80"
                 >

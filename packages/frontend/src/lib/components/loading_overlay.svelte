@@ -9,7 +9,7 @@
 
 {#if loadingMessage || errorMessage || completedMessage}
     <div
-        class="fixed top-0 flex flex-col justify-center items-center left-0 z-50 w-full h-full bg-white/95 dark:bg-black/95 gap-8 text-center"
+        class="fixed top-0 flex flex-col justify-center items-center left-0 z-10 w-full h-full bg-white/95 dark:bg-black/95 gap-8 text-center"
     >
         {#if errorMessage}
             <div class={"text-red-500"}>
@@ -18,7 +18,7 @@
             <p class="text-gray-700 max-w-sm">
                 {errorMessage}
             </p>
-            <button class="btn_secondary w-40" on:click={onClose}>
+            <button class="btn_secondary w-40" on:click={() => onClose()}>
                 Close
             </button>
         {:else if completedMessage}

@@ -32,9 +32,8 @@
         {#each Object.entries($draftsStore) as draft}
             <a
                 href={`/drafts/${draft[0]}`}
-                class="w-full flex flex-nowrap items-stretch rounded-xl ring-1 dark:bg-neutral-950/75 dark:ring-neutral-900 dark:hover:bg-neutral-950"
+                class="w-full flex flex-col h-full p-4 flex-nowrap items-stretch rounded-xl ring-1 ring-neutral-200 dark:bg-neutral-950/75 dark:ring-neutral-900 dark:hover:bg-neutral-950"
             >
-                <div class="flex flex-col w-full h-full p-6">
                     <h4
                         class="line-clamp-1 w-full text-ellipsis text-lg font-semibold"
                     >
@@ -43,23 +42,30 @@
                     <p class="text-gray-500 text-sm line-clamp-1">
                         {draft[1].metadata?.description ?? "No description"}
                     </p>
-                    <div class="flex gap-2 mt-2">
+                    <div class="flex gap-2 mt-3 justify-between">
+                        <Pill>
+                            <IconMoneybag size={12} />
+                            <span class="text-xs">
+                                {usd.format((draft[1].subsidy ?? 0) / 100)}
+                            </span>
+                        </Pill>
                         {#if draft[1].date}
                             <Pill>
-                                <IconCalendar size={14} />
-                                {new Date(draft[1].date).toLocaleDateString()}
+                                <IconCalendar size={12} />
+                                <span class="text-xs">
+                                    {new Date(
+                                        draft[1].date
+                                    ).toLocaleDateString()}
+                                </span>
                             </Pill>
                         {/if}
-                        <Pill>
-                            <IconMoneybag size={14} />
-                            {usd.format(draft[1].subsidy ?? 0)}
-                        </Pill>
                     </div>
-                </div>
             </a>
         {/each}
         {#if drafts.length === 0}
-            <div class="flex flex-col items-center justify-center h-80 gap-6">
+            <div
+                class="w-full flex flex-col h-full gap-4 py-10 justify-center items-center p-4 flex-nowrap rounded-xl ring-1 ring-neutral-200 dark:bg-neutral-950/75 dark:ring-neutral-900 dark:hover:bg-neutral-950"
+            >
                 <IconUfo size={28} class="rotate-[-12deg]" />
                 <h4 class="">No drafts</h4>
                 <button on:click={create} class="btn_secondary w-40">

@@ -239,7 +239,6 @@ export async function initMarketInstruction(
     if (amm_address.length != 32) {
         throw "Wrong amm address length";
     }
-    console.log("Cid length: ", cid.length);
 
     const buf = openpredict.Instruction.encode({
         initMarket: {

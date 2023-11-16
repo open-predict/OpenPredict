@@ -105,16 +105,17 @@ export class SOL extends Web3 {
       console.error("No solana wallet")
       return;
     }
+    console.log("Signing transaction...")
     const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash("confirmed");
-    console.log("Blockhash", blockhash, lastValidBlockHeight)
+    console.log("blockhash:", blockhash, lastValidBlockHeight)
     let transaction = new Transaction({
       feePayer: payerKey,
       recentBlockhash: blockhash
     });
     transaction.add(...instructions);
-    console.log("Keys", transaction.feePayer)
+    console.log("keys:", transaction.feePayer)
     const signedTx = await this.solanaWallet.signTransaction(transaction);
-    console.log("Transaction instructions", transaction.instructions)
+    console.log("transaction instructions:", transaction.instructions)
     return signedTx;
   }
 
