@@ -150,21 +150,21 @@
             subsidy
         );
 
-        if (usdcBalance < subsidy) {
-            loadingMessage = loadingMessages.checkout;
-            const toppedUp = await $web3Workspace.web3Sol
-                .topup((subsidy - usdcBalance) / 100)
-                .then(() => {
-                    return true;
-                })
-                .catch((e) => {
-                    errorMessage =
-                        "Unable to fund your account. Please check the console.";
-                    console.error(e);
-                    return false;
-                });
-            if(!toppedUp) return;
-        }
+        // if (usdcBalance < subsidy) {
+        //     loadingMessage = loadingMessages.checkout;
+        //     const toppedUp = await $web3Workspace.web3Sol
+        //         .topup((subsidy - usdcBalance) / 100)
+        //         .then(() => {
+        //             return true;
+        //         })
+        //         .catch((e) => {
+        //             errorMessage =
+        //                 "Unable to fund your account. Please check the console.";
+        //             console.error(e);
+        //             return false;
+        //         });
+        //     if(!toppedUp) return;
+        // }
 
         loadingMessage = loadingMessages.signing;
 

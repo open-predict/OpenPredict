@@ -31,10 +31,10 @@ export async function load({ params }) {
     }
   } else {
     const res = await api.getMarket.query({ id: params.market_id });
-    if(res.market !== null){
-      data.opMarket = {...(res.market as marketFulldata), likeNo: res.likes?.length ?? 0, commentNo: res.comments?.length ?? 0};
+    if(res && res.data !== null){
+      data.opMarket = {...(res?.data as marketFulldata), likeNo: res.likes.length ?? 0, commentNo: res.comments.length ?? 0};
       data.comments = res.comments;
-      // data.opUsers = res.users;
+      data.opUsers = res.users;
       data.likes = res.likes?.map(l => l.userKey) ?? []
     }
   }
