@@ -3,25 +3,10 @@
         IconArrowsExchange2,
         IconVocabulary,
         IconChartLine,
-        IconDroplet,
-        IconUser,
-        IconCalendar,
     } from "@tabler/icons-svelte";
-    import { faker } from "@faker-js/faker";
-    import ImageChecker from "$lib/elements/image_checker.svelte";
-    import Pill from "$lib/elements/pill.svelte";
-    import PolymarketLogo from "$lib/elements/polymarket_logo.svelte";
-    import LikeButton from "$lib/elements/like_button.svelte";
-    import ShareButton from "$lib/elements/share_button.svelte";
-    import CommentButton from "$lib/elements/comment_button.svelte";
-    import ChangeIndicator from "$lib/elements/change_indicator.svelte";
     import SubsidyPill from "$lib/elements/subsidy_pill.svelte";
     import VolumePill from "$lib/elements/volume_pill.svelte";
-    import type { marketFulldata } from "@am/backend/types/market";
     import { PublicKey } from "@solana/web3.js";
-    import { api } from "$lib/api";
-    import type { pmMarketFulldata } from "@am/backend/types/market";
-    import Trade from "$lib/modals/trade.svelte";
     import UserPill from "./user_pill.svelte";
     import TradersPill from "$lib/elements/traders_pill.svelte";
     import OpChart from "$lib/components/charts/op_chart.svelte";
@@ -73,7 +58,9 @@
                 </div>
             {/if}
         </div>
-        <div class="w-full h-10 border-t border-neutral-200 dark:border-neutral-900">
+        <div
+            class="w-full h-10 border-t border-neutral-200 dark:border-neutral-900"
+        >
             <Tabs
                 selected={selectedView}
                 select={(v) => (selectedView = v)}

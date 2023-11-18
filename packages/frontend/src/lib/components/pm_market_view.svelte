@@ -1,10 +1,9 @@
 <script lang="ts">
     import {
-        IconArrowsExchange2 as IconExchange,
-        IconVocabulary as IconOrderbook,
-        IconChartLine as IconChart,
+        IconArrowsExchange2,
+        IconVocabulary,
+        IconChartLine,
         IconDroplet as IconLiquidity,
-        IconUser,
         IconCalendar as IconCal,
     } from "@tabler/icons-svelte";
     import Pill from "$lib/elements/pill.svelte";
@@ -12,29 +11,21 @@
     import SubsidyPill from "$lib/elements/subsidy_pill.svelte";
     import VolumePill from "$lib/elements/volume_pill.svelte";
     import type {
-        marketFulldata,
         pmTokenData,
         pmUserMap,
     } from "@am/backend/types/market";
-    import type {
-        pmMarketFulldata,
-        pmTokenOrderdata,
-    } from "@am/backend/types/market";
     import PmChart from "$lib/components/charts/pm_chart.svelte";
     import Orderbook from "./pm_orderbook.svelte";
-    import FilledOrders from "./filled_orders.svelte";
     import linkifyStr from "linkify-string";
     import UserPill from "./user_pill.svelte";
     import PmTrade from "./pm_trade.svelte";
     import TradersPill from "$lib/elements/traders_pill.svelte";
     import { usd } from "$lib/utils/format";
-    import { USDC_PER_DOLLAR } from "$lib/utils/op";
     import type { TMarket, TPmMarket, TUserMinimal, TUsers } from "$lib/types";
     import MarketViewLayout from "./market_view_layout.svelte";
     import DOMPurify from "dompurify";
     import { browser } from "$app/environment";
     import { onMount } from "svelte";
-    import type { TUser } from "@am/backend/types/user";
     import { fromOpUser, fromPmUser } from "$lib/utils";
     import Tabs from "$lib/elements/tabs.svelte";
 
@@ -123,15 +114,15 @@
         <div
             class="w-full h-10 border-t border-neutral-200 dark:border-neutral-900"
         >
-            <Tabs
-                selected={selectedView}
-                select={(v) => (selectedView = v)}
-                options={[
-                    { Icon: IconChart, label: "Chart" },
-                    { label: "Orderbook", Icon: IconOrderbook },
-                    { label: "Trades", Icon: IconExchange },
-                ]}
-            />
+        <Tabs
+        selected={selectedView}
+        select={(v) => (selectedView = v)}
+        options={[
+            { Icon: IconChartLine, label: "Chart" },
+            { label: "Orderbook", Icon: IconVocabulary },
+            { label: "Trades", Icon: IconArrowsExchange2 },
+        ]}
+    />
         </div>
     </div>
     <PmTrade
