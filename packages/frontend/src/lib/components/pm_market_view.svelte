@@ -110,13 +110,13 @@
     </div>
     <div class="contents" slot="interactive">
         <div
-            class="min-h-[300px] max-h-[400px] h-[300px] overflow-y-scroll scrollbar_hide"
+            class="max-h-[400px] overflow-y-scroll scrollbar_hide"
         >
             {#if selectedView === "chart"}
                 <TokenChart {market} />
                 <div />
             {:else if selectedView === "orderbook"}
-                <!-- <Orderbook {market} {updateMarket} /> -->
+                <Orderbook {market} />
             {:else}
                 <!-- <FilledOrders {market} {updateMarket} /> -->
             {/if}

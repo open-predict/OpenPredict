@@ -3,7 +3,8 @@ import { ctfAbi } from "$lib/abi/ctfAbi";
 import { proxyWalletFactoryAbi } from "$lib/abi/pwfAbi";
 import { usdcAbi } from "$lib/abi/usdcAbi";
 import { Chain, ClobClient } from "$lib/clob";
-import type { pmTokenData, pmMarketFulldata } from "@am/backend/types/market";
+import type { AppRouterOutputs } from "@am/backend/server/routers/_app";
+import type { pmTokenData, pmMarketFulldata, pmTokenOrderdata, pmTokenOrderBook } from "@am/backend/types/market";
 import { getContracts } from "@polymarket/order-utils";
 import { erc1155ApprovalTransaction, erc20ApprovalTransaction } from "@polymarket/sdk/lib/utils";
 import { BrowserProvider, JsonRpcSigner, MaxUint256, ethers } from "ethers6";
@@ -29,6 +30,27 @@ export type TOrderbookSummary = {
     buy: number;
     mid: number;
 } | null
+
+export type TLimitOrderFormatted = {
+    price: number;
+    shares: number;
+    total: number;
+}
+
+export const reduceLimitOrders = (limitOrders: [number, number][]) => limitOrders.reduce((acc: TLimitOrderFormatted[], val) => {
+    if (limitOrders.length === 0) return [];
+    return [
+        ...acc,
+        {
+            price: val[0],
+            shares: val[1],
+            total:
+                acc.length > 0
+                    ? acc[acc.length - 1].total + val[0] * val[1]
+                    : val[0] * val[1],
+        },
+    ];
+}, [])
 
 export async function getOrderbookSummary(token_id: string, market: pmMarketFulldata): Promise<TOrderbookSummary | null> {
 
@@ -62,7 +84,26 @@ export async function getOrderbookSummary(token_id: string, market: pmMarketFull
         buy: bestBid,
         mid: Number(((bestAsk + bestBid) / 2).toFixed(2))
     };
+}
 
+export const getSpread = (orderbook: pmTokenOrderBook) => {
+    if (orderbook.asks.length === 0 || orderbook.bids.length === 0) return 0;
+    return Math.abs(
+        50 -
+        orderbook.bids.sort(
+            (a, b) => b[0] - a[0]
+        )[0][0] -
+        (50 -
+            orderbook.asks.sort(
+                (a, b) => a[0] - b[0]
+            )[0][0])
+    )
+}
+
+export const getMidpoint = (orderbook: pmTokenOrderBook) => {
+    if (orderbook.asks.length === 0 || orderbook.bids.length === 0) return 0;
+    const spread = getSpread(orderbook);
+    return orderbook.asks.sort((a, b) => a[0] - b[0])[0][0] + spread / 2
 }
 
 export const getAllowances = async (
