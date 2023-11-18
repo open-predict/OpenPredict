@@ -20,7 +20,7 @@
         pmMarketFulldata,
         pmTokenOrderdata,
     } from "@am/backend/types/market";
-    import PmChart from "$lib/charts/pm_chart.svelte";
+    import PmChart from "$lib/components/charts/pm_chart.svelte";
     import Orderbook from "./pm_orderbook.svelte";
     import FilledOrders from "./filled_orders.svelte";
     import linkifyStr from "linkify-string";
@@ -36,6 +36,7 @@
     import { onMount } from "svelte";
     import type { TUser } from "@am/backend/types/user";
     import { fromOpUser, fromPmUser } from "$lib/utils";
+    import Tabs from "$lib/elements/tabs.svelte";
 
     export let market: TPmMarket;
     export let pmUsers: pmUserMap | undefined;
@@ -74,7 +75,7 @@
             );
         }
     });
-    let selectedView: "trades" | "chart" | "orderbook" = "chart";
+    let selectedView = "Chart";
 </script>
 
 <MarketViewLayout>
@@ -109,13 +110,11 @@
         </Pill>
     </div>
     <div class="contents" slot="interactive">
-        <div
-            class="max-h-[400px] overflow-y-scroll scrollbar_hide"
-        >
-            {#if selectedView === "chart"}
+        <div class="max-h-[400px] overflow-y-scroll scrollbar_hide">
+            {#if selectedView === "Chart"}
                 <PmChart {market} />
                 <div />
-            {:else if selectedView === "orderbook"}
+            {:else if selectedView === "Orderbook"}
                 <Orderbook {market} />
             {:else}
                 <!-- <FilledOrders {market} {updateMarket} /> -->
@@ -124,43 +123,15 @@
         <div
             class="w-full h-10 border-t border-neutral-200 dark:border-neutral-900"
         >
-            <div
-                class="w-full flex items-center justify-between h-full font-semibold text-xs divide-x bg-white divide-neutral-200 dark:divide-neutral-800 dark:bg-neutral-900/40"
-            >
-                <button
-                    on:click={() => (selectedView = "chart")}
-                    class={`flex gap-1 items-center justify-center w-full h-full ${
-                        selectedView === "chart"
-                            ? "text-black dark:text-white"
-                            : "text-neutral-500 dark:text-neutral-400"
-                    }`}
-                >
-                    <IconChart size={18} />
-                    Chart
-                </button>
-                <button
-                    on:click={() => (selectedView = "orderbook")}
-                    class={`flex gap-1 items-center justify-center w-full h-full ${
-                        selectedView === "orderbook"
-                            ? "text-black dark:text-white"
-                            : "text-neutral-500 dark:text-neutral-400"
-                    }`}
-                >
-                    <IconOrderbook size={17} />
-                    Orderbook
-                </button>
-                <button
-                    on:click={() => (selectedView = "trades")}
-                    class={`flex gap-1 items-center justify-center w-full h-full ${
-                        selectedView === "trades"
-                            ? "text-black dark:text-white"
-                            : "text-neutral-500 dark:text-neutral-400"
-                    }`}
-                >
-                    <IconExchange size={18} />
-                    Trades
-                </button>
-            </div>
+            <Tabs
+                selected={selectedView}
+                select={(v) => (selectedView = v)}
+                options={[
+                    { Icon: IconChart, label: "Chart" },
+                    { label: "Orderbook", Icon: IconOrderbook },
+                    { label: "Trades", Icon: IconExchange },
+                ]}
+            />
         </div>
     </div>
     <PmTrade
@@ -194,7 +165,9 @@
                         </h4>
                         <p class="text-xs opacity-75 font-semibold">POSITION</p>
                     </div>
-                    <div class="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-900">
+                    <div
+                        class="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-900"
+                    >
                         {#each tokenOrderdata[1].positions.slice(0, 5) as position}
                             <div
                                 class="flex justify-between text-neutral-200 items-center py-2"
@@ -202,25 +175,25 @@
                                 <div class="max-w-1/2 w-1/2 overflow-hidden">
                                     <UserPill
                                         id={position.address}
-                                        userMinimal={combinedUsers.get(position.address)}
+                                        userMinimal={combinedUsers.get(
+                                            position.address
+                                        )}
                                     />
                                 </div>
-                                <p
-                                    class={`text-sm font-semibold`}
-                                >
-                                    <span class={`${
-                                        tokens[tokenOrderdata[0]].outcome ===
-                                        "Yes"
-                                            ? "text-emerald-600 dark:text-emerald-400"
-                                            : tokens[tokenOrderdata[0]]
-                                                  .outcome === "No"
-                                            ? "text-red-600 dark:text-red-500"
-                                            : "text-indigo-400 dark:text-indigo-400"
-                                    }`}>
-                                        {usd.format(
-                                            Number(position.position) 
-                                            )}
-                                            </span>
+                                <p class={`text-sm font-semibold`}>
+                                    <span
+                                        class={`${
+                                            tokens[tokenOrderdata[0]]
+                                                .outcome === "Yes"
+                                                ? "text-emerald-600 dark:text-emerald-400"
+                                                : tokens[tokenOrderdata[0]]
+                                                      .outcome === "No"
+                                                ? "text-red-600 dark:text-red-500"
+                                                : "text-indigo-400 dark:text-indigo-400"
+                                        }`}
+                                    >
+                                        {usd.format(Number(position.position))}
+                                    </span>
                                 </p>
                             </div>
                         {/each}

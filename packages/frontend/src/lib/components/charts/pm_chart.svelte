@@ -4,7 +4,7 @@
     import {
         PriceHistoryTerm,
         resamplePmPriceHistory,
-    } from "$lib/charts/utils";
+    } from "$lib/components/charts/utils";
     import colors from "tailwindcss/colors";
     import {
         PriceHistoryInterval,

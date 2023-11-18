@@ -24,11 +24,12 @@
     import Trade from "$lib/modals/trade.svelte";
     import UserPill from "./user_pill.svelte";
     import TradersPill from "$lib/elements/traders_pill.svelte";
-    import OpChart from "$lib/charts/op_chart.svelte";
+    import OpChart from "$lib/components/charts/op_chart.svelte";
     import OpTrade from "./op_trade.svelte";
     import { getChance } from "$lib/utils/op";
     import type { TMarket, TOpMarket } from "$lib/types";
     import MarketViewLayout from "./market_view_layout.svelte";
+    import Tabs from "$lib/elements/tabs.svelte";
 
     export let market: TOpMarket;
     export let updateMarket: (market?: TMarket) => void;
@@ -39,7 +40,7 @@
             0
         ) + "%";
     let tradeModal = false;
-    let selectedView: "trades" | "chart" | "orderbook" = "chart";
+    let selectedView = "Chart";
 </script>
 
 <MarketViewLayout>
@@ -56,9 +57,9 @@
         <div
             class="min-h-[300px] max-h-[400px] h-[300px] overflow-y-scroll scrollbar_hide"
         >
-            {#if selectedView === "chart"}
+            {#if selectedView === "Chart"}
                 <OpChart {market} />
-            {:else if selectedView === "orderbook"}
+            {:else if selectedView === "Orderbook"}
                 <div class="flex justify-center items-center py-28">
                     <p>
                         {"An orderbook is not yet available for this market."}
@@ -72,44 +73,16 @@
                 </div>
             {/if}
         </div>
-        <div class="w-full h-10 border-t border-neutral-900">
-            <div
-                class="w-full flex items-center justify-between h-full bg-neutral-900/40 font-semibold text-xs divide-x divide-neutral-800"
-            >
-                <button
-                    on:click={() => (selectedView = "chart")}
-                    class={`flex gap-1 items-center justify-center w-full h-full ${
-                        selectedView === "chart"
-                            ? "text-white"
-                            : "text-neutral-400"
-                    }`}
-                >
-                    <IconChartLine size={18} />
-                    Chart
-                </button>
-                <button
-                    on:click={() => (selectedView = "orderbook")}
-                    class={`flex gap-1 items-center justify-center w-full h-full ${
-                        selectedView === "orderbook"
-                            ? "text-white"
-                            : "text-neutral-400"
-                    }`}
-                >
-                    <IconVocabulary size={17} />
-                    Orderbook
-                </button>
-                <button
-                    on:click={() => (selectedView = "trades")}
-                    class={`flex gap-1 items-center justify-center w-full h-full ${
-                        selectedView === "trades"
-                            ? "text-white"
-                            : "text-neutral-400"
-                    }`}
-                >
-                    <IconArrowsExchange2 size={18} />
-                    Trades
-                </button>
-            </div>
+        <div class="w-full h-10 border-t border-neutral-200 dark:border-neutral-900">
+            <Tabs
+                selected={selectedView}
+                select={(v) => (selectedView = v)}
+                options={[
+                    { Icon: IconChartLine, label: "Chart" },
+                    { label: "Orderbook", Icon: IconVocabulary },
+                    { label: "Trades", Icon: IconArrowsExchange2 },
+                ]}
+            />
         </div>
     </div>
     <OpTrade

@@ -1,11 +1,11 @@
 <script lang="ts">
     import type { marketFulldata } from "@am/backend/types/market";
-    import { usd } from "$lib/utils";
-    import SmallChart from "../charts/small_chart.svelte";
+    // import { usd } from "$lib/utils";
+    // import SmallChart from "../charts/small_chart.svelte";
     import { IconCurrency, IconUserCheck } from "@tabler/icons-svelte";
-    import { USDC_PER_DOLLAR, getChance } from "$lib/web3_utils";
+    // import { USDC_PER_DOLLAR, getChance } from "$lib/web3_utils";
     export let market: marketFulldata;
-    $: chance = 100 * getChance(market.data.data.Yes, market.data.data.No);
+    // $: chance = 100 * getChance(market.data.data.Yes, market.data.data.No);
 </script>
 
 {#if !!market}
@@ -17,11 +17,11 @@
         </div>
         <div class="w-full flex flex-nowrap justify-between items-center">
             <p class="font-semibold text-gray-900">
-                {chance.toFixed(1)}%
+                <!-- {chance.toFixed(1)}% -->
             </p>
             {#if market}
                 <div class="w-1/4 h-8">
-                    <SmallChart priceData={market.data.PriceHistory} />
+                    <!-- <SmallChart priceData={market.data.PriceHistory} /> -->
                 </div>
             {/if}
             <div class="flex flex-col justify-center items-end">
@@ -32,14 +32,14 @@
                         class="stroke-inherit fill-inherit"
                         size={14}
                     />
-                    {Intl.NumberFormat("en-US", {
+                    <!-- {Intl.NumberFormat("en-US", {
                         style: "currency",
                         currency: "USD",
                         notation: "compact",
                         maximumFractionDigits: 0,
                     }).format(
                         Number(market.data.data.Subsidy) / USDC_PER_DOLLAR
-                    )}
+                    )} -->
                 </button>
                 <button
                     class="flex text-sm py-1 px-3 justify-center items-center rounded-full gap-2 text-gray-500 fill-gray-200 stroke-gray-500 text-md hover:bg-gray-100 hover:text-gray-600 hover:stroke-gray-600 hover:fill-gray-300"

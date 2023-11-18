@@ -20,7 +20,7 @@
     import {
         PriceHistoryTerm,
         resamplePmPriceHistory,
-    } from "$lib/charts/utils";
+    } from "$lib/components/charts/utils";
     import { format } from "$lib/utils";
     import colors from "tailwindcss/colors";
     import { api } from "$lib/api";
