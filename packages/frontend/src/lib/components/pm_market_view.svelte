@@ -20,7 +20,7 @@
         pmMarketFulldata,
         pmTokenOrderdata,
     } from "@am/backend/types/market";
-    import TokenChart from "$lib/charts/token_chart.svelte";
+    import PmChart from "$lib/charts/pm_chart.svelte";
     import Orderbook from "./pm_orderbook.svelte";
     import FilledOrders from "./filled_orders.svelte";
     import linkifyStr from "linkify-string";
@@ -29,7 +29,7 @@
     import TradersPill from "$lib/elements/traders_pill.svelte";
     import { usd } from "$lib/utils/format";
     import { USDC_PER_DOLLAR } from "$lib/utils/op";
-    import type { TMarket, TPmMarket, TUserMinimal } from "$lib/types";
+    import type { TMarket, TPmMarket, TUserMinimal, TUsers } from "$lib/types";
     import MarketViewLayout from "./market_view_layout.svelte";
     import DOMPurify from "dompurify";
     import { browser } from "$app/environment";
@@ -39,7 +39,7 @@
 
     export let market: TPmMarket;
     export let pmUsers: pmUserMap | undefined;
-    export let opUsers: Map<string, TUser> | undefined;
+    export let opUsers: TUsers | undefined;
     export let updateMarket: (market?: TMarket) => void;
 
     $: tokens = market.data.tokens.reduce(
@@ -56,7 +56,7 @@
             return arr;
         }, new Map()),
         ...Array.from(opUsers?.entries() ?? []).reduce((arr, val) => {
-            arr.set(val[0], fromOpUser(val[0], val[1]));
+            arr.set(val[0], fromOpUser(val[0], val[1] ?? undefined));
             return arr;
         }, new Map()),
     ]);
@@ -113,7 +113,7 @@
             class="max-h-[400px] overflow-y-scroll scrollbar_hide"
         >
             {#if selectedView === "chart"}
-                <TokenChart {market} />
+                <PmChart {market} />
                 <div />
             {:else if selectedView === "orderbook"}
                 <Orderbook {market} />

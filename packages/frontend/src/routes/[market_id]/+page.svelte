@@ -142,8 +142,8 @@
     <div slot="main" class="min-h-full flex flex-col">
         {#if pmMarket}
             <PmMarketView
-                opUsers={opUsers}
-                pmUsers={pmUsers}
+                {opUsers}
+                {pmUsers}
                 market={pmMarket}
                 updateMarket={(m) => {}}
             />
@@ -266,11 +266,6 @@
     </div>
     <div slot="right" class="flex flex-col gap-4">
         {#if opMarket}
-            {#if $web3Store?.solana?.address}
-                <div class="bg-white ring-1 rounded-3xl ring-gray-200">
-                    <AccountSummary />
-                </div>
-            {/if}
             <!-- {#if creator}
                 <div
                     class="ring-1 rounded-3xl bg-white ring-gray-200 flex flex-col"

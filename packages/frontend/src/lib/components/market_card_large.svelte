@@ -1,7 +1,6 @@
 <script lang="ts">
     import type { marketFulldata } from "@am/backend/types/market";
-    import Svend3rChart from "$lib/charts/interactive_chart.svelte";
-    import { getChance } from "$lib/web3_utils";
+    // import { getChance } from "$lib/web3_utils";
     import ProfileButton from "./profile_button.svelte";
     import { PublicKey } from "@solana/web3.js";
     import MarketActions from "./market_actions.svelte";
@@ -13,7 +12,7 @@
     // export let users: Map<string, TUser> | undefined;
     export let updateMarket: (market: marketFulldata) => void;
 
-    $: chance = getChance(market.data.data.Yes, market.data.data.No);
+    // $: chance = getChance(market.data.data.Yes, market.data.data.No);
 
     const operatorKey = market ? market.data.data.OperatorKey.toString() : "";
     // const operatorProfile = users ? users.get(operatorKey) : null;
@@ -29,7 +28,7 @@
             /> -->
             <div class="ml-auto" />
             <SubsidyButton subsidy={market.data.data.Subsidy} />
-            <LikeButton {market} {updateMarket} />
+            <!-- <LikeButton {market} {updateMarket} /> -->
         </div>
         <div class="flex flex-col gap-4">
             <h5 class="text-2xl font-semibold py-4 text-black">
@@ -37,17 +36,17 @@
             </h5>
             <div class="w-full flex flex-col my-4">
                 <h5 class="text-2xl text-black leading-none">
-                    {`${(chance * 100).toFixed(1)}%`}
+                    <!-- {`${(chance * 100).toFixed(1)}%`} -->
                 </h5>
                 <p class="text-sm text-gray-600">
                     {"CHANCE"}
                 </p>
             </div>
             <div class="-ml-1">
-                <Svend3rChart
+                <!-- <Svend3rChart
                     priceData={market.data.PriceHistory}
                     onScrub={(c) => (chance = c / 100)}
-                />
+                /> -->
             </div>
             <!-- <div class="flex flex-col mt-8 bg-gray-800 rounded-3xl"> -->
                 <!-- <div class="flex flex-col gap-2 divide-gray-200 p-8">

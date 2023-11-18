@@ -31,55 +31,10 @@
         Chain,
     } from "$lib/clob";
     import { IconLoader, IconLoader2 } from "@tabler/icons-svelte";
+    import type { TTokenData } from "$lib/types";
 
-    export let market: pmMarketFulldata;
     export let term: PriceHistoryTerm = PriceHistoryTerm.DAY;
-
-    async function getMarketPriceHistory(m: pmMarketFulldata) {
-
-        const clobClient = new ClobClient(
-            "https://polyclob.openpredict.org",
-            Chain.POLYGON
-        );
-
-        return await Promise.all(
-            m.data.tokens.map((t, i) => {
-                return clobClient
-                    .getPricesHistory({
-                        interval: PriceHistoryInterval.ONE_WEEK,
-                        market: t.token_id,
-                        fidelity: 4,
-                    })
-                    .then((ph) => ({
-                        ...t,
-                        data: resamplePmPriceHistory((ph as unknown as {history: MarketPrice[]}).history, term),
-                        color: t.outcome === "Yes" ? colors.emerald[500] : t.outcome === "No" ? colors.red[500] : colors.indigo[500], //getTokenColor(t.outcome)['400'],
-                    }));
-            })
-        ).then((res) => {
-            return res.reduce(
-                (
-                    acc: Record<
-                        string,
-                        pmTokenData & {
-                            color: string;
-                            data: {
-                                date: Date;
-                                price: number;
-                            }[];
-                        }
-                    >,
-                    val
-                ) => {
-                    acc[val.token_id] = val;
-                    return acc;
-                },
-                {}
-            );
-        });
-    }
-
-    $: tokenDataPromise = getMarketPriceHistory(market);
+    export let tokenData: Record<string, TTokenData>;
 
     const marginTop = 10;
     const marginRight = 60;
@@ -128,7 +83,6 @@
 
     async function createGraph() {
         try {
-            const tokenData = await tokenDataPromise;
             if (!tokenData) return;
 
             lines = new Map();
@@ -155,7 +109,8 @@
             xScale = xType(xDomain, xRange);
             yScale = yType(yDomain, yRange);
 
-            for (const { token_id: id, data } of Object.values(tokenData)) {
+            for (const [id, value] of Object.entries(tokenData)) {
+                const { data } = value;
                 if (data.length === 0) return;
 
                 const _yVals = data.map((el) => el.price);
@@ -232,7 +187,7 @@
         }
     }
 
-    $: width, tokenDataPromise, createGraph();
+    $: width, tokenData, createGraph();
 
     function handleFocusMouse(e: any, i: number, point: any) {
         const aggX = aggPoints[i].x;
@@ -250,36 +205,22 @@
 
 <div class="min-w-full h-full block relative" bind:clientWidth={width}>
     <div class="flex items-center overflow-hidden p-3 h-14 gap-1">
-        {#await tokenDataPromise}
-            {#each market.data.tokens as token}
+        {#each Object.entries(tokenData) as token}
+            <button
+                class="text-xs flex items-center font-medium h-7 gap-2 min-w-[5rem] py-0.5 pl-2.5 pr-2.5 rounded-lg dark:text-neutral-200 dark:bg-neutral-900/70 dark:border-0 text-neutral-800 bg-white border border-neutral-200"
+            >
                 <div
-                    class="animate-pulse text-xs flex items-center font-medium h-7 gap-2 min-w-[5rem] py-0.5 pl-2.5 pr-2.5 rounded-md dark:text-neutral-200 dark:bg-neutral-900/70 text-neutral-800 bg-neutral-100/70"
-                >
-                    <div class={`h-1.5 w-1.5 rounded-full bg-neutral-600`} />
-                    {token.outcome}
-                    {"-- ¢"}
-                </div>
-            {/each}
-        {:then tokenData}
-            {#if tokenData}
-                {#each Object.entries(tokenData) as token}
-                    <button
-                        class="text-xs flex items-center font-medium h-7 gap-2 min-w-[5rem] py-0.5 pl-2.5 pr-2.5 rounded-lg dark:text-neutral-200 dark:bg-neutral-900/70 dark:border-0 text-neutral-800 bg-white border border-neutral-200"
-                    >
-                        <div
-                            class={`h-1.5 w-1.5 rounded-full`}
-                            style={`background-color: ${token[1].color};`}
-                        />
-                        {token[1].outcome}
-                        {(dotInfo?.tokenPoints[token[0]].y.toFixed(0) ??
-                            tokenPoints[token[0]][
-                                tokenPoints[token[0]].length - 1
-                            ].y.toFixed(0) ??
-                            "--") + "¢"}
-                    </button>
-                {/each}
-            {/if}
-        {/await}
+                    class={`h-1.5 w-1.5 rounded-full`}
+                    style={`background-color: ${token[1].color};`}
+                />
+                {token[1].outcome}
+                {(dotInfo?.tokenPoints[token[0]].y.toFixed(0) ??
+                    tokenPoints[token[0]][
+                        tokenPoints[token[0]].length - 1
+                    ].y.toFixed(0) ??
+                    "--") + "¢"}
+            </button>
+        {/each}
         <nav
             class="hidden lg:flex justify-end ml-auto gap-1 rounded-lg px-1.5 bg-white dark:bg-neutral-900/50 border dark:border-0 border-neutral-200"
         >
@@ -287,7 +228,9 @@
                 <button
                     on:click={() => (term = v)}
                     class={`h-8 w-7 text-xs font-semibold ${
-                        term === v ? "dark:text-white text-black" : "dark:text-neutral-500 text-neutral-400"
+                        term === v
+                            ? "dark:text-white text-black"
+                            : "dark:text-neutral-500 text-neutral-400"
                     }`}
                 >
                     {v}
@@ -295,157 +238,145 @@
             {/each}
         </nav>
     </div>
-    {#await tokenDataPromise}
-        <div
-            class={`animate-pulse h-full w-full flex justify-center items-center`}
+    {#if graphReady && tokenData}
+        <svg
+            {width}
+            {height}
+            viewBox="0 0 {width} {height}"
+            on:mouseout={() => {
+                dotInfo = null;
+            }}
+            on:blur={() => {
+                dotInfo = null;
+            }}
         >
-            <IconLoader2 class='animate-spin' />
-        </div>
-    {:then tokens}
-        {#if graphReady && tokens}
-            <svg
-                {width}
-                {height}
-                viewBox="0 0 {width} {height}"
-                on:mouseout={() => {
-                    dotInfo = null;
-                }}
-                on:blur={() => {
-                    dotInfo = null;
-                }}
+            <!-- Y-axis and horizontal grid lines -->
+            <g
+                class="y-axis"
+                transform="translate({marginLeft}, 0)"
+                pointer-events="none"
             >
-                <!-- Y-axis and horizontal grid lines -->
-                <g
-                    class="y-axis"
-                    transform="translate({marginLeft}, 0)"
-                    pointer-events="none"
-                >
-                    {#each yTicks as tick, i}
-                        <g
-                            class="tick"
-                            transform="translate(0, {yScale(tick)})"
+                {#each yTicks as tick, i}
+                    <g class="tick" transform="translate(0, {yScale(tick)})">
+                        <line
+                            class="dark:stroke-neutral-800 stroke-neutral-400"
+                            stroke-dasharray="3"
+                            x1={inset}
+                            x2={width - marginLeft - marginRight}
+                        />
+                        <text
+                            x={width - marginLeft - marginRight / 2}
+                            y="5"
+                            class="fill-neutral-600 dark:fill-neutral-500 text-xs"
                         >
-                            <line
-                                class="dark:stroke-neutral-800 stroke-neutral-400"
-                                stroke-dasharray="3"
-                                x1={inset}
-                                x2={width - marginLeft - marginRight}
-                            />
-                            <text
-                                x={width - marginLeft - marginRight / 2}
-                                y="5"
-                                class="fill-neutral-600 dark:fill-neutral-500 text-xs"
-                            >
-                                {tick + yFormat}
-                            </text>
-                        </g>
-                    {/each}
-                </g>
-
-                <!-- X-axis and vertical grid lines -->
-                <g
-                    class="x-axis overflow-hidden"
-                    transform="translate(0,{height - marginBottom - inset})"
-                    pointer-events="none"
-                >
-                    {#each xTicks as tick, i}
-                        <g
-                            class="tick"
-                            transform="translate({xScale(tick)}, 0)"
-                        >
-                            <line class="stroke-neutral-400 dark:stroke-neutral-800" stroke-width="1" y2="6" />
-                            <text y="25" class="fill-neutral-600 dark:fill-neutral-500 text-xs">
-                                {xTicksFormatted[i]}
-                            </text>
-                        </g>
-                    {/each}
-                    {#if xScaledDotInfo && dotInfo}
-                        <g
-                            class="tick"
-                            transform="translate({xScaledDotInfo}, 0)"
-                        >
-                            <line
-                                y2={-height + 70}
-                                class="dark:stroke-neutral-800 stroke-neutral-300"
-                            />
-                            <rect
-                                height={20}
-                                width={120}
-                                y={11}
-                                rx={10}
-                                class="dark:fill-white fill-neutral-700"
-                                x={xScaledDotInfo > workingWidth - 70
-                                    ? workingWidth - 130 - xScaledDotInfo
-                                    : xScaledDotInfo < 70
-                                    ? 10 - xScaledDotInfo
-                                    : -60}
-                            />
-                            <text
-                                id="date-tooltip"
-                                y={25}
-                                width={120}
-                                x={xScaledDotInfo > workingWidth - 70
-                                    ? workingWidth - 70 - xScaledDotInfo
-                                    : xScaledDotInfo < 70
-                                    ? 70 - xScaledDotInfo
-                                    : undefined}
-                                class="dark:fill-black fill-white font-semibold text-xs w-14"
-                            >
-                                {`${format.date.format(
-                                    aggPoints[dotInfo.i].x
-                                )}`}
-                            </text>
-                        </g>
-                    {/if}
-                </g>
-
-                {#each aggPointsScaled as point, i}
-                    <path
-                        fill-opacity="0"
-                        d={voronoiGrid.renderCell(i)}
-                        on:mouseover={(e) => handleFocusMouse(e, i, point)}
-                        on:focus={(e) => handleFocusMouse(e, i, point)}
-                    />
-                {/each}
-
-                <!-- Chart lines -->
-                {#each Array.from(lines.entries()) as [id, lineArea], i}
-                    <g class="chartlines" pointer-events="none">
-                        {#if dotInfo}
-                            <path
-                                stroke={tokens[id].color}
-                                fill="none"
-                                d={lineArea.line}
-                                stroke-width={strokeWidth}
-                                stroke-linecap={"round"}
-                                stroke-linejoin={"round"}
-                            />
-                            {#if dotInfo.tokenPoints[id]}
-                                <circle
-                                    r={6}
-                                    class={"stroke-neutral-50 dark:stroke-neutral-950"}
-                                    fill={tokens[id]?.color}
-                                    stroke-width={3}
-                                    cx={xScale(dotInfo.tokenPoints[id].x)}
-                                    cy={yScale(dotInfo.tokenPoints[id].y)}
-                                />
-                            {/if}
-                        {:else}
-                            <path
-                                fill="none"
-                                stroke={tokens[id].color}
-                                d={lineArea.line}
-                                stroke-opacity={1}
-                                stroke-width={strokeWidth}
-                                stroke-linecap={"round"}
-                                stroke-linejoin={"round"}
-                            />
-                        {/if}
+                            {tick + yFormat}
+                        </text>
                     </g>
                 {/each}
-            </svg>
-        {/if}
-    {/await}
+            </g>
+
+            <!-- X-axis and vertical grid lines -->
+            <g
+                class="x-axis overflow-hidden"
+                transform="translate(0,{height - marginBottom - inset})"
+                pointer-events="none"
+            >
+                {#each xTicks as tick, i}
+                    <g class="tick" transform="translate({xScale(tick)}, 0)">
+                        <line
+                            class="stroke-neutral-400 dark:stroke-neutral-800"
+                            stroke-width="1"
+                            y2="6"
+                        />
+                        <text
+                            y="25"
+                            class="fill-neutral-600 dark:fill-neutral-500 text-xs"
+                        >
+                            {xTicksFormatted[i]}
+                        </text>
+                    </g>
+                {/each}
+                {#if xScaledDotInfo && dotInfo}
+                    <g class="tick" transform="translate({xScaledDotInfo}, 0)">
+                        <line
+                            y2={-height + 70}
+                            class="dark:stroke-neutral-800 stroke-neutral-300"
+                        />
+                        <rect
+                            height={20}
+                            width={120}
+                            y={11}
+                            rx={10}
+                            class="dark:fill-white fill-neutral-700"
+                            x={xScaledDotInfo > workingWidth - 70
+                                ? workingWidth - 130 - xScaledDotInfo
+                                : xScaledDotInfo < 70
+                                ? 10 - xScaledDotInfo
+                                : -60}
+                        />
+                        <text
+                            id="date-tooltip"
+                            y={25}
+                            width={120}
+                            x={xScaledDotInfo > workingWidth - 70
+                                ? workingWidth - 70 - xScaledDotInfo
+                                : xScaledDotInfo < 70
+                                ? 70 - xScaledDotInfo
+                                : undefined}
+                            class="dark:fill-black fill-white font-semibold text-xs w-14"
+                        >
+                            {`${format.date.format(aggPoints[dotInfo.i].x)}`}
+                        </text>
+                    </g>
+                {/if}
+            </g>
+
+            {#each aggPointsScaled as point, i}
+                <path
+                    fill-opacity="0"
+                    d={voronoiGrid.renderCell(i)}
+                    on:mouseover={(e) => handleFocusMouse(e, i, point)}
+                    on:focus={(e) => handleFocusMouse(e, i, point)}
+                />
+            {/each}
+
+            <!-- Chart lines -->
+            {#each Array.from(lines.entries()) as [id, lineArea], i}
+                <g class="chartlines" pointer-events="none">
+                    {#if dotInfo}
+                        <path
+                            stroke={tokenData[id].color}
+                            fill="none"
+                            d={lineArea.line}
+                            stroke-width={strokeWidth}
+                            stroke-linecap={"round"}
+                            stroke-linejoin={"round"}
+                        />
+                        {#if dotInfo.tokenPoints[id]}
+                            <circle
+                                r={6}
+                                class={"stroke-neutral-50 dark:stroke-neutral-950"}
+                                fill={tokenData[id]?.color}
+                                stroke-width={3}
+                                cx={xScale(dotInfo.tokenPoints[id].x)}
+                                cy={yScale(dotInfo.tokenPoints[id].y)}
+                            />
+                        {/if}
+                    {:else}
+                        <path
+                            fill="none"
+                            stroke={tokenData[id].color}
+                            d={lineArea.line}
+                            stroke-opacity={1}
+                            stroke-width={strokeWidth}
+                            stroke-linecap={"round"}
+                            stroke-linejoin={"round"}
+                        />
+                    {/if}
+                </g>
+            {/each}
+        </svg>
+    {/if}
 </div>
 
 <style>

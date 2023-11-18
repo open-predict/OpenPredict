@@ -18,7 +18,6 @@
     import SubsidyPill from "$lib/elements/subsidy_pill.svelte";
     import VolumePill from "$lib/elements/volume_pill.svelte";
     import type { marketFulldata } from "@am/backend/types/market";
-    import InteractiveChart from "$lib/charts/interactive_chart.svelte";
     import { PublicKey } from "@solana/web3.js";
     import { api } from "$lib/api";
     import type { pmMarketFulldata } from "@am/backend/types/market";
@@ -55,10 +54,10 @@
     </div>
     <div class="contents" slot="interactive">
         <div
-            class="bg-neutral-950/90 min-h-[300px] max-h-[400px] h-[300px] overflow-y-scroll scrollbar_hide"
+            class="min-h-[300px] max-h-[400px] h-[300px] overflow-y-scroll scrollbar_hide"
         >
             {#if selectedView === "chart"}
-                <!-- <OpChart {market} /> -->
+                <OpChart {market} />
             {:else if selectedView === "orderbook"}
                 <div class="flex justify-center items-center py-28">
                     <p>

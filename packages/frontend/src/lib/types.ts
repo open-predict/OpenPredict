@@ -7,12 +7,12 @@ export type TUsers = Map<string, TUser | null>;
 export type TUsernames = Map<string, { username: string | null; }>
 
 export type TPmMarket = AppRouterOutputs['getPmMarket']['data'] & {
-    likeNo: number, 
+    likeNo: number,
     commentNo: number,
 }
 
 export type TOpMarket = AppRouterOutputs['getMarket']['market'] & {
-    likeNo: number, 
+    likeNo: number,
     commentNo: number,
 }
 
@@ -33,4 +33,13 @@ export type TUserMinimal = {
 export type TMarket = {
     pmMarket?: TPmMarket,
     opMarket?: TOpMarket
+}
+
+export type TTokenData = {
+    outcome: string,
+    color: string,
+    data: {
+        date: Date;
+        price: number;
+    }[];
 }
