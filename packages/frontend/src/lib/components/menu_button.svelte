@@ -30,17 +30,16 @@
 
 {#if showPopup}
     <div
-        class="h-auto w-auto z-10"
         id="tooltip"
         role="tooltip"
         use:popperContent={{
             placement: "bottom-end",
             strategy: "fixed",
-            modifiers: [{ name: "offset", options: { offset, } }],
+            modifiers: [{ name: "offset", options: { offset } }],
         }}
     >
         <div
-            class="flex flex-col py-1.5 bg-neutral-900 text-xs rounded-lg text-white shadow-2xl ring-1 ring-neutral-800"
+            class="relative flex flex-col py-1.5 bg-neutral-900 text-xs rounded-lg text-white shadow-2xl ring-1 ring-neutral-800"
             on:mouseenter={() => (inPopup = true)}
             on:mouseleave={() => {
                 inPopup = false;
@@ -62,7 +61,7 @@
     }}
 >
     <slot name="target">
-        <div class="action_icon">
+        <div class="action_icon relative z-20">
             <IconDotsVertical size={16} />
         </div>
     </slot>

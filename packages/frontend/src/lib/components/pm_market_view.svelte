@@ -32,6 +32,8 @@
     export let market: TPmMarket;
     export let pmUsers: pmUserMap | undefined;
     export let opUsers: TUsers | undefined;
+    export let selectToken: (id: string) => void;
+    export let selectedToken: string;
     export let updateMarket: (market?: TMarket) => void;
 
     $: tokens = market.data.tokens.reduce(
@@ -132,9 +134,9 @@
             orderdata: market.orderdata,
             meta: market.meta,
         }}
-        direction
-        onClose={() => {}}
         updateMarket={() => {}}
+        selectedTokenId={selectedToken}
+        updateSelectedToken={(v) => selectToken(v)}
     />
     <p slot="about" class="contents" id="about">
         {#if browser}

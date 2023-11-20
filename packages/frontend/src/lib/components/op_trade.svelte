@@ -1,70 +1,61 @@
 <script lang="ts">
-    import {
-        PUBLIC_OP_MAIN_PROGRAM_ADDR,
-        PUBLIC_SOLANA_USDC_ADDR,
-    } from "$env/static/public";
-    import { web3Workspace } from "$lib/web3Workspace";
     import type {
         marketChaindata,
         marketFulldata,
     } from "@am/backend/types/market";
-    import { PublicKey } from "@solana/web3.js";
-    import { IconMinus, IconPlus } from "@tabler/icons-svelte";
-    import { onMount, tick } from "svelte";
-    import { browser } from "$app/environment";
     import {
+        buySharesInstruction,
         getBuyShareAmount,
         getChance,
         getSellUsdcLimit,
-        getUserShares,
-        buySharesInstruction,
         USDC_PER_DOLLAR,
     } from "$lib/utils/op";
-    import confetti from "canvas-confetti";
+
+    import { TxStatus, web3Workspace } from "$lib/web3Workspace";
     import { web3Store } from "$lib/web3Store";
-    import LoadingOverlay from "$lib/components/loading_overlay.svelte";
-    import type {
-        pmMarketFulldata,
-        pmTokenData,
-        pmTokenOrderdata,
-    } from "@am/backend/types/market";
     import colors from "tailwindcss/colors";
-    import { fade, scale, slide } from "svelte/transition";
-    import "$lib/styles/range.css";
-    import Toggle from "$lib/elements/toggle.svelte";
-    import {
-        IconChevronDown,
-        IconEaseInOutControlPoints,
-        IconExternalLink,
-        IconLivePhoto,
-    } from "@tabler/icons-svelte";
-    import utils from "$lib/utils";
     import { usd } from "$lib/utils/format";
+    import InputWithSlider from "./input_with_slider.svelte";
+    import TradeLayout from "./trade_layout.svelte";
+    import type { TToken, TTokenPrice } from "$lib/types";
+    import { Modal, modalStore } from "$lib/modals/modalStore";
+    import {
+        PUBLIC_OP_MAIN_PROGRAM_ADDR,
+        PUBLIC_SOLANA_USDC_ADDR,
+    } from "$env/static/public";
+    import { PublicKey, Transaction } from "@solana/web3.js";
+    import confetti from "canvas-confetti";
+    import LoadingOverlay from "./loading_overlay.svelte";
+    import { api } from "$lib/api";
+    import { base58 } from "ethers5/lib/utils";
 
     export let market: marketFulldata;
     export let updateMarket: (market: marketFulldata) => void;
 
-    let selectedToken: { id: string } | undefined;
-    let direction: boolean = false;
+    let tokens: (TTokenPrice & TToken)[] = [
+        {
+            outcome: "Yes",
+            id: "yes",
+            color: colors.emerald[500],
+            ask: 50,
+            bid: 50,
+        },
+        {
+            outcome: "No",
+            id: "no",
+            color: colors.red[500],
+            ask: 50,
+            bid: 50,
+        },
+    ];
 
-    async function selectToken(token: "yes" | "no") {
-        var content = document.getElementById("content");
-        if (selectedToken && selectedToken.id === token) {
+    let selectedToken: TToken | undefined;
+
+    async function selectToken(token: TToken | undefined) {
+        if (selectedToken?.id === token?.id) {
             selectedToken = undefined;
-            if (content) {
-                content.style.minHeight = content.scrollHeight + "px";
-                await utils.mics.delay(50);
-                content.style.minHeight = "";
-                content.style.maxHeight = "";
-            }
         } else {
-            selectedToken = {
-                id: token,
-            };
-            if (content) {
-                await tick();
-                content.style.maxHeight = content.scrollHeight + "px";
-            }
+            selectedToken = token;
         }
     }
 
@@ -76,13 +67,6 @@
         sharesUI: 0,
         valueCents: 0,
     };
-    $: buying =
-        userShares.sharesUI === 0 ||
-        (userShares.shares > 0 && direction) ||
-        (userShares.shares < 0 && !direction);
-    $: summary = buying
-        ? `Buy ${direction ? "'Yes'" : "'No'"} Shares`
-        : `Sell ${userShares.shares < 0 ? "'No'" : "'Yes'"} Shares`;
 
     let defaultMicroUsd = 100;
     let microUsd = 0;
@@ -101,39 +85,34 @@
     let slider: HTMLInputElement;
 
     // capped in beta
-    // $: maxBuy = microUsd + maxGap;
-    $: maxBuy = 10 * USDC_PER_DOLLAR;
-    $: slider
-        ? slider.style.setProperty(
-              "--background-size",
-              `${((microUsd - 0) / ((buying ? maxBuy : maxSell) - 0)) * 100}%`
-          )
-        : undefined;
-    $: browser
+    $: maxBuy = microUsd + step * 100;
+
+    $: selectedToken
         ? recalc(
               market.data.data,
               userShares.shares,
               userShares.sharesUI,
               microUsd,
-              direction
+              selectedToken
           )
         : undefined;
-
-    onMount(async () => {
-        slider = document.getElementById("cents_slider") as HTMLInputElement;
-    });
 
     function recalc(
         data: marketChaindata,
         userShares: bigint,
         userSharesNumber: number,
         microUsdc: number,
-        direction: boolean
+        token: TToken
     ) {
+        const chance = getChance(data.Yes, data.No) * 100
+        tokens[0].bid = chance;
+        tokens[0].ask = chance;
+        tokens[1].ask = 100 - chance;
+        tokens[1].bid = 100 - chance;
         const expected = getBuyShareAmount(
             data,
             Math.round(microUsdc),
-            direction
+            token.id === "yes"
         );
         expectedShares = BigInt(expected.shares.toString());
         expectedChance = expected.newRatio;
@@ -142,155 +121,204 @@
         if (userSharesNumber !== 0)
             maxSell = Number(getSellUsdcLimit(data, userShares));
     }
+
+    async function executeTrade() {
+        const polyAddress = $web3Store?.polymarket?.address;
+        const solanaAddress = $web3Store?.solana?.address;
+
+        loadingMessage = "Creating instructions...";
+
+        if (!$web3Store?.solana || !solanaAddress || !polyAddress) {
+            modalStore.openModal(Modal.login);
+            return;
+        }
+
+        if (!selectedToken) {
+            alert("Please select an outcome...");
+            return;
+        }
+
+        const instructions = await buySharesInstruction(
+            new PublicKey(PUBLIC_SOLANA_USDC_ADDR),
+            new PublicKey(PUBLIC_OP_MAIN_PROGRAM_ADDR),
+            new PublicKey($web3Store.solana.address),
+            new PublicKey(market.data.data.AmmAddress).toBytes(),
+            microUsd,
+            selectedToken.id === "yes",
+            microUsd,
+            0
+        );
+
+        const balance = Number($web3Store.solana.balances.USDC?.amount ?? 0);
+
+        // if (Number($web3Store.solana.balances.USDC?.amount ?? 0) < microUsd) {
+        //     loadingMessage = "Redirecting to checkout...";
+        //     const toppedUp = await $web3Workspace.web3Sol
+        //         .topup((microUsd - balance) / 100)
+        //         .then(() => {
+        //             return true;
+        //         })
+        //         .catch((e) => {
+        //             errorMessage =
+        //                 "Unable to fund your account. Please check the console.";
+        //             console.error(e);
+        //             return false;
+        //         });
+        //     if (!toppedUp) return;
+        // }
+
+        const signedTx = (await $web3Workspace.web3Sol.signTransaction([
+            instructions,
+        ])) as Transaction;
+
+        console.log("Signed create market instruction: ", signedTx);
+
+        loadingMessage = "Sending your transaction...";
+
+        const res = await api.bridgeOpenPredictTransaction.query({
+            amount: microUsd,
+            inputPolyWallet: polyAddress,
+            opTransaction: base58.encode(
+                signedTx.serialize({
+                    requireAllSignatures: false,
+                })
+            ),
+        });
+
+        if(res.error){
+            errorMessage = res.error;
+            return;
+        }
+
+        market.data.PriceHistory.push({
+            Yes: expectedYes,
+            No: expectedNo,
+            Subsidy: market.data.data.Subsidy,
+            At: new Date(Date.now() - 1000),
+        });
+        market.data.data.Yes = expectedYes;
+        market.data.data.No = expectedNo;
+        const userAccount = market.data.UserAccounts.get(solanaAddress);
+        if (userAccount) {
+            market.data.UserAccounts.set(solanaAddress, {
+                ...userAccount,
+                Shares:
+                    userAccount?.Shares +
+                    (selectedToken?.id === "yes"
+                        ? expectedShares
+                        : -1n * expectedShares),
+            });
+        }
+        updateMarket(market);
+
+        loadingMessage = "";
+        completedMessage = "Trade executed!";
+
+        var myCanvas = document.createElement("canvas");
+        myCanvas.className =
+            "absolute top-0 left-0 w-full h-full z-20 pointer-events-none";
+        document.body.appendChild(myCanvas);
+        var myConfetti = confetti.create(myCanvas, {
+            resize: true,
+        });
+
+        myConfetti({
+            particleCount: 200,
+        });
+
+        setTimeout(() => {
+            completedMessage = "";
+            myConfetti.reset();
+            document.body.removeChild(myCanvas);
+            // onClose();
+        }, 5000);
+        // },
+        // (e) => {
+        //     if (e instanceof Error) {
+        //         errorMessage = e.message;
+        //     } else {
+        //         errorMessage =
+        //             "Couldn't execute your trade, please try again.";
+        //     }
+        // }
+    }
 </script>
 
-<div class="flex flex-col gap-4">
-    <div class="flex flex-col gap-2">
-        <div class={`flex flex-col gap-4`}>
-            <div class="flex gap-3 col-span-3">
-                <button
-                    on:click={() => selectToken("yes")}
-                    class={`h-10 text-sm w-full rounded-xl font-semibold mt-auto ring-2 ring-emerald-600 ${
-                        selectedToken?.id === "yes"
-                            ? "bg-emerald-600 text-white"
-                            : "text-emerald-600"
-                    }`}
-                >
-                    {"Yes"}
-                </button>
-                <button
-                    on:click={() => selectToken("no")}
-                    class={`h-10 text-sm w-full rounded-xl font-semibold mt-auto ring-2 ring-red-600 ${
-                        selectedToken?.id === "no"
-                            ? "bg-red-600 text-white"
-                            : "text-red-600"
-                    }`}
-                >
-                    {"No"}
-                </button>
-            </div>
-            <div class="content" id="content">
-                {#if selectedToken}
-                    <div
-                        transition:fade={{ duration: 200, delay: 50 }}
-                        class={"flex flex-col gap-4"}
-                    >
-                        <div
-                            class="block overflow-hidden text-sm w-full rounded-xl ring-1 ring-neutral-900/80 bg-white dark:bg-neutral-950"
-                        >
-                            <div
-                                class="w-full h-12 flex justify-between items-center p-2 gap-2 bg-neutral-900/50 rounded-xl ring-1 ring-neutral-900 ring-inset"
-                            >
-                                <button
-                                    on:click={() =>
-                                        (microUsd = Math.max(
-                                            Math.round(microUsd / step) * step -
-                                                step,
-                                            0
-                                        ))}
-                                    class="action_icon"
-                                >
-                                    <IconMinus size={16} />
-                                </button>
-                                <input
-                                    type="string"
-                                    value={usd.format(
-                                        (buying
-                                            ? microUsd
-                                            : Number(expectedShares) *
-                                              (userShares.shares > 0
-                                                  ? chance
-                                                  : 1 - chance)) /
-                                            USDC_PER_DOLLAR
-                                    )}
-                                    on:change={(e) => {
-                                        const allowed =
-                                            e.currentTarget.value.replace(
-                                                /[^0-9.]+/g,
-                                                ""
-                                            );
-                                        const num = parseFloat(allowed);
-                                        if (isNaN(num)) {
-                                            microUsd = defaultMicroUsd;
-                                        } else {
-                                            microUsd = num * USDC_PER_DOLLAR;
-                                            e.currentTarget.value =
-                                                usd.format(
-                                                    microUsd / USDC_PER_DOLLAR
-                                                ); // sometimes wasn't updating
-                                        }
-                                    }}
-                                    class="text-lg max-w-[10rem] text-center text-neutral-300 outline-none bg-transparent"
-                                />
-                                <button
-                                    class="action_icon"
-                                    on:click={() =>
-                                        (microUsd = buying
-                                            ? Math.round(microUsd / step) *
-                                                  step +
-                                              step
-                                            : Math.min(
-                                                  microUsd + step,
-                                                  maxSell
-                                              ))}
-                                >
-                                    <IconPlus size={20} />
-                                </button>
-                            </div>
-                            <div
-                                class="h-9 flex justify-center items-stretch rounded-full p-2 w-full gap-4"
-                            >
-                                <div
-                                    class="flex justify-center items-center w-full px-1 py-1"
-                                >
-                                    <input
-                                        class={direction ? "yes" : "no"}
-                                        type="range"
-                                        id="cents_slider"
-                                        bind:value={microUsd}
-                                        max={buying ? maxBuy : maxSell}
-                                        min={0}
-                                    />
-                                </div>
-                                {#if !buying}
-                                    <button
-                                        on:click={() => (microUsd = maxSell)}
-                                        class={`rounded-lg font-semibold whitespace-nowrap bg-white text-black ring-1 ring-gray-300 text-xs px-2.5 hover:shadow-md`}
-                                    >
-                                        Sell Max
-                                    </button>
-                                {/if}
-                            </div>
-                        </div>
-                        <div class="text-neutral-400">
-                            {#if !buying}
-                                <div
-                                    class="pb-2 text-sm flex justify-between items-center"
-                                >
-                                    <span class="">
-                                        {`Your ${
-                                            userShares.shares > 0
-                                                ? "'Yes'"
-                                                : "'No'"
-                                        } shares`}
-                                    </span>
-                                    <span class="text-black">
-                                        {Math.abs(userShares.sharesUI)}
-                                    </span>
-                                </div>
-                            {/if}
-                            <div
-                                class="py-2 text-sm flex justify-between items-center"
-                            >
-                                {#if buying}
-                                    <span class="">Shares</span>
-                                    <span>
-                                        {(
-                                            Number(expectedShares) /
-                                            USDC_PER_DOLLAR
-                                        ).toFixed(2)}
-                                    </span>
-                                {:else}
+<TradeLayout
+    {tokens}
+    selectToken={(t) => selectToken(t)}
+    execute={() => executeTrade()}
+    {selectedToken}
+>
+    <LoadingOverlay
+        variant={selectedToken?.id === "yes" ? "green" : "red"}
+        {loadingMessage}
+        {errorMessage}
+        {completedMessage}
+        onClose={() => {
+            if (!errorMessage) {
+                // onClose();
+            }
+            loadingMessage = "";
+            errorMessage = "";
+            completedMessage = "";
+        }}
+    />
+    {#if selectedToken}
+        <InputWithSlider
+            {step}
+            outcome={selectedToken.id.toLowerCase()}
+            bind:value={microUsd}
+            onChange={(e) => {
+                const allowed = e.currentTarget.value.replace(/[^0-9.]+/g, "");
+                const num = parseFloat(allowed);
+                if (isNaN(num)) {
+                    microUsd = defaultMicroUsd;
+                } else {
+                    microUsd = num * USDC_PER_DOLLAR;
+                    e.currentTarget.value = usd.format(
+                        microUsd / USDC_PER_DOLLAR
+                    ); // sometimes wasn't updating
+                }
+            }}
+            formatted={usd.format(
+                (true //buying
+                    ? microUsd
+                    : Number(expectedShares) *
+                      (userShares.shares > 0 ? chance : 1 - chance)) /
+                    USDC_PER_DOLLAR
+            )}
+            max={maxBuy}
+            min={0}
+        />
+        <!-- {#if !buying} -->
+        <!-- <button
+            on:click={() => (microUsd = maxSell)}
+            class={`rounded-lg font-semibold whitespace-nowrap bg-white text-black ring-1 ring-gray-300 text-xs px-2.5 hover:shadow-md`}
+        >
+            Sell Max
+        </button> -->
+        <!-- {/if} -->
+        <div class="text-neutral-400">
+            <!-- {#if !buying}
+                <div class="pb-2 text-sm flex justify-between items-center">
+                    <span class="">
+                        {`Your ${
+                            userShares.shares > 0 ? "'Yes'" : "'No'"
+                        } shares`}
+                    </span>
+                    <span class="text-black">
+                        {Math.abs(userShares.sharesUI)}
+                    </span>
+                </div>
+            {/if} -->
+            <div class="py-2 text-sm flex justify-between items-center">
+                <!-- {#if buying}  -->
+                <span class="">Shares</span>
+                <span>
+                    {(Number(expectedShares) / USDC_PER_DOLLAR).toFixed(2)}
+                </span>
+                <!-- {:else}
                                     <span class="">
                                         {`${
                                             userShares.shares > 0
@@ -304,56 +332,34 @@
                                             USDC_PER_DOLLAR
                                         ).toFixed(2)}
                                     </span>
-                                {/if}
-                            </div>
-                            <div
-                                class="py-2 text-sm flex justify-between items-center"
-                            >
-                                <span class="">New probability</span>
-                                <span class=""
-                                    >{`${(expectedChance * 100).toFixed(
-                                        1
-                                    )}%`}</span
-                                >
-                            </div>
-                            {#if buying}
-                                <div
-                                    class="py-2 text-sm flex justify-between items-center"
-                                >
-                                    <span class="font-semibold"
-                                        >{`Payout if ${
-                                            direction ? "Yes" : "No"
-                                        }`}</span
-                                    >
-                                    <span
-                                        class={`font-semibold text-indigo-400`}
-                                        >{`+ ${usd.format(
-                                            Number(
-                                                (BigInt(expectedShares) -
-                                                    BigInt(microUsd)) /
-                                                    10000n
-                                            ) / 100
-                                        )}`}</span
-                                    >
-                                </div>
-                            {/if}
-                        </div>
-                        <div class="hidden 2xl:flex" />
-                        <button
-                            class={`h-10 rounded-xl font-semibold cursor-pointer ring-1 bg-gradient-to-r from-indigo-800 via-violet-700 to-indigo-700 text-white ring-indigo-600`}
-                        >
-                            {`${summary}`}
-                        </button>
-                    </div>
-                {/if}
+                                {/if} -->
             </div>
+            <div class="py-2 text-sm flex justify-between items-center">
+                <span class="">New probability</span>
+                <span class="">{`${(expectedChance * 100).toFixed(1)}%`}</span>
+            </div>
+            <!-- {#if buying} -->
+            <div class="py-2 text-sm flex justify-between items-center">
+                <span class="font-semibold"
+                    >{`Payout if ${selectedToken.outcome}`}</span
+                >
+                <span class={`font-semibold text-indigo-400`}
+                    >{`+ ${usd.format(
+                        Number(
+                            (BigInt(expectedShares) - BigInt(microUsd)) / 10000n
+                        ) / 100
+                    )}`}</span
+                >
+            </div>
+            <!-- {/if} -->
         </div>
-    </div>
-    <div class="flex flex-col gap-2">
-        <h4 class="font-semibold text-neutral-300 my-1">
-            {`Positions`}
-        </h4>
-        <!-- {#each Array.from(market.orderdata.entries()).slice(0, 1) as token}
+    {/if}
+    <span slot="confirm">
+        {`Buy '${selectedToken?.outcome}' shares`}
+    </span>
+</TradeLayout>
+
+<!-- {#each Array.from(market.orderdata.entries()).slice(0, 1) as token}
             {#each token[1].positions.slice(0, 1) as position}
                 <PmPosition
                     {market}
@@ -363,5 +369,3 @@
                 />
             {/each}
         {/each} -->
-    </div>
-</div>

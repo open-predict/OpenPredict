@@ -153,7 +153,7 @@ export abstract class Web3 {
 
   public async login(email: string): Promise<void> {
     if (!this.web3Auth) {
-      console.error("web3auth not initialized");
+      console.error("web3auth not initialized...");
       return;
     }
     await this.web3Auth.connectTo(
@@ -170,7 +170,7 @@ export abstract class Web3 {
       await this.torus.connect();
       await this.torus.torusWalletInstance.hideTorusButton();
     } else {
-      throw new Error("Could not connect torus")
+      throw new Error("Couldn't login, cannot connect torus...")
     }
   }
 
@@ -183,7 +183,11 @@ export abstract class Web3 {
   }
 
   public async loggedIn() {
-    return await this.web3Auth?.connected
+    if(!this.web3Auth){
+      console.error("Not logged in, no web3Auth instance...")
+      return false;
+    }
+    return await this.web3Auth.connected
   }
 
   public async topup(cents: number) {

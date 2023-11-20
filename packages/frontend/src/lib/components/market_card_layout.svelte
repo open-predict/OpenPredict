@@ -6,32 +6,32 @@
 <div
     class={`group w-full max-w-full bg-white dark:bg-neutral-950 ring-inset ${
         small
-            ? "rounded-lg ring-1 ring-inset ring-neutral-950 hover:dark:ring-indigo-950"
+            ? "rounded-lg ring-1 ring-inset ring-neutral-200 dark:ring-neutral-950 hover:dark:ring-indigo-950"
             : "p-3"
     }`}
 >
     <a href={`/${href}`} class="group/link max-w-full">
         <div class="w-full max-w-full py-1.5 lg:p-2 xl:p-4">
             <div class="w-full flex flex-col justify-start gap-4">
-                <div
-                    class="relative w-full flex justify-between items-center flex-nowrap gap-2"
-                >
+                {#if !small}
                     <div
-                        class="relative w-9/10 max-w-9/10 grow overflow-hidden"
+                        class="relative w-full flex justify-between items-center flex-nowrap gap-2"
                     >
                         <div
-                            class="absolute h-full w-20 bg-gradient-to-r from-transparent dark:to-neutral-950 to-white right-0"
-                        />
-                        <div
-                            class="w-full flex justify-start gap-2 items-center overflow-x-scroll scrollbar_hide pr-20"
+                            class="relative w-9/10 max-w-9/10 grow overflow-hidden"
                         >
-                            <slot name="pills" />
+                            <div
+                                class="absolute h-full w-20 bg-gradient-to-r from-transparent dark:to-neutral-950 to-white right-0"
+                            />
+                            <div
+                                class="w-full flex justify-start gap-2 items-center overflow-x-scroll scrollbar_hide pr-20"
+                            >
+                                <slot name="pills" />
+                            </div>
                         </div>
-                    </div>
-                    {#if !small}
                         <slot name="header_right" />
-                    {/if}
-                </div>
+                    </div>
+                {/if}
                 {#if $$slots["extra_content"]}
                     <div
                         class={`w-full ${
@@ -45,24 +45,28 @@
                     class="flex w-full min-w-full align-top gap-4 justify-between items-start flex-nowrap"
                 >
                     <h2
-                        class={`font-semibold w-full group-hover:underline group-visited/link:dark:text-indigo-200 group-visited/link:text-indigo-900 ${
-                            small ? "text-sm" : "text-lg lg:text-xl"
+                        class={`w-full group-hover:underline group-visited/link:dark:text-indigo-200 group-visited/link:text-indigo-900 ${
+                            small ? "text-sm font-medium" : "text-lg font-semibold lg:text-xl"
                         }`}
                     >
                         <slot name="title" />
                     </h2>
-                    <div class="ml-auto flex items-start justify-start">
-                        <div class="ml-3 flex flex-col justify-start items-end flex-nowrap">
-                            <h2
-                                class={`font-bold whitespace-nowrap ${
-                                    small ? "text-md" : "text-md lg:text-xl"
-                                }`}
+                    {#if !small}
+                        <div class="ml-auto flex items-start justify-start">
+                            <div
+                                class="ml-3 flex flex-col justify-start items-end flex-nowrap"
                             >
-                                <slot name="chance" />
-                            </h2>
-                            <slot name="context" />
+                                <h2
+                                    class={`font-bold whitespace-nowrap ${
+                                        small ? "text-md" : "text-md lg:text-xl"
+                                    }`}
+                                >
+                                    <slot name="chance" />
+                                </h2>
+                                <slot name="context" />
+                            </div>
                         </div>
-                    </div>
+                    {/if}
                 </div>
                 {#if !small}
                     <div

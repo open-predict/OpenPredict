@@ -13,6 +13,7 @@
 	import type { AppRouterOutputs } from "@am/backend/server/routers/_app";
 	import type { TMarket } from "$lib/types";
     import { browser } from "$app/environment";
+    import { marketsFromSearch } from "$lib/utils";
 	export let data;
 
 	$: pageData = superjson.deserialize<TPageData>(data);
@@ -30,39 +31,9 @@
 			console.error(pageData.error);
 		}
 		if (pd.searchResults?.data) {
-			pd.searchResults.data.forEach(({ opMarket, pmMarket }) => {
-				if (opMarket) {
-					const id = new PublicKey(
-						opMarket.data.data.AmmAddress
-					).toBase58();
-					_markets.push({
-						opMarket: {
-							...opMarket,
-							likeNo: pd.searchResults?.meta.likeNo[id] ?? 0,
-							commentNo: pd.searchResults?.meta.likeNo[id] ?? 0,
-						},
-						pmMarket: undefined,
-					});
-				}
-				if (pmMarket) {
-					_markets.push({
-						pmMarket: {
-							...pmMarket,
-							likeNo:
-								pd.searchResults?.meta.likeNo[
-									pmMarket.data.condition_id
-								] ?? 0,
-							commentNo:
-								pd.searchResults?.meta.likeNo[
-									pmMarket.data.condition_id
-								] ?? 0,
-						},
-						opMarket: undefined,
-					});
-				}
-			});
+			_markets =  marketsFromSearch(pd.searchResults);
 		}
-		return _markets;
+		return _markets
 	};
 
 	let markets: TMarket[] = [];

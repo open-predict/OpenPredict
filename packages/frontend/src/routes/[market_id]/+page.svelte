@@ -23,11 +23,15 @@
     import LikeButton from "$lib/elements/like_button.svelte";
     import type { MarketSearchResult } from "@am/backend/server/routers/_app.js";
     import type { TMarket } from "$lib/types.js";
+    import PmTrade from "$lib/components/pm_trade.svelte";
+    import { marketsFromSearch } from "$lib/utils/mics.js";
 
     export let data;
 
     $: pageData = superjson.deserialize<TMarketIdPageData>(data);
     $: ({ opUsers, pmMarket, opMarket, pmUsers, id } = pageData);
+
+    let selectedToken = "";
 
     enum Tabs {
         Comments = "comments",
@@ -89,7 +93,21 @@
     let relatedMarkets: TMarket[] = [];
 
     onMount(async () => {
-        // relatedMarkets = await api.getRelatedMarkets();
+        api.searchMarkets
+            .query({
+                orderBy: "volume",
+            })
+            .then((result) => {
+                relatedMarkets = marketsFromSearch(result);
+            })
+            .catch((e) => {
+                if (browser)
+                    alert(
+                        "Error requesting markets. Please check the console."
+                    );
+                console.error(e);
+            });
+
         // const bottomIndicator =
         //     window.document.getElementById("bottom_indicator");
         // if (bottomIndicator) {
@@ -145,6 +163,8 @@
                 {opUsers}
                 {pmUsers}
                 market={pmMarket}
+                {selectedToken}
+                selectToken={(v) => (selectedToken = v)}
                 updateMarket={(m) => {}}
             />
         {/if}
@@ -264,20 +284,34 @@
             </div>
         {/if} -->
     </div>
-    <div slot="right" class="flex flex-col gap-4">
-        {#if opMarket}
-            <!-- {#if creator}
+    <div slot="right_sticky">
+        {#if $web3Store?.polygon?.address}
+            <!-- {#if pmMarket}
+                <div class="p-4 xl:pr-0 gap-4 border-b border-neutral-200 dark:border-neutral-900">
+                    <h6 class="font-semibold text-lg">
+                        Trade
+                    </h6>
+                    <PmTrade
+                        market={pmMarket}
+                        updateMarket={(m) => {}}
+                        selectedTokenId={selectedToken}
+                        updateSelectedToken={(v) => (selectedToken = v)}
+                    />
+                </div>
+            {/if} -->
+            <!-- {#if opMarket}
+            {#if creator}
                 <div
                     class="ring-1 rounded-3xl bg-white ring-gray-200 flex flex-col"
                 >
                     <CreatorControls {market} {updateMarket} />
                 </div>
-            {/if} -->
+            {/if}
             {#if $web3Store?.solana?.address}
                 <div
                     class="ring-1 rounded-3xl bg-white ring-gray-200 flex flex-col"
                 >
-                    <!-- <div class="flex flex-col gap-2 divide-gray-200 p-8">
+                    <div class="flex flex-col gap-2 divide-gray-200 p-8">
                         {#if market.data.data.Resolved !== null}
                             <h4 class="text-lg">
                                 {`Market resolved as ${
@@ -296,10 +330,14 @@
                     </div>
                     <div class="px-5 pb-5 flex gap-2.5">
                         <MarketActions {market} small {updateMarket} />
-                    </div> -->
+                    </div> 
                 </div>
             {/if}
+        {/if} -->
         {/if}
+    </div>
+    <div slot="right" class="relative flex flex-col gap-4 p-4 pr-0">
+        <h6 class="font-medium">Related markets</h6>
         {#each relatedMarkets.reverse() as market}
             {#if market.opMarket}
                 <OpMarketCard
@@ -315,6 +353,6 @@
                 />
             {/if}
         {/each}
-        <div id="bottom_indicator" class="opacity-0" />
+        <div id="bottom_indicator" />
     </div>
 </ColumnLayout>

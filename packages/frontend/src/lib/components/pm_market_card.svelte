@@ -93,7 +93,7 @@
             })}`}
         </Pill>
     </div>
-    <MenuButton slot="header_right" strategy="fixed">
+    <MenuButton slot="header_right">
         <div slot="target" class="action_icon h-6 w-6">
             <IconDotsVertical size={14} />
         </div>

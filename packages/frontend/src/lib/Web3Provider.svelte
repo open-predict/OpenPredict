@@ -53,12 +53,13 @@
       web3Evm = (await Web3.create(Network.Polygon)) as EVM;
       web3Workspace.update((v) => ({ ...v, web3Evm }));
     }
-    if (web3Evm && (await web3Evm.loggedIn())) {
+    if (await web3Evm.loggedIn()) {
       createClob().then(() => console.log("Polyclob created..."));
       refreshAddress("polygon").then(() => refreshBalance("polymarket"));
       refreshAddress("polymarket").then(() => refreshBalance("polymarket"));
       return true;
     } else {
+      console.log("web3Evm not logged in...")
       return false;
     }
   };
@@ -68,11 +69,12 @@
       web3Sol = (await Web3.create(Network.Solana)) as SOL;
       web3Workspace.update((v) => ({ ...v, web3Sol }));
     }
-    if (web3Sol && (await web3Sol.loggedIn())) {
+    if (await web3Sol.loggedIn()) {
       refreshAddress("solana").then(() => refreshBalance("solana"));
       refreshAddress("solanaUsdc").then(() => refreshBalance("solanaUsdc"));
       return true;
     } else {
+      console.log("web3Sol not logged in...")
       return false;
     }
   };
@@ -287,8 +289,10 @@
       return false;
     }
     try {
-      await web3Evm.login(email);
-      return await Promise.race([initializeEvm(), initializeSol()]);
+      const res = await web3Evm.login(email);
+      console.log("web3Evm login finished:", res, "reiniting web3...")
+      console.log("init resolved:", await Promise.all([initializeEvm(), initializeSol()]));
+      return true;
     } catch (err) {
       alert(err);
       log("error", FILE, err);

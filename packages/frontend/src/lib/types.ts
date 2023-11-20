@@ -35,9 +35,18 @@ export type TMarket = {
     opMarket?: TOpMarket
 }
 
-export type TTokenData = {
-    outcome: string,
+export type TToken = {
+    outcome: string, 
+    id: string, 
     color: string,
+}
+
+export type TTokenPrice = {
+    ask: number // cents
+    bid: number
+}
+
+export type TTokenData = TToken & {
     data: {
         date: Date;
         price: number;

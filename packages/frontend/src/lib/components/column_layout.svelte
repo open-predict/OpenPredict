@@ -74,32 +74,33 @@
     <!-- right column -->
     <div class="hidden relative md:block md:w-5/12 lg:w-4/12 xl:w-4/12">
         <div class="h-full max-w-xs">
-            <div class="sticky top-0 w-full h-16 z-50">
-                <div
-                    class="h-full w-full flex justify-end items-center gap-2 border-b border-neutral-200 dark:border-neutral-900 dark:bg-black/80"
-                >
-                    <!-- {#if $web3Store?.polygon !== null}
+            <div
+                class="sticky top-0 z-[2] w-full h-16 flex justify-end items-center gap-2 border-b border-neutral-200 dark:border-neutral-900 bg-neutral-50/80 dark:bg-black/80"
+            >
+                <!-- {#if $web3Store?.polygon !== null}
                         <div
                             class="flex flex-nowrap justify-evenly overflow-hidden w-48 items-center rounded-2xl ring-1 h-10 divide-x bg-white ring-neutral-200 dark:bg-neutral-950 dark:ring-neutral-900 divide-neutral-900"
                         >
                             <WalletWidget />
                         </div>
                     {/if} -->
-                    <UserButton />
-                </div>
+                <UserButton />
+            </div>
+            <div
+                class="sticky top-16 w-full z-[1] bg-neutral-50/80 dark:bg-black/80"
+            >
                 {#if $web3Store?.polygon === null}
-                <div
-                    class="flex flex-col p-4 xl:pr-0 gap-4 border-b border-neutral-200 dark:border-neutral-900"
-                >
-                    <div class="p-3">
+                    <div class="p-4 pr-0 border-b border-neutral-200 dark:border-neutral-900">
+                        <div
+                        class="flex flex-col p-6 gap-4 rounded-xl overflow-hidden ring-1 dark:ring-0 bg-white dark:bg-neutral-950 ring-neutral-200 dark:ring-neutral-900"
+                        >
                         <Login />
                     </div>
                 </div>
                 {/if}
+                <slot name="right_sticky" />
             </div>
-            <div class="flex flex-col p-4 xl:pr-0 gap-4">
-                <slot name="right" />
-            </div>
+            <slot name="right" />
         </div>
     </div>
 </div>

@@ -21,7 +21,7 @@
     let mobileModal = false;
 </script>
 
-<MenuButton strategy="absolute">
+<MenuButton>
     <button
         slot="target"
         on:click={() => {
@@ -31,10 +31,10 @@
     >
         <div class="relative inline-block">
             <div class="w-7 h-7 rounded-xl overflow-hidden">
-                {#if $web3Store?.solanaAddress}
+                {#if $web3Store?.solana}
                     <img
                         src={utils.mics.generateProfileImage(
-                            $web3Store?.solanaAddress
+                            $web3Store?.solana.address
                         )}
                         alt="profile"
                     />
@@ -46,7 +46,7 @@
                     </div>
                 {/if}
             </div>
-            {#if $web3Store?.solanaAddress}
+            {#if $web3Store?.solana}
                 <div
                     class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-emerald-400 ring-4 ring-white dark:ring-neutral-900"
                 />

@@ -26,5 +26,7 @@ export async function load() {
     data.error = e;
   }
 
+  console.log("Empty responses:", data.searchResults?.data.filter(r => !r.opMarket || !r.pmMarket).length)
+
   return superjson.serialize(data);
 }
