@@ -1,19 +1,28 @@
 <script lang="ts">
-    import type { pmMarketFulldata, pmTokenPosition, pmTokenData } from "@am/backend/types/market";
+    import type {
+        pmMarketFulldata,
+        pmTokenPosition,
+        pmTokenData,
+    } from "@am/backend/types/market";
     import { delay } from "$lib/utils";
     import { IconChevronDown } from "@tabler/icons-svelte";
     import { tick } from "svelte";
     import { fade } from "svelte/transition";
+    import type { TToken } from "$lib/types";
 
-    export let market: pmMarketFulldata;
-    export let updateMarket: (market: pmMarketFulldata) => void;
-    export let position: pmTokenPosition;
-    export let token: pmTokenData;
+    // export let market: pmMarketFulldata;
+    // export let updateMarket: (market: pmMarketFulldata) => void;
+    // export let position: pmTokenPosition;
+    // export let token: pmTokenData;
+    export let token: TToken;
+    export let shares: number;
+    export let value: string;
+    export let sell: () => void;
 
     let expanded = false;
 
     async function toggle() {
-        var content = document.getElementById(`pos_${token.token_id}`);
+        var content = document.getElementById(`pos_${token.id}`);
         if (content) {
             if (expanded) {
                 expanded = false;
@@ -30,68 +39,44 @@
     }
 </script>
 
-<div
-    class="flex flex-col text-neutral-400 rounded-xl ring-neutral-900 overflow-hidden"
->
+<div class="flex flex-col">
     <div
-        class={`flex pl-3 pr-1 py-1 w-full justify-between items-center transition-colors ${expanded ? "bg-neutral-900": "bg-neutral-950"}`}
+        class={`flex p-3 w-full justify-between items-center transition-colors`}
     >
         <p class="text-neutral-500 text-sm font-semibold">
-            <span class="text-emerald-400">
-                {` ${290} ${token.outcome}`}
+            <span
+                class={token.outcome === "Yes"
+                    ? "text-emerald-600 dark:text-emerald-500"
+                    : "text-red-600 dark:text-red-500"}
+            >
+                {`${token.outcome} shares`}
             </span>
         </p>
-        <button
-            on:click={toggle}
-            class="ring-transparent h-7 w-7 hover:bg-neutral-800 rounded-lg flex justify-center items-center hover:text-white"
-        >
-            <IconChevronDown size={18} class={`transition-all ${expanded ? "" : "-rotate-90"}`} />
-        </button>
     </div>
-    <div class="content" id={`pos_${token.token_id}`}>
-        {#if expanded}
-            <div
-                transition:fade={{ duration: 200, delay: 50 }}
-                class="flex flex-nowrap justify-between items-end p-3 bg-neutral-950"
-            >
-                <div class="grid grid-cols-2 w-full gap-3">
-                    <div class="col-span-1 flex flex-col">
-                        <span class="text-xs font-medium">
-                            {"Value"}
-                        </span>
-                        <span class="text-md text-neutral-300">
-                            {"$893.32"}
-                        </span>
-                    </div>
-                    <div class="col-span-1 flex flex-col">
-                        <span class="text-xs font-medium">
-                            {"Profit"}
-                        </span>
-                        <span class="text-md text-neutral-300">
-                            {"$603.32"}
-                        </span>
-                    </div>
-                    <div class="col-span-1 flex flex-col">
-                        <span class="text-xs font-medium">
-                            {"Spent"}
-                        </span>
-                        <span class="text-md text-neutral-300">
-                            {"$200.00"}
-                        </span>
-                    </div>
-                    <div class="col-span-1 flex flex-col">
-                        <span class="text-xs font-medium">
-                            {"Payout"}
-                        </span>
-                        <span class="text-md text-neutral-300">
-                            {"$1.9K"}
-                        </span>
-                    </div>
-                </div>
-                <div>
-                    <button class="btn_secondary w-24 xl:w-32">Sell</button>
-                </div>
+    <div
+        transition:fade={{ duration: 200, delay: 50 }}
+        class="flex flex-nowrap justify-between items-end p-3"
+    >
+        <div class="grid grid-cols-2 w-full gap-3">
+            <div class="col-span-1 flex flex-col">
+                <h6 class="text-xs font-medium">
+                    {"Shares"}
+                </h6>
+                <p class="text-md">
+                    {shares}
+                </p>
             </div>
-        {/if}
+            <div class="col-span-1 flex flex-col">
+                <h6 class="text-xs font-medium">
+                    {"Value"}
+                </h6>
+                <p class="text-md">
+                    {value}
+                </p>
+            </div>
+        </div>
+        <button on:click={sell} class="btn_secondary w-24 xl:w-32">
+            Sell
+        </button>
     </div>
 </div>

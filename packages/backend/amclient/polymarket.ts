@@ -1,9 +1,9 @@
-import {Chain, ClobClient} from "@polymarket/clob-client";
-import {pmMarketData, pmMarketFulldata, pmTokenFilledOrder} from "../types/market.js";
-import {WebSocket} from "ws";
+import { Chain, ClobClient } from "@polymarket/clob-client";
+import { pmMarketData, pmMarketFulldata, pmTokenFilledOrder } from "../types/market.js";
+import { WebSocket } from "ws";
 import fetch from "node-fetch";
-import {ethers} from "ethers";
-import {msearch} from "../index.js";
+import { ethers } from "ethers";
+import { msearch } from "../index.js";
 
 const tempwallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey);
 const pmclient = new ClobClient(process.env.CLOB_HOST || "https://polyclob.openpredict.org", Chain.POLYGON, tempwallet);
@@ -30,7 +30,7 @@ class PmChainCache {
 
   private pushClientRequest<T>(x: Promise<T>, y: (v: T) => Promise<void>, z: (e: Error) => Promise<void>): void {
     this.clientRequestNeck.push([x, y, z])
-    this.drainClientRequests().then(_ => {})
+    this.drainClientRequests().then(_ => { })
   }
 
   clientRequestNeck: [Promise<any>, (x: any) => Promise<void>, (e: Error) => Promise<void>][] = []
@@ -54,9 +54,9 @@ class PmChainCache {
   }
 
   marketWsActive = false
-  marketWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`)
   liveActivityWsActive = false
-  liveActivityWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/live-activity`)
+  marketWs: WebSocket | undefined; // = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`)
+  liveActivityWs: WebSocket | undefined // = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/live-activity`)
 
   constructor() {
     this.startLiveActivityWs();
@@ -105,97 +105,113 @@ class PmChainCache {
   }
 
   private trackOrderBooks(tokens: string[]) {
-    var marketWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`);
-    console.log("Tracking token ids: ", tokens)
-    marketWs.on("open", () => {
-      console.log("book ws opened")
-      var restarted = false;
-      this.marketWs.on("close", (code, reason) => {
-        console.log("market ws closed: ", code, reason.toString(), this.marketWsActive)
-        if (!restarted) {
-          this.trackOrderBooks(tokens)
-          restarted = true;
-        }
+    try {
+      this.marketWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`);
+      this.marketWs.onerror = (e) => {
+        console.error(e)
+      }
+      console.log("Tracking token ids: ", tokens)
+      this.marketWs.on("open", () => {
+        console.log("book ws opened")
+        var restarted = false;
+        this.marketWs?.on("close", (code, reason) => {
+          console.log("market ws closed: ", code, reason.toString(), this.marketWsActive)
+          if (!restarted) {
+            this.trackOrderBooks(tokens)
+            restarted = true;
+          }
+        })
+        this.marketWs?.on("error", (err) => {
+          console.log("market ws err: ", err)
+          if (!restarted) {
+            this.trackOrderBooks(tokens)
+            restarted = true;
+          }
+        })
+        this.marketWsActive = true
+        const asset_ids = [...(new Set([
+          ...[...this.marketData.values()].reduce(
+            (p, v) => {
+              if (v.active && !v.closed) {
+                return [...p, ...v.tokens.map(v => v.token_id)]
+              } else {
+                return p;
+              }
+            }, <string[]>[]
+          ),
+        ])).values()]
+        var sendingReq = JSON.stringify({
+          auth: {},
+          type: "market",
+          markets: [] as string[],
+          assets_ids: asset_ids,
+        })
+        this.marketWs?.send(sendingReq);
+        (this.marketWs as WebSocket).onmessage = (msg: any) => {
+          var resp: any
+          try {
+            resp = JSON.parse(msg.data)
+          } catch {
+            return;
+          }
+          if (resp['event_type'] instanceof String && resp['event_type'].toLowerCase() == 'book' && resp['asset_id'] != null && resp['buys'] != null && resp['sells'] != null) {
+            this.orderBooks.set(resp['asset_id'], {
+              asks: resp['asks'].map((ask: { size: string, price: string }) => [new Number(ask.price), new Number(ask.size)]),
+              bids: resp['buys'].map((bid: { size: string, price: string }) => [new Number(bid.price), new Number(bid.size)]),
+            })
+          }
+        };
       })
-      this.marketWs.on("error", (err) => {
-        console.log("market ws err: ", err)
-        if (!restarted) {
-          this.trackOrderBooks(tokens)
-          restarted = true;
-        }
-      })
-      this.marketWsActive = true
-      const asset_ids = [...(new Set([
-        ...[...this.marketData.values()].reduce(
-          (p, v) => {
-            if (v.active && !v.closed) {
-              return [...p, ...v.tokens.map(v => v.token_id)]
-            } else {
-              return p;
-            }
-          }, <string[]>[]
-        ),
-      ])).values()]
-      var sendingReq = JSON.stringify({
-        auth: {},
-        type: "market",
-        markets: [] as string[],
-        assets_ids: asset_ids,
-      })
-      this.marketWs.send(sendingReq)
-      this.marketWs.onmessage = (msg: any) => {
-        var resp: any
-        try {
-          resp = JSON.parse(msg.data)
-        } catch {
-          return;
-        }
-        if (resp['event_type'] instanceof String && resp['event_type'].toLowerCase() == 'book' && resp['asset_id'] != null && resp['buys'] != null && resp['sells'] != null) {
-          this.orderBooks.set(resp['asset_id'], {
-            asks: resp['asks'].map((ask: {size: string, price: string}) => [new Number(ask.price), new Number(ask.size)]),
-            bids: resp['buys'].map((bid: {size: string, price: string}) => [new Number(bid.price), new Number(bid.size)]),
-          })
-        }
-      };
-    })
+    } catch (e) {
+      console.error("error tracking orderbooks:", e)
+    }
   }
 
   private startLiveActivityWs() {
-    this.liveActivityWs.on("open", () => {
-      this.liveActivityWsActive = true
-      this.liveActivityWs.on("close", (code, reason) => {
-        console.log("live activity ws closed: ", code, reason.toString())
-        if (this.liveActivityWsActive) {
-          this.liveActivityWsActive = false
-          this.liveActivityWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`);
-          this.startLiveActivityWs()
-        }
-      })
-      this.liveActivityWs.on("error", (err) => {
-        console.log("live activity ws err: ", err)
-        if (this.liveActivityWsActive) {
-          this.liveActivityWsActive = false
-          this.liveActivityWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`);
-          this.startLiveActivityWs()
-        }
-      })
-      this.liveActivityWs.onmessage = (msg: any) => {
-        var resp: any
-        try {
-          resp = JSON.parse(msg.data)
-        } catch {
-          return;
-        }
-        console.log("LiveActivity update: ", resp);
-        if (resp instanceof Array) {
-          for (var i = 0; i < resp.length; i++) {
-            this.processActivityNotification(resp[i])
+    try {
+      this.liveActivityWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/live-activity`)
+      this.liveActivityWs.onerror = (e) => {
+        console.error(e)
+      }
+      this.liveActivityWs.on("open", () => {
+        this.liveActivityWsActive = true
+        this.liveActivityWs?.on("close", (code, reason) => {
+          console.log("live activity ws closed: ", code, reason.toString())
+          if (this.liveActivityWsActive) {
+            this.liveActivityWsActive = false
+            this.liveActivityWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`);
+            this.startLiveActivityWs()
           }
-        } else {
-          this.processActivityNotification(resp)
-        }
-      };
-    })
+        })
+        this.liveActivityWs?.on("error", (err) => {
+          console.log("live activity ws err: ", err)
+          if (this.liveActivityWsActive) {
+            this.liveActivityWsActive = false
+            this.liveActivityWs = new WebSocket(`${process.env.CLOB_WS_HOST || "wss://polyclob-ws.openpredict.org"}/market`);
+            this.startLiveActivityWs()
+          }
+        });
+        (this.liveActivityWs as WebSocket).onmessage = (msg: any) => {
+          var resp: any
+          try {
+            resp = JSON.parse(msg.data)
+          } catch {
+            return;
+          }
+          console.log("LiveActivity update: ", resp);
+          if (resp instanceof Array) {
+            for (var i = 0; i < resp.length; i++) {
+              this.processActivityNotification(resp[i])
+            }
+          } else {
+            this.processActivityNotification(resp)
+          }
+        };
+      })
+
+    } catch (e) {
+      console.error("error in live activity ws:", e);
+    }
   }
 
   public setMarketData(data: pmMarketData[]) {
@@ -300,7 +316,7 @@ class PmChainCache {
         return [t, {
           filledOrders: _filledOrders,
           positions: _positions,
-          book: this.orderBooks.get(t) ?? {asks: [], bids: []},
+          book: this.orderBooks.get(t) ?? { asks: [], bids: [] },
         }]
       })),
       meta: {

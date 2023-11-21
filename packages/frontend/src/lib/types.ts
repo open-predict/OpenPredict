@@ -11,7 +11,7 @@ export type TPmMarket = AppRouterOutputs['getPmMarket']['data'] & {
     commentNo: number,
 }
 
-export type TOpMarket = AppRouterOutputs['getMarket']['market'] & {
+export type TOpMarket = AppRouterOutputs['getMarket']['data'] & {
     likeNo: number,
     commentNo: number,
 }
@@ -46,9 +46,11 @@ export type TTokenPrice = {
     bid: number
 }
 
+export type TTokenPricePoint = {
+    time: Date;
+    price: number; // dollars default
+}
+
 export type TTokenData = TToken & {
-    data: {
-        date: Date;
-        price: number;
-    }[];
+    data: TTokenPricePoint[];
 }

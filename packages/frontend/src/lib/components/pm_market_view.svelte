@@ -103,7 +103,7 @@
         </Pill>
     </div>
     <div class="contents" slot="interactive">
-        <div class="max-h-[400px] overflow-y-scroll scrollbar_hide">
+        <div class="h-full max-h-full overflow-y-scroll scrollbar_hide">
             {#if selectedView === "Chart"}
                 <PmChart {market} />
                 <div />

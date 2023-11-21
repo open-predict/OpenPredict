@@ -15,7 +15,7 @@
     <div
         class="sticky top-0 hidden md:block md:w-1/12 lg:w-2/12 xl:w-3/12 max-h-screen"
     >
-        <div class="ml-auto max-w-xs h-full">
+        <div class="ml-auto max-w-[16rem] h-full">
             <a
                 href="/"
                 class="flex justify-center p-2.5 xl:pl-0 gap-1 lg:justify-start items-center h-16 border-b border-neutral-200 dark:border-neutral-900"
@@ -73,7 +73,7 @@
 
     <!-- right column -->
     <div class="hidden relative md:block md:w-5/12 lg:w-4/12 xl:w-4/12">
-        <div class="h-full max-w-xs">
+        <div class="h-full max-w-[22rem]">
             <div
                 class="sticky top-0 z-[2] w-full h-16 flex justify-end items-center gap-2 border-b border-neutral-200 dark:border-neutral-900 bg-neutral-50/80 dark:bg-black/80"
             >

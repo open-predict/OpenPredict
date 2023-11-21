@@ -1,9 +1,4 @@
 <script lang="ts">
-    import type {
-        marketPricePoint,
-        pmMarketFulldata,
-        pmTokenData,
-    } from "@am/backend/types/market";
     import {
         line,
         curveLinear,
@@ -17,23 +12,12 @@
         type ScaleLinear,
     } from "d3";
 
-    import {
-        PriceHistoryTerm,
-        resamplePmPriceHistory,
-    } from "$lib/components/charts/utils";
     import { format } from "$lib/utils";
-    import colors from "tailwindcss/colors";
-    import { api } from "$lib/api";
-    import {
-        PriceHistoryInterval,
-        type MarketPrice,
-        ClobClient,
-        Chain,
-    } from "$lib/clob";
     import { IconLoader, IconLoader2 } from "@tabler/icons-svelte";
     import type { TTokenData } from "$lib/types";
+    import { PriceHistoryInterval } from "$lib/clob";
 
-    export let term: PriceHistoryTerm = PriceHistoryTerm.DAY;
+    export let term: PriceHistoryInterval = PriceHistoryInterval.ONE_DAY;
     export let tokenData: Record<string, TTokenData>;
 
     const marginTop = 10;
@@ -78,8 +62,7 @@
         voronoiGrid: Voronoi<Delaunay.Point>,
         xTicks: Date[],
         xTicksFormatted: string[],
-        yTicks: number[],
-        graphReady: boolean = false;
+        yTicks: number[];
 
     async function createGraph() {
         try {
@@ -114,13 +97,13 @@
                 if (data.length === 0) return;
 
                 const _yVals = data.map((el) => el.price);
-                const _xVals = data.map((el) => el.date);
+                const _xVals = data.map((el) => el.time);
 
                 const gaps = (d: any, i: any) =>
                     _xVals[i] instanceof Date && !isNaN(_yVals[i]);
 
                 const points = data.map((el) => ({
-                    x: el.date,
+                    x: el.time,
                     y: el.price,
                 }));
 
@@ -181,7 +164,6 @@
             const delaunayGrid = Delaunay.from(aggPointsScaled);
             voronoiGrid = delaunayGrid.voronoi([0, 0, width, height]);
 
-            graphReady = true;
         } catch (e) {
             console.log("error generating graph", e);
         }
@@ -224,10 +206,10 @@
         <nav
             class="hidden lg:flex justify-end ml-auto gap-1 rounded-lg px-1.5 bg-white dark:bg-neutral-900/50 border dark:border-0 border-neutral-200"
         >
-            {#each Object.values(PriceHistoryTerm) as v}
+            {#each Object.values(PriceHistoryInterval).reverse() as v}
                 <button
                     on:click={() => (term = v)}
-                    class={`h-8 w-7 text-xs font-semibold ${
+                    class={`h-8 w-7 text-xs font-semibold uppercase ${
                         term === v
                             ? "dark:text-white text-black"
                             : "dark:text-neutral-500 text-neutral-400"
@@ -238,7 +220,7 @@
             {/each}
         </nav>
     </div>
-    {#if graphReady && tokenData}
+    {#if tokenData}
         <svg
             {width}
             {height}

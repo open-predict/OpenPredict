@@ -25,6 +25,8 @@
     import type { TMarket } from "$lib/types.js";
     import PmTrade from "$lib/components/pm_trade.svelte";
     import { marketsFromSearch } from "$lib/utils/mics.js";
+    import OpTrade from "$lib/components/op_trade.svelte";
+    import { IconChevronDown } from "@tabler/icons-svelte";
 
     export let data;
 
@@ -169,7 +171,7 @@
             />
         {/if}
         {#if opMarket}
-            <OpMarketView market={opMarket} updateMarket={(m) => {}} />
+            <OpMarketView market={opMarket} updateMarket={(m) => {}} users={opUsers} />
         {/if}
         <!-- <div class="border-y">
             <nav class="flex space-x-8 -mb-px px-8">
@@ -296,6 +298,23 @@
                         updateMarket={(m) => {}}
                         selectedTokenId={selectedToken}
                         updateSelectedToken={(v) => (selectedToken = v)}
+                    />
+                </div>
+            {/if} -->
+            <!-- {#if opMarket}
+                <div class="p-4 xl:pr-0 gap-4 border-b border-neutral-200 dark:border-neutral-900">
+                    <div class="flex justify-between items-center mb-2">
+                    <h6 class="font-semibold text-lg">
+                        Trade
+                    </h6>
+                    <p class="flex flex-nowrap justify-center items-center gap-1">
+                        Buy
+                        <IconChevronDown size={16} stroke={2.4} />
+                    </p>
+                    </div>
+                    <OpTrade
+                        market={opMarket}
+                        updateMarket={()  => {}}
                     />
                 </div>
             {/if} -->

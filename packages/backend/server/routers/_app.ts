@@ -834,7 +834,12 @@ export const appRouter = router({
   ).query(async (opts) => {
     const data = chainCache.markets.get(opts.input.id)
     if (!data) {
-      return null
+      return {
+        data: null,
+        comments: [],
+        likes: [],
+        users: new Map<string, TUser | null>()
+      }
     };
     var users = new Map<string, TUser | null>
     const getUser = async (key: string) => {

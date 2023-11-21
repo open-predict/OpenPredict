@@ -28,6 +28,7 @@
     import LoadingOverlay from "./loading_overlay.svelte";
     import { api } from "$lib/api";
     import { base58 } from "ethers5/lib/utils";
+    import PmPosition from "./pm_position.svelte";
 
     export let market: marketFulldata;
     export let updateMarket: (market: marketFulldata) => void;
@@ -87,39 +88,32 @@
     // capped in beta
     $: maxBuy = microUsd + step * 100;
 
-    $: selectedToken
-        ? recalc(
-              market.data.data,
-              userShares.shares,
-              userShares.sharesUI,
-              microUsd,
-              selectedToken
-          )
-        : undefined;
-
     function recalc(
         data: marketChaindata,
         userShares: bigint,
         userSharesNumber: number,
         microUsdc: number,
-        token: TToken
+        token: TToken | undefined
     ) {
-        const chance = getChance(data.Yes, data.No) * 100
+        console.log("refreshing op_trade...");
+        const chance = getChance(data.Yes, data.No) * 100;
         tokens[0].bid = chance;
         tokens[0].ask = chance;
         tokens[1].ask = 100 - chance;
         tokens[1].bid = 100 - chance;
-        const expected = getBuyShareAmount(
-            data,
-            Math.round(microUsdc),
-            token.id === "yes"
-        );
-        expectedShares = BigInt(expected.shares.toString());
-        expectedChance = expected.newRatio;
-        expectedYes = BigInt(expected.newYes.toString());
-        expectedNo = BigInt(expected.newNo.toString());
-        if (userSharesNumber !== 0)
-            maxSell = Number(getSellUsdcLimit(data, userShares));
+        if (token) {
+            const expected = getBuyShareAmount(
+                data,
+                Math.round(microUsdc),
+                token.id === "yes"
+            );
+            expectedShares = BigInt(expected.shares.toString());
+            expectedChance = expected.newRatio;
+            expectedYes = BigInt(expected.newYes.toString());
+            expectedNo = BigInt(expected.newNo.toString());
+            if (userSharesNumber !== 0)
+                maxSell = Number(getSellUsdcLimit(data, userShares));
+        }
     }
 
     async function executeTrade() {
@@ -185,7 +179,7 @@
             ),
         });
 
-        if(res.error){
+        if (res.error) {
             errorMessage = res.error;
             return;
         }
@@ -242,6 +236,19 @@
         //     }
         // }
     }
+
+    $: recalc(
+        market.data.data,
+        userShares.shares,
+        userShares.sharesUI,
+        microUsd,
+        selectedToken
+    );
+
+    $: position = $web3Store?.solana?.address
+        ? market.data.UserAccounts.get($web3Store.solana.address)
+        : undefined;
+    $: positionValue = position ? Number(position.Shares) * (position.Shares < 0n ? -tokens[1].bid : tokens[0].bid) : 0 
 </script>
 
 <TradeLayout
@@ -355,9 +362,39 @@
         </div>
     {/if}
     <span slot="confirm">
-        {`Buy '${selectedToken?.outcome}' shares`}
+        {`Buy ${
+            Math.round((Number(expectedShares) * 10) / USDC_PER_DOLLAR) / 10
+        } '${selectedToken?.outcome}' shares`}
     </span>
 </TradeLayout>
+
+{#if position}
+    <div class="flex flex-col gap-1 divide-y divide-neutral-100 dark:divide-neutral-900">
+        <h4 class="text-md font-semibold mt-2">
+            {`Positions`}
+        </h4>
+        <PmPosition
+            token={tokens[0]}
+            shares={Math.round(Math.abs(Number(position.Shares) / USDC_PER_DOLLAR)*10)/10}
+            sell={() => {}}
+            value={usd.format(positionValue/(USDC_PER_DOLLAR * 100))}
+        />
+        <!-- {#each Array.from(market.orderdata.entries()).slice(0, 1) as token}
+        {#each token[1].positions.slice(0, 1) as position}
+            {#if market.data.tokens.find((t) => t.token_id === token[0])}
+                <PmPosition
+                    {market}
+                    {updateMarket}
+                    {position}
+                    token={market.data.tokens.find(
+                        (t) => t.token_id === token[0]
+                    )}
+                />
+            {/if}
+        {/each}
+    {/each} -->
+    </div>
+{/if}
 
 <!-- {#each Array.from(market.orderdata.entries()).slice(0, 1) as token}
             {#each token[1].positions.slice(0, 1) as position}

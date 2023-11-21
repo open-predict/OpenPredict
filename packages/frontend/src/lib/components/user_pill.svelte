@@ -12,7 +12,7 @@
     const [popperRef, popperContent] = createPopperActions();
 
     export let id: string;
-    export let user: TUser | undefined = undefined;
+    export let user: TUser | null | undefined = undefined;
     export let userMinimal: TUserMinimal | undefined = undefined;
 
     $: !user

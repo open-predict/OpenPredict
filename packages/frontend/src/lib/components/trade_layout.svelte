@@ -10,18 +10,18 @@
     export let selectToken: (t: TToken) => void;
     export let execute: () => void;
 
+    let tradeView: HTMLElement;
+
     async function onSelect() {
-        if (!browser) return;
-        var content = document.getElementById("content");
-        if (content) {
+        if (browser && tradeView) {
             if (selectedToken) {
                 await tick();
-                content.style.maxHeight = content.scrollHeight + "px";
+                tradeView.style.maxHeight = tradeView.scrollHeight + "px";
             } else {
-                content.style.minHeight = content.scrollHeight + "px";
+                tradeView.style.minHeight = tradeView.scrollHeight + "px";
                 await delay(50);
-                content.style.minHeight = "";
-                content.style.maxHeight = "";
+                tradeView.style.minHeight = "";
+                tradeView.style.maxHeight = "";
             }
         }
     }
@@ -73,27 +73,26 @@
                 : "dark:ring-transparent ring-neutral-200"
         }`}
     >
-        <div
-            class="flex gap-3 col-span-3 p-2 bg-neutral-100 dark:bg-neutral-900/60"
-        >
-            {#each tokens.sort( (a, b) => b.outcome.localeCompare(a.outcome) ) as token}
-                <button
-                    on:click={() => selectToken(token)}
-                    class={`h-10 w-full flex px-4 justify-start items-center gap-1 lg:gap-2 rounded-xl font-semibold mt-auto ${tokenBtnClass(
-                        token,
-                        selectedToken
-                    )}`}
-                >
-                    <span class="opacity-75">Buy</span>
-                    {token.outcome}
-                    <span class="ml-auto">
-                        {(token.ask ? (token.ask).toFixed(1) : "-- ") +
-                            "¢"}
-                    </span>
-                </button>
-            {/each}
+        <div class="p-2 bg-neutral-100 dark:bg-neutral-900/60">
+            <div class="flex gap-3 col-span-3">
+                {#each tokens.sort( (a, b) => b.outcome.localeCompare(a.outcome) ) as token}
+                    <button
+                        on:click={() => selectToken(token)}
+                        class={`h-10 w-full flex px-4 justify-start items-center gap-1 lg:gap-2 rounded-xl font-semibold mt-auto ${tokenBtnClass(
+                            token,
+                            selectedToken
+                        )}`}
+                    >
+                        <span class="opacity-75">Buy</span>
+                        {token.outcome}
+                        <span class="ml-auto">
+                            {(token.ask ? token.ask.toFixed(1) : "-- ") + "¢"}
+                        </span>
+                    </button>
+                {/each}
+            </div>
         </div>
-        <div class="content" id="content">
+        <div class="content" bind:this={tradeView}>
             {#if selectedToken}
                 <div
                     transition:fade={{ duration: 200, delay: 50 }}
@@ -106,12 +105,12 @@
                         class={`h-10 rounded-xl font-semibold cursor-pointer text-white ${tradeButtonClass}`}
                     >
                         <slot name="confirm" />
-                        <!-- {`Buy ${shares} '${selectedToken.outcome}' shares`} -->
                     </button>
                 </div>
             {/if}
         </div>
     </div>
+    <slot name="footer" />
 </div>
 
 <style>

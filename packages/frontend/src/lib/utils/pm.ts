@@ -61,7 +61,7 @@ export async function getOrderbookSummary(token_id: string, market: pmMarketFull
         orderdata.book.asks.length === 0 ||
         orderdata.book.bids.length === 0
     ) {
-        console.log("Requesting orderbook from clob directly...")
+        console.log("requesting orderbook from clob directly...")
         const clob = new ClobClient(PUBLIC_PM_CLOB_URL, Chain.POLYGON);
         const book = await clob.getOrderBook(token_id);
         if (book.bids) orderdata.book.bids = book.bids.map(e => [Number(e.price), Number(e.size)])

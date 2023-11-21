@@ -2,7 +2,8 @@ import log from "$lib/log";
 import { USDC_PER_DOLLAR, getChance } from "$lib/utils/op";
 import type { marketPricePoint } from "@am/backend/types/market";
 import moment from "moment";
-import type { MarketPrice } from "$lib/clob";
+import { PriceHistoryInterval } from "$lib/clob";
+import type { TToken, TTokenData, TTokenPricePoint } from "$lib/types";
 
 export const HOUR = 1000 * 60 * 60;
 export const DAY = 1000 * 60 * 60 * 24;
@@ -137,9 +138,9 @@ export function resampleOpMarketPricePoints(rawData: marketPricePoint[], term: P
 	return filled.map(dp => ({ ...dp, date: dp.date.toDate() }));
 }
 
-export function resamplePmPriceHistory(rawData: MarketPrice[], term: PriceHistoryTerm) {
+export function resamplePricePoints(rawData: TTokenPricePoint[], term: PriceHistoryInterval): TTokenPricePoint[] {
 
-	log("debug", "utils-resample", "resamplePmPriceHistory...")
+	log("debug", "utils-resample", "resamplePricePoints...")
 
 	let data = [...rawData];
 
@@ -148,28 +149,24 @@ export function resamplePmPriceHistory(rawData: MarketPrice[], term: PriceHistor
 	let period: TPeriod = "minute";
 
 	switch (term) {
-		case PriceHistoryTerm.DAY:
+		case PriceHistoryInterval.ONE_HOUR:
+			start = new Date(Date.now() - (1 * 60 * 60 * 1000));
+			period = "minute";
+			break;
+		case PriceHistoryInterval.SIX_HOURS:
+			start = new Date(Date.now() - (6 * 60 * 60 * 1000));
+			period = "minute";
+			break;
+		case PriceHistoryInterval.ONE_DAY:
 			start = new Date(Date.now() - (24 * 60 * 60 * 1000));
 			period = "minute";
 			break;
-		case PriceHistoryTerm.WEEK:
+		case PriceHistoryInterval.ONE_WEEK:
 			start = new Date(Date.now() - 7 * (24 * 60 * 60 * 1000));
 			period = "hour";
 			break;
-		case PriceHistoryTerm.MONTH:
-			start = new Date(Date.now() - 30 * (24 * 60 * 60 * 1000));
-			period = "day";
-			break;
-		case PriceHistoryTerm.THREEMONTH:
-			start = new Date(Date.now() - 90 * (24 * 60 * 60 * 1000));
-			period = "day";
-			break;
-		case PriceHistoryTerm.YEAR:
-			start = new Date(Date.now() - 365 * (24 * 60 * 60 * 1000));
-			period = "week";
-			break;
-		case PriceHistoryTerm.ALL:
-			start = data.length > 0 ? new Date(data[0].t) : new Date(Date.now() - (24 * 60 * 60 * 1000));
+		case PriceHistoryInterval.MAX:
+			start = data.length > 0 ? new Date(data[0].time) : new Date(Date.now() - (24 * 60 * 60 * 1000));
 			period = getIdealPeriod(start, end)
 			break;
 		default:
@@ -179,19 +176,19 @@ export function resamplePmPriceHistory(rawData: MarketPrice[], term: PriceHistor
 	}
 
 	// fill start & end date
-	const firstDp: MarketPrice =
+	const firstDp: TTokenPricePoint =
 		data.length > 0
-			? { ...data[0], t: start.getTime() }
+			? { ...data[0], time: start }
 			: {
-				t: start.getTime(),
-				p: 0
+				time: start,
+				price: 0
 			};
-	const lastDp: MarketPrice =
+	const lastDp: TTokenPricePoint =
 		data.length > 0
-			? { ...data[data.length - 1], t: end.getTime() }
+			? { ...data[data.length - 1], time: end}
 			: {
-				t: end.getTime(),
-				p: 0
+				time: end,
+				price: 0
 			};
 
 	data.unshift(firstDp);
@@ -200,8 +197,8 @@ export function resamplePmPriceHistory(rawData: MarketPrice[], term: PriceHistor
 	let startTime = moment(start).startOf(period)
 	let endTime = moment(end)
 	let datesResampled = data.map(value => {
-		let resampled = moment(value.t).startOf(period)
-		return { date: resampled, price: value.p * 100 }
+		let resampled = moment(value.time).startOf(period)
+		return { date: resampled, price: value.price * 100 }
 	})
 
 	type DPWithMoment = {
@@ -225,5 +222,5 @@ export function resamplePmPriceHistory(rawData: MarketPrice[], term: PriceHistor
 		startTime.add(1, period)
 	}
 
-	return filled.map(dp => ({ ...dp, date: dp.date.toDate() }));
+	return filled.map(dp => ({ ...dp, time: dp.date.toDate() }));
 }
